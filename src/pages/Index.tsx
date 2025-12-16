@@ -1,15 +1,8 @@
-import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState } from 'react';
 import Icon from '@/components/ui/icon';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { ChatSidebar } from '@/components/ChatSidebar';
+import { ChatArea } from '@/components/ChatArea';
+import { MessageInput } from '@/components/MessageInput';
 
 type UserRole = 'admin' | 'teacher' | 'parent';
 
@@ -38,8 +31,6 @@ type Chat = {
   unread: number;
   type: 'group' | 'private';
 };
-
-const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 const Index = () => {
   const [userRole] = useState<UserRole>('admin');
@@ -84,9 +75,6 @@ const Index = () => {
       ],
     },
   ]);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const mockChats: Chat[] = [
     {
@@ -218,339 +206,29 @@ const Index = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <div className="w-[420px] bg-card border-r border-border flex flex-col">
-        <div className="p-4 bg-card">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center p-2">
-                <img src="/linea-logo.svg" alt="LineaSchool" className="w-full h-full" />
-              </div>
-              <div>
-                <h1 className="font-semibold text-base">LineaSchool</h1>
-                <p className="text-xs text-muted-foreground">
-                  {userRole === 'admin' && 'Администратор'}
-                  {userRole === 'teacher' && 'Педагог'}
-                  {userRole === 'parent' && 'Родитель'}
-                </p>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <Icon name="Menu" size={20} />
-            </Button>
-          </div>
-
-          <div className="relative">
-            <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Поиск чатов..."
-              className="pl-9 h-9 bg-accent border-0 text-sm"
-            />
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1">
-          {mockChats.map((chat) => (
-            <button
-              key={chat.id}
-              onClick={() => setSelectedChat(chat.id)}
-              className={`w-full px-4 py-3 text-left transition-colors border-l-4 ${
-                selectedChat === chat.id 
-                  ? 'bg-accent border-primary' 
-                  : 'border-transparent hover:bg-accent/50'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Avatar className="w-12 h-12">
-                  <AvatarFallback className="bg-primary text-white text-sm">
-                    {chat.type === 'group' ? (
-                      <Icon name="Users" size={20} />
-                    ) : (
-                      <Icon name="User" size={20} />
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline justify-between mb-0.5">
-                    <h3 className="font-medium text-sm truncate text-foreground">{chat.name}</h3>
-                    <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                      {chat.timestamp}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm text-muted-foreground truncate flex-1">
-                      {chat.lastMessage}
-                    </p>
-                    {chat.unread > 0 && (
-                      <Badge className="bg-primary text-white text-xs px-2 py-0 h-5 min-w-5 rounded-full flex items-center justify-center">
-                        {chat.unread}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </button>
-          ))}
-        </ScrollArea>
-      </div>
+      <ChatSidebar 
+        userRole={userRole}
+        chats={mockChats}
+        selectedChat={selectedChat}
+        onSelectChat={setSelectedChat}
+      />
 
       <div className="flex-1 flex flex-col">
         {selectedChat ? (
           <>
-            <div className="bg-card border-b border-border px-4 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback className="bg-primary text-white">
-                      <Icon name="Users" size={18} />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h2 className="font-medium text-base">Группа: Иванов Пётр</h2>
-                    <p className="text-xs text-muted-foreground">
-                      5 участников
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" className="text-muted-foreground">
-                    <Icon name="Phone" size={20} />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground">
-                    <Icon name="Video" size={20} />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground">
-                    <Icon name="Search" size={20} />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground">
-                    <Icon name="MoreVertical" size={20} />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div 
-              className="flex-1 p-6 overflow-y-auto"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-              }}
-            >
-              <div className="space-y-3 max-w-5xl mx-auto">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex group ${message.isOwn ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className="relative">
-                      <div
-                        className={`max-w-md rounded-lg shadow-sm ${
-                          message.isOwn
-                            ? 'bg-[#D9FDD3] text-foreground rounded-br-none'
-                            : 'bg-card text-foreground rounded-bl-none'
-                        }`}
-                      >
-                        {!message.isOwn && (
-                          <p className="text-xs font-medium text-primary mb-1 px-3 pt-2">
-                            {message.sender}
-                          </p>
-                        )}
-
-                        {message.attachments && message.attachments.length > 0 && (
-                          <div className="space-y-1">
-                            {message.attachments.map((attachment, idx) => (
-                              <div key={idx}>
-                                {attachment.type === 'image' && attachment.fileUrl && (
-                                  <div className="p-1">
-                                    <img 
-                                      src={attachment.fileUrl} 
-                                      alt="Изображение" 
-                                      className="rounded-lg max-w-xs max-h-80 object-cover"
-                                    />
-                                  </div>
-                                )}
-                                
-                                {attachment.type === 'file' && (
-                                  <div className="px-3 py-2 flex items-center gap-3 min-w-[280px]">
-                                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                                      <Icon name="FileText" size={24} className="text-primary" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium truncate">{attachment.fileName}</p>
-                                      <p className="text-xs text-muted-foreground">{attachment.fileSize}</p>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="flex-shrink-0">
-                                      <Icon name="Download" size={18} />
-                                    </Button>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {message.text && (
-                          <div className="px-3 py-2">
-                            <p className="text-[14.2px] leading-[19px] break-words">{message.text}</p>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-end gap-1 px-3 pb-2">
-                          <span className="text-[11px] text-muted-foreground">
-                            {message.timestamp}
-                          </span>
-                          {message.isOwn && (
-                            <Icon name="CheckCheck" size={14} className="text-primary" />
-                          )}
-                        </div>
-                      </div>
-
-                      {message.reactions && message.reactions.length > 0 && (
-                        <div className="absolute -bottom-2 right-2 flex gap-1 bg-card rounded-full px-2 py-0.5 border border-border shadow-sm">
-                          {message.reactions.map((reaction, idx) => (
-                            <button
-                              key={idx}
-                              className="flex items-center gap-0.5 text-xs hover:scale-110 transition-transform"
-                              onClick={() => handleReaction(message.id, reaction.emoji)}
-                            >
-                              <span>{reaction.emoji}</span>
-                              <span className="text-muted-foreground">{reaction.count}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className={`absolute top-1 ${message.isOwn ? 'left-[-40px]' : 'right-[-40px]'} opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8`}
-                          >
-                            <Icon name="SmilePlus" size={16} />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-2">
-                          <div className="flex gap-1">
-                            {REACTIONS.map((emoji) => (
-                              <button
-                                key={emoji}
-                                onClick={() => handleReaction(message.id, emoji)}
-                                className="text-2xl hover:scale-125 transition-transform p-1"
-                              >
-                                {emoji}
-                              </button>
-                            ))}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-card border-t border-border px-4 py-3">
-              {attachments.length > 0 && (
-                <div className="mb-3 flex flex-wrap gap-2">
-                  {attachments.map((attachment, idx) => (
-                    <div 
-                      key={idx}
-                      className="relative group bg-accent rounded-lg overflow-hidden"
-                    >
-                      {attachment.type === 'image' && attachment.fileUrl && (
-                        <div className="relative">
-                          <img 
-                            src={attachment.fileUrl} 
-                            alt="Preview" 
-                            className="h-20 w-20 object-cover"
-                          />
-                          <button
-                            onClick={() => removeAttachment(idx)}
-                            className="absolute top-1 right-1 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Icon name="X" size={14} />
-                          </button>
-                        </div>
-                      )}
-                      
-                      {attachment.type === 'file' && (
-                        <div className="flex items-center gap-2 p-2 pr-8 min-w-[200px]">
-                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Icon name="FileText" size={20} className="text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate">{attachment.fileName}</p>
-                            <p className="text-[10px] text-muted-foreground">{attachment.fileSize}</p>
-                          </div>
-                          <button
-                            onClick={() => removeAttachment(idx)}
-                            className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Icon name="X" size={12} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="text-muted-foreground">
-                  <Icon name="Smile" size={20} />
-                </Button>
-                
-                <input
-                  ref={imageInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-muted-foreground"
-                  onClick={() => imageInputRef.current?.click()}
-                >
-                  <Icon name="Image" size={20} />
-                </Button>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-muted-foreground"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Icon name="Paperclip" size={20} />
-                </Button>
-
-                <Input
-                  placeholder="Введите сообщение"
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') handleSendMessage();
-                  }}
-                  className="flex-1 bg-card border-border h-10"
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  size="icon"
-                  className="bg-primary hover:bg-primary/90 text-white"
-                  disabled={!messageText.trim() && attachments.length === 0}
-                >
-                  <Icon name="Send" size={18} />
-                </Button>
-              </div>
-            </div>
+            <ChatArea 
+              messages={messages}
+              onReaction={handleReaction}
+            />
+            <MessageInput 
+              messageText={messageText}
+              attachments={attachments}
+              onMessageChange={setMessageText}
+              onSendMessage={handleSendMessage}
+              onFileUpload={handleFileUpload}
+              onImageUpload={handleImageUpload}
+              onRemoveAttachment={removeAttachment}
+            />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-accent/20">
