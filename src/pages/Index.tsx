@@ -139,25 +139,17 @@ const Index = () => {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      const newAttachments: AttachedFile[] = [];
-      let filesProcessed = 0;
-      
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      Array.from(files).forEach((file) => {
         const reader = new FileReader();
         reader.onload = (e) => {
-          newAttachments.push({
+          const newAttachment: AttachedFile = {
             type: 'image',
             fileUrl: e.target?.result as string,
-          });
-          filesProcessed++;
-          
-          if (filesProcessed === files.length) {
-            setAttachments(prev => [...prev, ...newAttachments]);
-          }
+          };
+          setAttachments(prev => [...prev, newAttachment]);
         };
         reader.readAsDataURL(file);
-      }
+      });
     }
     if (event.target) event.target.value = '';
   };
