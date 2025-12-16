@@ -131,7 +131,7 @@ const Index = () => {
           fileSize: `${(file.size / 1024).toFixed(0)} KB`,
         });
       }
-      setAttachments([...attachments, ...newAttachments]);
+      setAttachments(prev => [...prev, ...newAttachments]);
     }
     if (event.target) event.target.value = '';
   };
