@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import {
@@ -5,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 type AttachedFile = {
   type: 'image' | 'file';
@@ -31,6 +33,26 @@ type MessageBubbleProps = {
 };
 
 export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const images = message.attachments?.filter(a => a.type === 'image') || [];
+  const files = message.attachments?.filter(a => a.type === 'file') || [];
+
+  const getGridLayout = (count: number) => {
+    if (count === 1) return 'grid-cols-1';
+    if (count === 2) return 'grid-cols-2';
+    if (count === 3) return 'grid-cols-3';
+    return 'grid-cols-2';
+  };
+
+  const getImageSize = (count: number, idx: number) => {
+    if (count === 1) return 'aspect-square max-w-xs';
+    if (count === 2) return 'aspect-square';
+    if (count === 3 && idx === 0) return 'col-span-3 aspect-video';
+    if (count === 3) return 'aspect-square';
+    return 'aspect-square';
+  };
+
   return (
     <div
       className={`flex group ${message.isOwn ? 'justify-end' : 'justify-start'}`}
@@ -49,34 +71,45 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
             </p>
           )}
 
-          {message.attachments && message.attachments.length > 0 && (
+          {images.length > 0 && (
+            <div className="p-1">
+              <div className={`grid gap-0.5 ${getGridLayout(images.length)} max-w-xs`}>
+                {images.map((img, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`${getImageSize(images.length, idx)} overflow-hidden rounded-lg cursor-pointer relative group/img`}
+                    onClick={() => setSelectedImage(img.fileUrl || null)}
+                  >
+                    <img 
+                      src={img.fileUrl} 
+                      alt={`Изображение ${idx + 1}`}
+                      className="w-full h-full object-cover group-hover/img:brightness-90 transition-all"
+                    />
+                    {images.length > 4 && idx === 3 && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <span className="text-white text-3xl font-medium">+{images.length - 4}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {files.length > 0 && (
             <div className="space-y-1">
-              {message.attachments.map((attachment, idx) => (
-                <div key={idx}>
-                  {attachment.type === 'image' && attachment.fileUrl && (
-                    <div className="p-1">
-                      <img 
-                        src={attachment.fileUrl} 
-                        alt="Изображение" 
-                        className="rounded-lg max-w-xs max-h-80 object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {attachment.type === 'file' && (
-                    <div className="px-3 py-2 flex items-center gap-3 min-w-[280px]">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <Icon name="FileText" size={24} className="text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{attachment.fileName}</p>
-                        <p className="text-xs text-muted-foreground">{attachment.fileSize}</p>
-                      </div>
-                      <Button variant="ghost" size="icon" className="flex-shrink-0">
-                        <Icon name="Download" size={18} />
-                      </Button>
-                    </div>
-                  )}
+              {files.map((file, idx) => (
+                <div key={idx} className="px-3 py-2 flex items-center gap-3 min-w-[280px]">
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Icon name="FileText" size={24} className="text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{file.fileName}</p>
+                    <p className="text-xs text-muted-foreground">{file.fileSize}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="flex-shrink-0">
+                    <Icon name="Download" size={18} />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -138,6 +171,28 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
           </PopoverContent>
         </Popover>
       </div>
+
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-none">
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white"
+              onClick={() => setSelectedImage(null)}
+            >
+              <Icon name="X" size={24} />
+            </Button>
+            {selectedImage && (
+              <img 
+                src={selectedImage} 
+                alt="Увеличенное изображение"
+                className="w-full h-auto max-h-[90vh] object-contain"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
