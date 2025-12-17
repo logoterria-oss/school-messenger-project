@@ -6,7 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 type AttachedFile = {
   type: 'image' | 'file';
@@ -47,24 +47,42 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
   };
 
   const nextImage = () => {
-    if (selectedImageIndex !== null && selectedImageIndex < images.length - 1) {
-      setSelectedImageIndex(selectedImageIndex + 1);
-    }
+    setSelectedImageIndex(prev => {
+      if (prev !== null && prev < images.length - 1) {
+        return prev + 1;
+      }
+      return prev;
+    });
   };
 
   const prevImage = () => {
-    if (selectedImageIndex !== null && selectedImageIndex > 0) {
-      setSelectedImageIndex(selectedImageIndex - 1);
-    }
+    setSelectedImageIndex(prev => {
+      if (prev !== null && prev > 0) {
+        return prev - 1;
+      }
+      return prev;
+    });
   };
 
   useEffect(() => {
     if (selectedImageIndex === null) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') nextImage();
-      if (e.key === 'ArrowLeft') prevImage();
-      if (e.key === 'Escape') closeImage();
+      if (e.key === 'ArrowRight') {
+        setSelectedImageIndex(prev => {
+          if (prev !== null && prev < images.length - 1) return prev + 1;
+          return prev;
+        });
+      }
+      if (e.key === 'ArrowLeft') {
+        setSelectedImageIndex(prev => {
+          if (prev !== null && prev > 0) return prev - 1;
+          return prev;
+        });
+      }
+      if (e.key === 'Escape') {
+        setSelectedImageIndex(null);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -207,6 +225,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
 
       <Dialog open={selectedImageIndex !== null} onOpenChange={closeImage}>
         <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-none">
+          <DialogTitle className="sr-only">Просмотр изображения</DialogTitle>
           <div className="relative">
             <Button
               variant="ghost"
