@@ -37,44 +37,91 @@ const Index = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>('1');
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Здравствуйте! Как успехи Пети?',
-      sender: 'Мама Иванова',
-      timestamp: '14:20',
-      isOwn: false,
-    },
-    {
-      id: '2',
-      text: 'Добрый день! Петя хорошо справляется с программой.',
-      sender: 'Вы',
-      timestamp: '14:21',
-      isOwn: true,
-    },
-    {
-      id: '3',
-      text: 'Вот фото с урока',
-      attachments: [{
-        type: 'image',
-        fileUrl: 'https://cdn.poehali.dev/files/WhatsApp%20Image%202025-11-04%20at%2017.17.39.jpeg',
-      }],
-      sender: 'Мама Иванова',
-      timestamp: '14:22',
-      isOwn: false,
-    },
-    {
-      id: '4',
-      text: 'Домашнее задание выполнено полностью.',
-      sender: 'Мама Иванова',
-      timestamp: '14:23',
-      isOwn: false,
-      reactions: [
-        { emoji: '👍', count: 2, users: ['Учитель', 'Администратор'] },
-        { emoji: '❤️', count: 1, users: ['Вы'] },
-      ],
-    },
-  ]);
+  
+  const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
+    '1': [
+      {
+        id: '1',
+        text: 'Здравствуйте! Как успехи Пети?',
+        sender: 'Мама Иванова',
+        timestamp: '14:20',
+        isOwn: false,
+      },
+      {
+        id: '2',
+        text: 'Добрый день! Петя хорошо справляется с программой.',
+        sender: 'Вы',
+        timestamp: '14:21',
+        isOwn: true,
+      },
+      {
+        id: '3',
+        text: 'Вот фото с урока',
+        attachments: [{
+          type: 'image',
+          fileUrl: 'https://cdn.poehali.dev/files/WhatsApp%20Image%202025-11-04%20at%2017.17.39.jpeg',
+        }],
+        sender: 'Мама Иванова',
+        timestamp: '14:22',
+        isOwn: false,
+      },
+      {
+        id: '4',
+        text: 'Домашнее задание выполнено полностью.',
+        sender: 'Мама Иванова',
+        timestamp: '14:23',
+        isOwn: false,
+        reactions: [
+          { emoji: '👍', count: 2, users: ['Учитель', 'Администратор'] },
+          { emoji: '❤️', count: 1, users: ['Вы'] },
+        ],
+      },
+    ],
+    '2': [
+      {
+        id: '1',
+        text: 'Добрый день! Хотела уточнить по расписанию',
+        sender: 'Мама Петрова Анна',
+        timestamp: '13:40',
+        isOwn: false,
+      },
+      {
+        id: '2',
+        text: 'Здравствуйте! Расписание не изменилось, всё по плану',
+        sender: 'Вы',
+        timestamp: '13:43',
+        isOwn: true,
+      },
+      {
+        id: '3',
+        text: 'Спасибо за информацию',
+        sender: 'Мама Петрова Анна',
+        timestamp: '13:45',
+        isOwn: false,
+      },
+    ],
+    '3': [
+      {
+        id: '1',
+        text: 'Отличная работа на контрольной!',
+        sender: 'Учитель математики',
+        timestamp: 'Вчера',
+        isOwn: false,
+      },
+      {
+        id: '2',
+        text: 'Спасибо большое!',
+        sender: 'Мама Смирнова',
+        timestamp: 'Вчера',
+        isOwn: false,
+        reactions: [
+          { emoji: '👍', count: 1, users: ['Учитель математики'] },
+        ],
+      },
+    ],
+  });
+
+  const messages = selectedChat ? (chatMessages[selectedChat] || []) : [];
 
   const mockChats: Chat[] = [
     {
@@ -104,19 +151,23 @@ const Index = () => {
   ];
 
   const handleSendMessage = () => {
-    if (messageText.trim() || attachments.length > 0) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: messageText || undefined,
-        sender: 'Вы',
-        timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-        isOwn: true,
-        attachments: attachments.length > 0 ? attachments : undefined,
-      };
-      setMessages([...messages, newMessage]);
-      setMessageText('');
-      setAttachments([]);
-    }
+    if (!selectedChat || (!messageText.trim() && attachments.length === 0)) return;
+    
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text: messageText || undefined,
+      sender: 'Вы',
+      timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      isOwn: true,
+      attachments: attachments.length > 0 ? attachments : undefined,
+    };
+    
+    setChatMessages(prev => ({
+      ...prev,
+      [selectedChat]: [...(prev[selectedChat] || []), newMessage]
+    }));
+    setMessageText('');
+    setAttachments([]);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,40 +210,45 @@ const Index = () => {
   };
 
   const handleReaction = (messageId: string, emoji: string) => {
-    setMessages(messages.map(msg => {
-      if (msg.id === messageId) {
-        const reactions = msg.reactions || [];
-        const existingReaction = reactions.find(r => r.emoji === emoji);
-        
-        if (existingReaction) {
-          if (existingReaction.users.includes('Вы')) {
-            return {
-              ...msg,
-              reactions: reactions
-                .map(r => r.emoji === emoji 
-                  ? { ...r, count: r.count - 1, users: r.users.filter(u => u !== 'Вы') }
-                  : r
+    if (!selectedChat) return;
+    
+    setChatMessages(prev => ({
+      ...prev,
+      [selectedChat]: (prev[selectedChat] || []).map(msg => {
+        if (msg.id === messageId) {
+          const reactions = msg.reactions || [];
+          const existingReaction = reactions.find(r => r.emoji === emoji);
+          
+          if (existingReaction) {
+            if (existingReaction.users.includes('Вы')) {
+              return {
+                ...msg,
+                reactions: reactions
+                  .map(r => r.emoji === emoji 
+                    ? { ...r, count: r.count - 1, users: r.users.filter(u => u !== 'Вы') }
+                    : r
+                  )
+                  .filter(r => r.count > 0)
+              };
+            } else {
+              return {
+                ...msg,
+                reactions: reactions.map(r => 
+                  r.emoji === emoji 
+                    ? { ...r, count: r.count + 1, users: [...r.users, 'Вы'] }
+                    : r
                 )
-                .filter(r => r.count > 0)
-            };
+              };
+            }
           } else {
             return {
               ...msg,
-              reactions: reactions.map(r => 
-                r.emoji === emoji 
-                  ? { ...r, count: r.count + 1, users: [...r.users, 'Вы'] }
-                  : r
-              )
+              reactions: [...reactions, { emoji, count: 1, users: ['Вы'] }]
             };
           }
-        } else {
-          return {
-            ...msg,
-            reactions: [...reactions, { emoji, count: 1, users: ['Вы'] }]
-          };
         }
-      }
-      return msg;
+        return msg;
+      })
     }));
   };
 
@@ -211,6 +267,7 @@ const Index = () => {
             <ChatArea 
               messages={messages}
               onReaction={handleReaction}
+              chatName={mockChats.find(c => c.id === selectedChat)?.name || ''}
             />
             <MessageInput 
               messageText={messageText}

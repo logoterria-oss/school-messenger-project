@@ -23,9 +23,10 @@ type Message = {
 type ChatAreaProps = {
   messages: Message[];
   onReaction: (messageId: string, emoji: string) => void;
+  chatName: string;
 };
 
-export const ChatArea = ({ messages, onReaction }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName }: ChatAreaProps) => {
   return (
     <>
       <div className="bg-card border-b border-border px-4 py-3">
@@ -37,9 +38,9 @@ export const ChatArea = ({ messages, onReaction }: ChatAreaProps) => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-medium text-base">Группа: Иванов Пётр</h2>
+              <h2 className="font-medium text-base">{chatName}</h2>
               <p className="text-xs text-muted-foreground">
-                5 участников
+                {chatName.startsWith('Группа:') ? '5 участников' : 'Личный чат'}
               </p>
             </div>
           </div>
