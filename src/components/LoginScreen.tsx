@@ -99,8 +99,9 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                       <div className="text-4xl">Я -</div>
                       <div className="text-2xl">{role.name}</div>
                     </h3>
-                    <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
                       <span className="text-base font-medium">Войти</span>
+                      <span className="text-base">→</span>
                     </div>
                   </div>
                 </div>
