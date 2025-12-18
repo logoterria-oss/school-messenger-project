@@ -126,7 +126,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <img 
             src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
             alt="LineaSchool" 
-            className="rounded-3xl animate-[expand_1.5s_ease-in-out_forwards]"
+            className="rounded-3xl object-cover"
             style={{
               animation: 'expand 1.5s ease-in-out forwards'
             }}
@@ -137,16 +137,19 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 width: 112px;
                 height: 112px;
                 opacity: 1;
+                transform: scale(1);
               }
               70% {
-                width: 100vw;
-                height: 100vh;
+                width: 112px;
+                height: 112px;
                 opacity: 0.5;
+                transform: scale(15);
               }
               100% {
-                width: 100vw;
-                height: 100vh;
+                width: 112px;
+                height: 112px;
                 opacity: 0;
+                transform: scale(20);
               }
             }
           `}</style>
