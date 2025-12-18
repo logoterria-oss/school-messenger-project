@@ -48,7 +48,7 @@ export const ChatSidebar = ({ userRole, chats, selectedChat, onSelectChat, onLog
             <div>
               <h1 className="text-base font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
               <p className="text-xs text-muted-foreground">
-                {userRole === 'admin' && 'Администратор'}
+                {userRole === 'admin' && 'Виктория Абраменко (админ)'}
                 {userRole === 'teacher' && 'Педагог'}
                 {userRole === 'parent' && 'Родитель'}
                 {userRole === 'student' && 'Ученик'}
