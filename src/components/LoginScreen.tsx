@@ -94,7 +94,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                   </div>
                   
                   <div className="flex-1 text-left">
-                    <h3 className="text-xl font-bold mb-1" style={{ fontFamily: 'OpenDyslexic, sans-serif' }}>{role.name}</h3>
+                    <h3 className="text-xl font-bold mb-1" style={{ fontFamily: 'Comic Sans MS, Comic Sans, cursive' }}>{role.name}</h3>
                     <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="text-sm font-medium">Войти</span>
                     </div>
