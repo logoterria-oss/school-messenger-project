@@ -85,7 +85,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               <button
                 key={role.id}
                 onClick={() => handleRoleSelect(role.id)}
-                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl p-8 border-2 border-border hover:border-primary/50 overflow-hidden"
+                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl p-6 border-2 border-border hover:border-primary/50 overflow-hidden"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                 
@@ -95,7 +95,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                   </div>
                   
                   <div className="flex-1 text-left">
-                    <h3 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Comic Sans MS, Comic Sans, cursive' }}>{role.name}</h3>
+                    <h3 className="text-2xl font-bold mb-2" style={{ fontFamily: 'Comic Sans MS, Comic Sans, cursive' }}>{role.name}</h3>
                     <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="text-base font-medium">Войти</span>
                     </div>
