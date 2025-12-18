@@ -68,15 +68,16 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center mb-3">
-              <img 
-                src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
-                alt="LineaSchool" 
-                className="w-28 h-28 rounded-3xl shadow-xl" 
-              />
+          <div className="flex items-center justify-center gap-6 mb-8">
+            <img 
+              src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
+              alt="LineaSchool" 
+              className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0" 
+            />
+            <div className="flex flex-col">
+              <h1 className="text-5xl font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
+              <p className="text-xl font-normal" style={{ color: '#3BA662' }}>мессенджер</p>
             </div>
-            <h1 className="text-5xl font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
