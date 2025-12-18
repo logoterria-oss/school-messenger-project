@@ -116,27 +116,41 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const currentRole = ROLES.find(r => r.id === selectedRole)!;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col items-center justify-center p-4">
+      <div className="flex items-center justify-center gap-6 mb-8">
+        <img 
+          src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
+          alt="LineaSchool" 
+          className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0" 
+        />
+        <div className="flex flex-col">
+          <h1 className="text-5xl font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
+          <p className="text-xl font-normal" style={{ color: '#3BA662' }}>мессенджер</p>
+        </div>
+      </div>
+
       <div className="w-full max-w-md">
-        <div className="bg-card rounded-3xl shadow-2xl p-8 border border-border">
+        <div className="bg-card rounded-xl shadow-xl p-6 border-2 border-border">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
           >
             <Icon name="ArrowLeft" size={20} />
             <span className="text-sm font-medium">Назад</span>
           </button>
 
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-4 shadow-lg overflow-hidden">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-20 h-20 rounded-full shadow-lg flex-shrink-0 overflow-hidden">
               <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Вход как {currentRole.name}</h2>
-            <p className="text-sm text-muted-foreground">
-              {selectedRole === 'admin' 
-                ? 'Введите данные администратора' 
-                : 'Введите данные, полученные от администратора'}
-            </p>
+            <div className="flex-1 text-left">
+              <h2 className="text-xl font-bold mb-1">Вход как {currentRole.name}</h2>
+              <p className="text-xs text-muted-foreground">
+                {selectedRole === 'admin' 
+                  ? 'Введите данные администратора' 
+                  : 'Введите данные, полученные от администратора'}
+              </p>
+            </div>
           </div>
 
           <div className="space-y-4">
