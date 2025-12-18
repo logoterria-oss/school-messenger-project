@@ -1,9 +1,17 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Icon from '@/components/ui/icon';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -21,9 +29,10 @@ type ChatSidebarProps = {
   chats: Chat[];
   selectedChat: string | null;
   onSelectChat: (chatId: string) => void;
+  onLogout?: () => void;
 };
 
-export const ChatSidebar = ({ userRole, chats, selectedChat, onSelectChat }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, chats, selectedChat, onSelectChat, onLogout }: ChatSidebarProps) => {
   return (
     <div className="w-[420px] bg-card border-r border-border flex flex-col">
       <div className="p-4 bg-card">
@@ -42,9 +51,28 @@ export const ChatSidebar = ({ userRole, chats, selectedChat, onSelectChat }: Cha
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <Icon name="Menu" size={20} />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-muted-foreground">
+                <Icon name="Menu" size={20} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem>
+                <Icon name="User" size={16} className="mr-2" />
+                Профиль
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Icon name="Settings" size={16} className="mr-2" />
+                Настройки
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onLogout} className="text-destructive">
+                <Icon name="LogOut" size={16} className="mr-2" />
+                Выйти
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="relative">

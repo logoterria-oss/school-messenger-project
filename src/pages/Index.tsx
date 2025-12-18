@@ -252,6 +252,14 @@ const Index = () => {
     setIsAuthenticated(true);
   };
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setUserRole(null);
+    setSelectedChat(null);
+    setMessageText('');
+    setAttachments([]);
+  };
+
   const handleReaction = (messageId: string, emoji: string) => {
     if (!selectedChat) return;
     
@@ -301,7 +309,8 @@ const Index = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <ChatSidebar 
+      <ChatSidebar
+        onLogout={handleLogout} 
         userRole={userRole}
         chats={chats}
         selectedChat={selectedChat}
