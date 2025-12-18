@@ -84,18 +84,20 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               <button
                 key={role.id}
                 onClick={() => handleRoleSelect(role.id)}
-                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl p-5 border-2 border-border hover:border-primary/50 overflow-hidden"
+                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl p-6 border-2 border-border hover:border-primary/50 overflow-hidden"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                 
-                <div className="relative">
-                  <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${role.color} rounded-full mb-3 shadow-lg`}>
-                    <Icon name={role.icon} size={24} className="text-white" />
+                <div className="relative flex items-center gap-4">
+                  <div className={`flex items-center justify-center w-16 h-16 bg-gradient-to-br ${role.color} rounded-2xl shadow-lg flex-shrink-0`}>
+                    <Icon name={role.icon} size={32} className="text-white" />
                   </div>
-                  <h3 className="text-base font-bold mb-1">{role.name}</h3>
-                  <div className="flex items-center justify-center text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-xs font-medium">Войти</span>
-                    <Icon name="ArrowRight" size={14} className="ml-1" />
+                  
+                  <div className="flex-1 text-left">
+                    <h3 className="text-lg font-bold mb-1">{role.name}</h3>
+                    <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-sm font-medium">Войти</span>
+                    </div>
                   </div>
                 </div>
               </button>
