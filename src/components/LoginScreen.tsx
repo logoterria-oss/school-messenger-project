@@ -10,10 +10,10 @@ type LoginScreenProps = {
 };
 
 const ROLES = [
-  { id: 'student' as UserRole, name: 'Ученик', image: 'https://cdn.poehali.dev/files/Ученик.jpg', color: 'from-[#52B788] to-[#40916C]' },
-  { id: 'parent' as UserRole, name: 'Родитель', image: 'https://cdn.poehali.dev/files/Родитель.jpg', color: 'from-[#74C69D] to-[#52B788]' },
-  { id: 'teacher' as UserRole, name: 'Педагог', image: 'https://cdn.poehali.dev/files/Педагог.jpg', color: 'from-[#40916C] to-[#2D6A4F]' },
-  { id: 'admin' as UserRole, name: 'Админ', image: 'https://cdn.poehali.dev/files/Админ.jpg', color: 'from-[#2D6A4F] to-[#1B4332]' },
+  { id: 'student' as UserRole, name: 'ученик', image: 'https://cdn.poehali.dev/files/Ученик.jpg', color: 'from-[#52B788] to-[#40916C]' },
+  { id: 'parent' as UserRole, name: 'родитель', image: 'https://cdn.poehali.dev/files/Родитель.jpg', color: 'from-[#74C69D] to-[#52B788]' },
+  { id: 'teacher' as UserRole, name: 'педагог', image: 'https://cdn.poehali.dev/files/Педагог.jpg', color: 'from-[#40916C] to-[#2D6A4F]' },
+  { id: 'admin' as UserRole, name: 'админ', image: 'https://cdn.poehali.dev/files/Админ.jpg', color: 'from-[#2D6A4F] to-[#1B4332]' },
 ];
 
 const ADMIN_LOGINS = ['79236251611', '89236251611', '9236251611', 'abram.viktoriya.00@mail.ru'];
@@ -95,7 +95,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                   </div>
                   
                   <div className="flex-1 text-left">
-                    <h3 className="text-2xl font-bold mb-2" style={{ color: '#5B7C99' }}>{role.name}</h3>
+                    <h3 className="text-2xl font-bold mb-2" style={{ color: '#5B7C99' }}>
+                      <div>Я</div>
+                      <div>{role.name}</div>
+                    </h3>
                     <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="text-base font-medium">Войти</span>
                     </div>
