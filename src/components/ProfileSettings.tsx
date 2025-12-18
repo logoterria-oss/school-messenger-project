@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ImageCropDialog } from './ImageCropDialog';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -19,7 +20,20 @@ export const ProfileSettings = ({ userRole, onBack }: ProfileSettingsProps) => {
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const savedProfile = localStorage.getItem(`profile_${userRole}`);
+    if (savedProfile) {
+      const data = JSON.parse(savedProfile);
+      setName(data.name || '');
+      setEmail(data.email || '');
+      setPhone(data.phone || '');
+      setBio(data.bio || '');
+      setAvatarUrl(data.avatarUrl || null);
+    }
+  }, [userRole]);
 
   const getRoleName = (role: UserRole) => {
     switch (role) {
@@ -35,19 +49,40 @@ export const ProfileSettings = ({ userRole, onBack }: ProfileSettingsProps) => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setAvatarUrl(e.target?.result as string);
+        setTempImageUrl(e.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
+    if (event.target) event.target.value = '';
+  };
+
+  const handleCropSave = (croppedImageUrl: string) => {
+    setAvatarUrl(croppedImageUrl);
+    setTempImageUrl(null);
+  };
+
+  const handleCropCancel = () => {
+    setTempImageUrl(null);
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      console.log('Сохранение профиля:', { name, email, phone, bio, avatarUrl });
+      const profileData = {
+        name,
+        email,
+        phone,
+        bio,
+        avatarUrl,
+        updatedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem(`profile_${userRole}`, JSON.stringify(profileData));
+      
+      console.log('Профиль сохранён:', profileData);
       
       alert('Профиль успешно сохранён!');
       onBack();
@@ -60,7 +95,15 @@ export const ProfileSettings = ({ userRole, onBack }: ProfileSettingsProps) => {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <>
+      {tempImageUrl && (
+        <ImageCropDialog
+          imageUrl={tempImageUrl}
+          onSave={handleCropSave}
+          onCancel={handleCropCancel}
+        />
+      )}
+      <div className="flex-1 flex flex-col bg-background">
       <div className="bg-card border-b border-border px-6 py-4 shadow-sm">
         <div className="flex items-center gap-4">
           <Button
@@ -226,5 +269,6 @@ export const ProfileSettings = ({ userRole, onBack }: ProfileSettingsProps) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
