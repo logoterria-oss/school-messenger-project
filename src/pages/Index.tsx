@@ -6,6 +6,7 @@ import { MessageInput } from '@/components/MessageInput';
 import { LoginScreen } from '@/components/LoginScreen';
 import { ProfileSettings } from '@/components/ProfileSettings';
 import { AppSettings } from '@/components/AppSettings';
+import { GroupTopics } from '@/components/GroupTopics';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -35,14 +36,46 @@ type Chat = {
   type: 'group' | 'private';
 };
 
+type Topic = {
+  id: string;
+  name: string;
+  icon: string;
+  lastMessage: string;
+  timestamp: string;
+  unread: number;
+};
+
+type GroupTopics = {
+  [groupId: string]: Topic[];
+};
+
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'settings'>('chat');
+  const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'settings' | 'topics'>('chat');
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
   const [chats, setChats] = useState<Chat[]>([]);
+  
+  const [groupTopics] = useState<GroupTopics>({
+    '1': [
+      { id: '1-important', name: 'Важное', icon: 'AlertCircle', lastMessage: 'Домашнее задание выполнено полностью', timestamp: '14:23', unread: 2 },
+      { id: '1-zoom', name: 'Ссылки Zoom', icon: 'Video', lastMessage: 'Ссылка на урок: zoom.us/j/123...', timestamp: '10:15', unread: 0 },
+      { id: '1-homework', name: 'Домашние задания', icon: 'BookOpen', lastMessage: 'Задание на завтра: страницы 45-50', timestamp: 'Вчера', unread: 1 },
+      { id: '1-reports', name: 'Отчеты о занятиях', icon: 'FileText', lastMessage: 'Отчет за неделю загружен', timestamp: '2 дня', unread: 0 },
+      { id: '1-payment', name: 'Оплата', icon: 'CreditCard', lastMessage: 'Счет на месяц отправлен', timestamp: '3 дня', unread: 1 },
+    ],
+    '3': [
+      { id: '3-important', name: 'Важное', icon: 'AlertCircle', lastMessage: 'Отличная работа на контрольной!', timestamp: 'Вчера', unread: 5 },
+      { id: '3-zoom', name: 'Ссылки Zoom', icon: 'Video', lastMessage: 'Занятие в 15:00', timestamp: 'Вчера', unread: 0 },
+      { id: '3-homework', name: 'Домашние задания', icon: 'BookOpen', lastMessage: 'Новое задание по математике', timestamp: '2 дня', unread: 0 },
+      { id: '3-reports', name: 'Отчеты о занятиях', icon: 'FileText', lastMessage: 'Отчет готов', timestamp: '3 дня', unread: 0 },
+      { id: '3-payment', name: 'Оплата', icon: 'CreditCard', lastMessage: 'Оплачено', timestamp: '5 дней', unread: 0 },
+    ],
+  });
   
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
     '1': [
@@ -183,12 +216,31 @@ const Index = () => {
   }, []);
 
   const handleSelectChat = (chatId: string) => {
-    setSelectedChat(chatId);
-    setChats(prevChats => 
-      prevChats.map(chat => 
-        chat.id === chatId ? { ...chat, unread: 0 } : chat
-      )
-    );
+    const chat = chats.find(c => c.id === chatId);
+    if (chat && chat.type === 'group') {
+      setSelectedGroup(chatId);
+      setCurrentView('topics');
+    } else {
+      setSelectedChat(chatId);
+      setSelectedTopic(null);
+      setChats(prevChats => 
+        prevChats.map(chat => 
+          chat.id === chatId ? { ...chat, unread: 0 } : chat
+        )
+      );
+    }
+  };
+
+  const handleSelectTopic = (topicId: string) => {
+    setSelectedTopic(topicId);
+    setSelectedChat(topicId);
+    setCurrentView('chat');
+  };
+
+  const handleBackFromTopics = () => {
+    setSelectedGroup(null);
+    setSelectedTopic(null);
+    setCurrentView('chat');
   };
 
   const handleSendMessage = () => {
@@ -260,6 +312,8 @@ const Index = () => {
     setUserRole(null);
     setCurrentView('chat');
     setSelectedChat(null);
+    setSelectedGroup(null);
+    setSelectedTopic(null);
     setMessageText('');
     setAttachments([]);
   };
@@ -274,6 +328,8 @@ const Index = () => {
 
   const handleBackToChat = () => {
     setCurrentView('chat');
+    setSelectedGroup(null);
+    setSelectedTopic(null);
   };
 
   const handleReaction = (messageId: string, emoji: string) => {
@@ -335,6 +391,19 @@ const Index = () => {
     return (
       <div className="flex h-screen bg-background">
         <AppSettings onBack={handleBackToChat} />
+      </div>
+    );
+  }
+
+  if (currentView === 'topics' && selectedGroup && groupTopics[selectedGroup]) {
+    return (
+      <div className="flex h-screen bg-background">
+        <GroupTopics
+          groupName={chats.find(c => c.id === selectedGroup)?.name || ''}
+          topics={groupTopics[selectedGroup]}
+          onSelectTopic={handleSelectTopic}
+          onBack={handleBackFromTopics}
+        />
       </div>
     );
   }
