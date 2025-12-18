@@ -85,7 +85,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               <button
                 key={role.id}
                 onClick={() => handleRoleSelect(role.id)}
-                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl p-6 border-2 border-border hover:border-primary/50 overflow-hidden"
+                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-4 border-2 border-border hover:border-primary/50 overflow-hidden"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                 
