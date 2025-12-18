@@ -13,7 +13,7 @@ const ROLES = [
   { id: 'student' as UserRole, name: 'Ученик', icon: 'GraduationCap', color: 'from-[#52B788] to-[#40916C]' },
   { id: 'parent' as UserRole, name: 'Родитель', icon: 'Heart', color: 'from-[#74C69D] to-[#52B788]' },
   { id: 'teacher' as UserRole, name: 'Педагог', icon: 'Award', color: 'from-[#40916C] to-[#2D6A4F]' },
-  { id: 'admin' as UserRole, name: 'Администратор', icon: 'Settings', color: 'from-[#2D6A4F] to-[#1B4332]' },
+  { id: 'admin' as UserRole, name: 'Админ', icon: 'Settings', color: 'from-[#2D6A4F] to-[#1B4332]' },
 ];
 
 const ADMIN_LOGINS = ['79236251611', '89236251611', '9236251611', 'abram.viktoriya.00@mail.ru'];
