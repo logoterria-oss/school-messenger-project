@@ -129,32 +129,23 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         </div>
       </div>
 
-      <div className="w-full max-w-md">
-        <div className="bg-card rounded-xl shadow-xl p-6 border-2 border-border">
+      <div className="w-full max-w-2xl animate-in fade-in zoom-in duration-500">
+        <div className="bg-card rounded-xl shadow-xl p-8 border-2 border-border relative">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
+            className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors z-10"
           >
             <Icon name="ArrowLeft" size={20} />
             <span className="text-sm font-medium">Назад</span>
           </button>
 
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-20 h-20 rounded-full shadow-lg flex-shrink-0 overflow-hidden">
+          <div className="flex items-start gap-8 mt-8">
+            <div className="w-40 h-40 rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700">
               <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" />
             </div>
-            <div className="flex-1 text-left">
-              <h2 className="text-xl font-bold mb-1">Вход как {currentRole.name}</h2>
-              <p className="text-xs text-muted-foreground">
-                {selectedRole === 'admin' 
-                  ? 'Введите данные администратора' 
-                  : 'Введите данные, полученные от администратора'}
-              </p>
-            </div>
-          </div>
 
-          <div className="space-y-4">
-            <div>
+            <div className="flex-1 space-y-4 animate-in fade-in slide-in-from-right duration-700">
+              <div>
               <label className="block text-sm font-medium mb-2">
                 Логин (телефон или email)
               </label>
@@ -206,13 +197,14 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               </div>
             )}
 
-            <Button
-              onClick={handleLogin}
-              className="w-full h-12 rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-lg text-white"
-              style={{ backgroundColor: '#3BA662' }}
-            >
-              Войти
-            </Button>
+              <Button
+                onClick={handleLogin}
+                className="w-full h-12 rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-lg text-white"
+                style={{ backgroundColor: '#3BA662' }}
+              >
+                Войти
+              </Button>
+            </div>
           </div>
         </div>
       </div>
