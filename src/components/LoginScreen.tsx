@@ -25,6 +25,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
@@ -55,7 +56,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       );
 
       if (isValidLogin && password === ADMIN_PASSWORD) {
-        onLogin('admin');
+        setIsLoggingIn(true);
+        setTimeout(() => {
+          onLogin('admin');
+        }, 1500);
       } else {
         setError('Неверный логин или пароль');
       }
@@ -116,8 +120,40 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const currentRole = ROLES.find(r => r.id === selectedRole)!;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col items-center justify-center p-4">
-      <div className="flex items-center justify-center gap-6 mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col items-center justify-center p-4 relative">
+      {isLoggingIn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+          <img 
+            src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
+            alt="LineaSchool" 
+            className="rounded-3xl animate-[expand_1.5s_ease-in-out_forwards]"
+            style={{
+              animation: 'expand 1.5s ease-in-out forwards'
+            }}
+          />
+          <style>{`
+            @keyframes expand {
+              0% {
+                width: 112px;
+                height: 112px;
+                opacity: 1;
+              }
+              70% {
+                width: 100vw;
+                height: 100vh;
+                opacity: 0.5;
+              }
+              100% {
+                width: 100vw;
+                height: 100vh;
+                opacity: 0;
+              }
+            }
+          `}</style>
+        </div>
+      )}
+      
+      <div className={`flex items-center justify-center gap-6 mb-8 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
         <img 
           src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
           alt="LineaSchool" 
@@ -129,7 +165,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         </div>
       </div>
 
-      <div className="w-full max-w-2xl animate-in fade-in zoom-in duration-500">
+      <div className={`w-full max-w-2xl animate-in fade-in zoom-in duration-500 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
         <div className="bg-card rounded-xl shadow-xl p-8 border-2 border-border relative">
           <button
             onClick={handleBack}
