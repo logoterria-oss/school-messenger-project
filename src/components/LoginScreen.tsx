@@ -95,7 +95,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                   </div>
                   
                   <div className="flex-1 text-left">
-                    <h3 className="text-2xl font-bold mb-2" style={{ fontFamily: 'Comic Sans MS, Comic Sans, cursive', color: '#5B7C99' }}>{role.name}</h3>
+                    <h3 className="text-2xl font-bold mb-2" style={{ color: '#5B7C99' }}>{role.name}</h3>
                     <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="text-base font-medium">Войти</span>
                     </div>
