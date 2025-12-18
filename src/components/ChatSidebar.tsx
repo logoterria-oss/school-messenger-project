@@ -40,11 +40,13 @@ export const ChatSidebar = ({ userRole, chats, selectedChat, onSelectChat, onLog
       <div className="p-4 bg-card">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center p-2">
-              <img src="/linea-logo.svg" alt="LineaSchool" className="w-full h-full" />
-            </div>
+            <img 
+              src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
+              alt="LineaSchool" 
+              className="w-10 h-10 rounded-lg flex-shrink-0" 
+            />
             <div>
-              <h1 className="font-semibold text-base">LineaSchool</h1>
+              <h1 className="font-semibold text-base" style={{ color: '#3BA662' }}>LineaSchool</h1>
               <p className="text-xs text-muted-foreground">
                 {userRole === 'admin' && 'Администратор'}
                 {userRole === 'teacher' && 'Педагог'}
