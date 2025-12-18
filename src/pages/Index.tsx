@@ -59,7 +59,7 @@ const Index = () => {
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
   const [chats, setChats] = useState<Chat[]>([]);
   
-  const [groupTopics] = useState<GroupTopics>({
+  const [groupTopics, setGroupTopics] = useState<GroupTopics>({
     '1': [
       { id: '1-important', name: 'Важное', icon: 'AlertCircle', lastMessage: 'Домашнее задание выполнено полностью', timestamp: '14:23', unread: 2 },
       { id: '1-zoom', name: 'Zoom', icon: 'Video', lastMessage: 'Ссылка на урок: zoom.us/j/123...', timestamp: '10:15', unread: 0 },
@@ -353,6 +353,15 @@ const Index = () => {
 
   const handleSelectTopic = (topicId: string) => {
     setSelectedTopic(topicId);
+    
+    if (selectedGroup) {
+      setGroupTopics(prev => ({
+        ...prev,
+        [selectedGroup]: prev[selectedGroup].map(topic =>
+          topic.id === topicId ? { ...topic, unread: 0 } : topic
+        )
+      }));
+    }
   };
 
   const handleSendMessage = () => {
