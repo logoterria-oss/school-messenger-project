@@ -73,10 +73,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               <img 
                 src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
                 alt="LineaSchool" 
-                className="w-24 h-24 rounded-3xl shadow-lg" 
+                className="w-24 h-24 rounded-3xl shadow-xl saturate-150 brightness-110" 
               />
             </div>
-            <h1 className="text-5xl font-bold" style={{ color: '#52B788' }}>LineaSchool</h1>
+            <h1 className="text-5xl font-extrabold" style={{ color: '#2D9A5F' }}>LineaSchool</h1>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
