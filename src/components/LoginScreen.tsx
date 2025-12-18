@@ -89,7 +89,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                 
                 <div className="relative flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl shadow-lg flex-shrink-0 overflow-hidden">
+                  <div className="w-20 h-20 rounded-full shadow-lg flex-shrink-0 overflow-hidden">
                     <img src={role.image} alt={role.name} className="w-full h-full object-cover" />
                   </div>
                   
@@ -123,7 +123,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           </button>
 
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 shadow-lg overflow-hidden">
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-4 shadow-lg overflow-hidden">
               <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" />
             </div>
             <h2 className="text-2xl font-bold mb-2">Вход как {currentRole.name}</h2>
