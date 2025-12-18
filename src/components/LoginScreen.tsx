@@ -68,34 +68,34 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center mb-3">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center mb-2">
               <img 
                 src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
                 alt="LineaSchool" 
-                className="w-24 h-24 rounded-3xl shadow-lg" 
+                className="w-16 h-16 rounded-2xl shadow-lg" 
               />
             </div>
-            <h1 className="text-4xl font-bold" style={{ color: '#52B788' }}>LineaSchool</h1>
+            <h1 className="text-3xl font-bold" style={{ color: '#52B788' }}>LineaSchool</h1>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {ROLES.map((role) => (
               <button
                 key={role.id}
                 onClick={() => handleRoleSelect(role.id)}
-                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-2xl p-8 border-2 border-border hover:border-primary/50 overflow-hidden"
+                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl p-5 border-2 border-border hover:border-primary/50 overflow-hidden"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                 
                 <div className="relative">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${role.color} rounded-2xl mb-4 shadow-lg`}>
-                    <Icon name={role.icon} size={32} className="text-white" />
+                  <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${role.color} rounded-xl mb-3 shadow-lg`}>
+                    <Icon name={role.icon} size={24} className="text-white" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">{role.name}</h3>
+                  <h3 className="text-base font-bold mb-1">{role.name}</h3>
                   <div className="flex items-center justify-center text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-sm font-medium">Войти</span>
-                    <Icon name="ArrowRight" size={16} className="ml-2" />
+                    <span className="text-xs font-medium">Войти</span>
+                    <Icon name="ArrowRight" size={14} className="ml-1" />
                   </div>
                 </div>
               </button>
