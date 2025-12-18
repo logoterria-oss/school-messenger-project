@@ -76,7 +76,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 className="w-24 h-24 rounded-3xl shadow-xl saturate-150 brightness-110" 
               />
             </div>
-            <h1 className="text-5xl font-extrabold" style={{ color: '#2D9A5F' }}>LineaSchool</h1>
+            <h1 className="text-5xl font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
