@@ -110,14 +110,14 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
     >
       <div className="relative">
         <div
-          className={`max-w-md rounded-2xl shadow-md ${
+          className={`max-w-md rounded-lg shadow-sm ${
             message.isOwn
-              ? 'bg-gradient-to-br from-primary to-secondary text-white rounded-br-md'
-              : 'bg-white text-foreground rounded-bl-md border border-border'
+              ? 'bg-[#D9FDD3] text-foreground rounded-br-none'
+              : 'bg-card text-foreground rounded-bl-none'
           }`}
         >
           {!message.isOwn && (
-            <p className="text-xs font-bold text-primary mb-1 px-4 pt-3">
+            <p className="text-xs font-medium text-primary mb-1 px-3 pt-2">
               {message.sender}
             </p>
           )}
@@ -167,35 +167,31 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
           )}
           
           {message.text && (
-            <div className="px-4 py-2">
-              <p className={`text-[14.5px] leading-[20px] break-words ${
-                message.isOwn ? 'text-white' : 'text-foreground'
-              }`}>{message.text}</p>
+            <div className="px-3 py-2">
+              <p className="text-[14.2px] leading-[19px] break-words">{message.text}</p>
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-1.5 px-4 pb-2.5">
-            <span className={`text-[11px] font-medium ${
-              message.isOwn ? 'text-white/80' : 'text-muted-foreground'
-            }`}>
+          <div className="flex items-center justify-end gap-1 px-3 pb-2">
+            <span className="text-[11px] text-muted-foreground">
               {message.timestamp}
             </span>
             {message.isOwn && (
-              <Icon name="CheckCheck" size={15} className="text-white/90" />
+              <Icon name="CheckCheck" size={14} className="text-primary" />
             )}
           </div>
         </div>
 
         {message.reactions && message.reactions.length > 0 && (
-          <div className="absolute -bottom-2.5 right-3 flex gap-1 bg-white rounded-full px-3 py-1 border-2 border-primary/20 shadow-lg">
+          <div className="absolute -bottom-2 right-2 flex gap-1 bg-card rounded-full px-2 py-0.5 border border-border shadow-sm">
             {message.reactions.map((reaction, idx) => (
               <button
                 key={idx}
-                className="flex items-center gap-1 text-sm hover:scale-110 transition-transform font-medium"
+                className="flex items-center gap-0.5 text-xs hover:scale-110 transition-transform"
                 onClick={() => onReaction(message.id, reaction.emoji)}
               >
                 <span>{reaction.emoji}</span>
-                <span className="text-foreground">{reaction.count}</span>
+                <span className="text-muted-foreground">{reaction.count}</span>
               </button>
             ))}
           </div>
@@ -206,18 +202,18 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
             <Button 
               variant="ghost" 
               size="icon"
-              className={`absolute top-1 ${message.isOwn ? 'left-[-44px]' : 'right-[-44px]'} opacity-0 group-hover:opacity-100 transition-opacity h-9 w-9 rounded-xl hover:bg-muted shadow-sm border border-border`}
+              className={`absolute top-1 ${message.isOwn ? 'left-[-40px]' : 'right-[-40px]'} opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8`}
             >
-              <Icon name="SmilePlus" size={18} className="text-primary" />
+              <Icon name="SmilePlus" size={16} />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-2 rounded-2xl shadow-xl border-2 border-primary/20">
-            <div className="flex gap-2">
+          <PopoverContent className="w-auto p-2">
+            <div className="flex gap-1">
               {REACTIONS.map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => onReaction(message.id, emoji)}
-                  className="text-2xl hover:scale-125 transition-transform p-2 hover:bg-accent rounded-xl"
+                  className="text-2xl hover:scale-125 transition-transform p-1"
                 >
                   {emoji}
                 </button>

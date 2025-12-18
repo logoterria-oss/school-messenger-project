@@ -29,32 +29,32 @@ type ChatAreaProps = {
 export const ChatArea = ({ messages, onReaction, chatName }: ChatAreaProps) => {
   return (
     <>
-      <div className="bg-gradient-to-r from-card via-primary/5 to-secondary/5 border-b border-border px-6 py-4 shadow-sm">
+      <div className="bg-card border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar className="w-11 h-11 ring-2 ring-offset-2 ring-primary/20 shadow-md">
-              <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white font-semibold">
-                <Icon name="Users" size={20} />
+          <div className="flex items-center gap-3">
+            <Avatar className="w-10 h-10">
+              <AvatarFallback className="bg-primary text-white">
+                <Icon name="Users" size={18} />
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-bold text-base tracking-tight">{chatName}</h2>
-              <p className="text-xs font-medium text-primary/70">
+              <h2 className="font-medium text-base">{chatName}</h2>
+              <p className="text-xs text-muted-foreground">
                 {chatName.startsWith('Группа:') ? '5 участников' : 'Личный чат'}
               </p>
             </div>
           </div>
-          <div className="flex gap-1.5">
-            <Button variant="ghost" size="icon" className="rounded-xl hover:bg-primary/10 text-primary">
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon" className="text-muted-foreground">
               <Icon name="Phone" size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-xl hover:bg-secondary/10 text-secondary">
+            <Button variant="ghost" size="icon" className="text-muted-foreground">
               <Icon name="Video" size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted">
+            <Button variant="ghost" size="icon" className="text-muted-foreground">
               <Icon name="Search" size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted">
+            <Button variant="ghost" size="icon" className="text-muted-foreground">
               <Icon name="MoreVertical" size={20} />
             </Button>
           </div>
@@ -62,7 +62,10 @@ export const ChatArea = ({ messages, onReaction, chatName }: ChatAreaProps) => {
       </div>
 
       <div 
-        className="flex-1 p-6 overflow-y-auto bg-gradient-to-br from-background via-primary/5 to-secondary/5"
+        className="flex-1 p-6 overflow-y-auto"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}
       >
         <div className="space-y-3 max-w-5xl mx-auto">
           {messages.map((message) => (

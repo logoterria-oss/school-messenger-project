@@ -33,13 +33,13 @@ export const MessageInput = ({
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="bg-gradient-to-r from-card via-primary/5 to-secondary/5 border-t border-border px-6 py-4 shadow-sm">
+    <div className="bg-card border-t border-border px-4 py-3">
       {attachments.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-3">
+        <div className="mb-3 flex flex-wrap gap-2">
           {attachments.map((attachment, idx) => (
             <div 
               key={idx}
-              className="relative group bg-white rounded-2xl overflow-hidden shadow-md border border-border"
+              className="relative group bg-accent rounded-lg overflow-hidden"
             >
               {attachment.type === 'image' && attachment.fileUrl && (
                 <div className="relative">
@@ -50,7 +50,7 @@ export const MessageInput = ({
                   />
                   <button
                     onClick={() => onRemoveAttachment(idx)}
-                    className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:scale-110"
+                    className="absolute top-1 right-1 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Icon name="X" size={14} />
                   </button>
@@ -58,9 +58,9 @@ export const MessageInput = ({
               )}
               
               {attachment.type === 'file' && (
-                <div className="flex items-center gap-3 p-3 pr-10 min-w-[200px]">
-                  <div className="w-11 h-11 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Icon name="FileText" size={22} className="text-primary" />
+                <div className="flex items-center gap-2 p-2 pr-8 min-w-[200px]">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon name="FileText" size={20} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{attachment.fileName}</p>
@@ -68,7 +68,7 @@ export const MessageInput = ({
                   </div>
                   <button
                     onClick={() => onRemoveAttachment(idx)}
-                    className="absolute top-3 right-3 bg-destructive text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:scale-110"
+                    className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Icon name="X" size={12} />
                   </button>
@@ -80,8 +80,8 @@ export const MessageInput = ({
       )}
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="rounded-xl hover:bg-accent text-primary">
-          <Icon name="Smile" size={22} />
+        <Button variant="ghost" size="icon" className="text-muted-foreground">
+          <Icon name="Smile" size={20} />
         </Button>
         
         <input
@@ -95,10 +95,10 @@ export const MessageInput = ({
         <Button 
           variant="ghost" 
           size="icon" 
-          className="rounded-xl hover:bg-accent text-secondary"
+          className="text-muted-foreground"
           onClick={() => imageInputRef.current?.click()}
         >
-          <Icon name="Image" size={22} />
+          <Icon name="Image" size={20} />
         </Button>
 
         <input
@@ -111,10 +111,10 @@ export const MessageInput = ({
         <Button 
           variant="ghost" 
           size="icon" 
-          className="rounded-xl hover:bg-accent text-primary"
+          className="text-muted-foreground"
           onClick={() => fileInputRef.current?.click()}
         >
-          <Icon name="Paperclip" size={22} />
+          <Icon name="Paperclip" size={20} />
         </Button>
 
         <Input
@@ -124,15 +124,15 @@ export const MessageInput = ({
           onKeyPress={(e) => {
             if (e.key === 'Enter') onSendMessage();
           }}
-          className="flex-1 bg-white border-border h-12 rounded-2xl px-5 shadow-sm focus:ring-2 focus:ring-primary/20"
+          className="flex-1 bg-card border-border h-10"
         />
         <Button
           onClick={onSendMessage}
           size="icon"
-          className="bg-gradient-to-br from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-2xl h-12 w-12 shadow-lg hover:shadow-xl transition-all"
+          className="bg-primary hover:bg-primary/90 text-white"
           disabled={!messageText.trim() && attachments.length === 0}
         >
-          <Icon name="Send" size={20} />
+          <Icon name="Send" size={18} />
         </Button>
       </div>
     </div>
