@@ -194,7 +194,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
             <Button
               onClick={handleLogin}
-              className={`w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r ${currentRole.color} hover:opacity-90 transition-opacity shadow-lg`}
+              className="w-full h-12 rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-lg text-white"
+              style={{ backgroundColor: '#3BA662' }}
             >
               Войти
             </Button>
