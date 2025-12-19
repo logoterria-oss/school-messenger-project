@@ -58,8 +58,8 @@ export const useChatLogic = () => {
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromStorage);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
-  const [typingUser, setTypingUser] = useState<string | null>(null);
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [typingTimeouts, setTypingTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
 
   const messages = selectedTopic 
     ? (chatMessages[selectedTopic] || []) 
@@ -151,10 +151,6 @@ export const useChatLogic = () => {
     }));
     setMessageText('');
     setAttachments([]);
-    setTypingUser(null);
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
-    }
 
     setTimeout(() => {
       setChatMessages(prev => ({
@@ -355,23 +351,47 @@ export const useChatLogic = () => {
     console.log('Создана группа с участниками:', selectedUserIds);
   };
 
+  const simulateOtherUserTyping = (userName: string) => {
+    const otherUsers = allUsers.filter(u => u.name !== userName);
+    if (otherUsers.length === 0) return;
+    
+    const randomUser = otherUsers[Math.floor(Math.random() * otherUsers.length)];
+    const typingUserName = randomUser.name;
+    
+    setTypingUsers(prev => {
+      if (!prev.includes(typingUserName)) {
+        return [...prev, typingUserName];
+      }
+      return prev;
+    });
+    
+    if (typingTimeouts[typingUserName]) {
+      clearTimeout(typingTimeouts[typingUserName]);
+    }
+    
+    const timeout = setTimeout(() => {
+      setTypingUsers(prev => prev.filter(name => name !== typingUserName));
+      setTypingTimeouts(prev => {
+        const newTimeouts = { ...prev };
+        delete newTimeouts[typingUserName];
+        return newTimeouts;
+      });
+    }, 3000);
+    
+    setTypingTimeouts(prev => ({
+      ...prev,
+      [typingUserName]: timeout
+    }));
+  };
+
   const handleTyping = (text: string) => {
     setMessageText(text);
     
     const chat = chats.find(c => c.id === selectedChat);
-    if (chat && chat.type === 'group') {
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
+    if (chat && chat.type === 'group' && text.length > 0) {
+      if (Math.random() < 0.3) {
+        simulateOtherUserTyping(userName);
       }
-      
-      const randomUsers = ['Мария Вольт', 'Иван Петров', 'Анна Смирнова', 'Нонна Мельникова'];
-      const randomUser = randomUsers[Math.floor(Math.random() * randomUsers.length)];
-      setTypingUser(randomUser);
-      
-      const timeout = setTimeout(() => {
-        setTypingUser(null);
-      }, 2000);
-      setTypingTimeout(timeout);
     }
   };
 
@@ -389,7 +409,7 @@ export const useChatLogic = () => {
     groupTopics,
     messages,
     allUsers,
-    typingUser,
+    typingUsers,
     setMessageText,
     handleTyping,
     handleSelectChat,
