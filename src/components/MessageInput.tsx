@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
@@ -31,6 +31,15 @@ export const MessageInput = ({
 }: MessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '40px';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = Math.min(scrollHeight, 120) + 'px';
+    }
+  }, [messageText]);
 
   return (
     <div className="bg-card border-t border-border px-4 py-3">
@@ -118,6 +127,7 @@ export const MessageInput = ({
         </Button>
 
         <Textarea
+          ref={textareaRef}
           placeholder="Введите сообщение"
           value={messageText}
           onChange={(e) => onMessageChange(e.target.value)}
@@ -127,7 +137,7 @@ export const MessageInput = ({
               onSendMessage();
             }
           }}
-          className="flex-1 bg-card border-border min-h-[40px] max-h-[120px] resize-none py-2"
+          className="flex-1 bg-card border-border min-h-[40px] max-h-[120px] resize-none py-2 overflow-y-auto"
           rows={1}
         />
         <Button
