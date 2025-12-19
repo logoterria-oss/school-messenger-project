@@ -169,7 +169,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
           
           {message.text && (
             <div className="px-3 py-2">
-              <p className="text-[14.2px] leading-[19px] break-words">{message.text}</p>
+              <p className="text-[14.2px] leading-[19px] break-words whitespace-pre-wrap">{message.text}</p>
             </div>
           )}
 
