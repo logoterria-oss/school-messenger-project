@@ -6,6 +6,7 @@ import { MessageInput } from '@/components/MessageInput';
 import { LoginScreen } from '@/components/LoginScreen';
 import { ProfileSettings } from '@/components/ProfileSettings';
 import { AppSettings } from '@/components/AppSettings';
+import { AllUsersView } from '@/components/AllUsersView';
 import { AddStudentDialog } from '@/components/AddStudentDialog';
 import { AddParentDialog } from '@/components/AddParentDialog';
 import { CreateGroupDialog } from '@/components/CreateGroupDialog';
@@ -29,6 +30,7 @@ const Index = () => {
     chats,
     groupTopics,
     messages,
+    allUsers,
     setMessageText,
     handleSelectChat,
     handleSelectTopic,
@@ -40,6 +42,7 @@ const Index = () => {
     handleLogout,
     handleOpenProfile,
     handleOpenSettings,
+    handleOpenUsers,
     handleBackToChat,
     handleReaction,
     handleAddStudent,
@@ -67,12 +70,21 @@ const Index = () => {
     );
   }
 
+  if (currentView === 'users') {
+    return (
+      <div className="flex h-screen bg-background">
+        <AllUsersView users={allUsers} onBack={handleBackToChat} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-background">
       <ChatSidebar
         onLogout={handleLogout}
         onOpenProfile={handleOpenProfile}
         onOpenSettings={handleOpenSettings}
+        onOpenUsers={handleOpenUsers}
         onAddStudent={() => setShowAddStudent(true)}
         onAddParent={() => setShowAddParent(true)}
         onCreateGroup={() => setShowCreateGroup(true)}

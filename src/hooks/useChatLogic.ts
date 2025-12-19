@@ -2,11 +2,20 @@ import { useState, useEffect } from 'react';
 import { UserRole, AttachedFile, Message, Chat, GroupTopics } from '@/types/chat.types';
 import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 
+type User = {
+  id: string;
+  name: string;
+  role: 'teacher' | 'parent' | 'student';
+  phone: string;
+  email?: string;
+  password: string;
+};
+
 export const useChatLogic = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [userName, setUserName] = useState<string>('');
-  const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'settings'>('chat');
+  const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'settings' | 'users'>('chat');
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -15,6 +24,7 @@ export const useChatLogic = () => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(initialGroupTopics);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
 
   const messages = selectedTopic 
     ? (chatMessages[selectedTopic] || []) 
@@ -161,6 +171,10 @@ export const useChatLogic = () => {
     setCurrentView('settings');
   };
 
+  const handleOpenUsers = () => {
+    setCurrentView('users');
+  };
+
   const handleBackToChat = () => {
     setCurrentView('chat');
     setSelectedGroup(null);
@@ -211,11 +225,26 @@ export const useChatLogic = () => {
   };
 
   const handleAddStudent = (name: string, phone: string, password: string) => {
-    console.log('Добавлен ученик:', { name, phone, password });
+    const newUser: User = {
+      id: Date.now().toString(),
+      name,
+      phone,
+      password,
+      role: 'student',
+    };
+    setAllUsers(prev => [...prev, newUser]);
   };
 
   const handleAddParent = (name: string, phone: string, email: string, password: string) => {
-    console.log('Добавлен родитель:', { name, phone, email, password });
+    const newUser: User = {
+      id: Date.now().toString(),
+      name,
+      phone,
+      email,
+      password,
+      role: 'parent',
+    };
+    setAllUsers(prev => [...prev, newUser]);
   };
 
   const handleCreateGroup = (groupName: string) => {
@@ -253,6 +282,7 @@ export const useChatLogic = () => {
     chats,
     groupTopics,
     messages,
+    allUsers,
     setMessageText,
     handleSelectChat,
     handleSelectTopic,
@@ -264,6 +294,7 @@ export const useChatLogic = () => {
     handleLogout,
     handleOpenProfile,
     handleOpenSettings,
+    handleOpenUsers,
     handleBackToChat,
     handleReaction,
     handleAddStudent,

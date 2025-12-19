@@ -33,12 +33,13 @@ type ChatSidebarProps = {
   onLogout?: () => void;
   onOpenProfile?: () => void;
   onOpenSettings?: () => void;
+  onOpenUsers?: () => void;
   onAddStudent?: () => void;
   onAddParent?: () => void;
   onCreateGroup?: () => void;
 };
 
-export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onAddStudent, onAddParent, onCreateGroup }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onCreateGroup }: ChatSidebarProps) => {
   return (
     <div className="w-[420px] bg-card border-r border-border flex flex-col">
       <div className="p-4 bg-card">
@@ -68,6 +69,11 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
             <DropdownMenuContent align="end" className="w-56">
               {userRole === 'admin' && (
                 <>
+                  <DropdownMenuItem onClick={onOpenUsers}>
+                    <Icon name="Users" size={16} className="mr-2" />
+                    Все пользователи
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={onAddStudent}>
                     <Icon name="UserPlus" size={16} className="mr-2" />
                     Добавить ученика
