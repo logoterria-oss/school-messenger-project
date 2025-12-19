@@ -22,6 +22,7 @@ export type Message = {
   isOwn: boolean;
   attachments?: AttachedFile[];
   reactions?: { emoji: string; count: number; users: string[] }[];
+  status?: 'sending' | 'sent' | 'delivered' | 'read';
 };
 
 export type Chat = {

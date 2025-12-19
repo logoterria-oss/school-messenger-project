@@ -23,6 +23,7 @@ type Message = {
   isOwn: boolean;
   attachments?: AttachedFile[];
   reactions?: { emoji: string; count: number; users: string[] }[];
+  status?: 'sending' | 'sent' | 'delivered' | 'read';
 };
 
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -177,7 +178,20 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
               {message.timestamp}
             </span>
             {message.isOwn && (
-              <Icon name="CheckCheck" size={14} className="text-primary" />
+              <>
+                {message.status === 'sending' && (
+                  <Icon name="Clock" size={14} className="text-muted-foreground" />
+                )}
+                {message.status === 'sent' && (
+                  <Icon name="Check" size={14} className="text-muted-foreground" />
+                )}
+                {message.status === 'delivered' && (
+                  <Icon name="CheckCheck" size={14} className="text-muted-foreground" />
+                )}
+                {message.status === 'read' && (
+                  <Icon name="CheckCheck" size={14} className="text-primary" />
+                )}
+              </>
             )}
           </div>
         </div>

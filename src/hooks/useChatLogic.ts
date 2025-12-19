@@ -133,14 +133,16 @@ export const useChatLogic = () => {
     if (!selectedChat || (!messageText.trim() && attachments.length === 0)) return;
     
     const targetId = selectedTopic || selectedChat;
+    const messageId = Date.now().toString();
     
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: messageId,
       text: messageText || undefined,
       sender: 'Вы',
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
       isOwn: true,
       attachments: attachments.length > 0 ? attachments : undefined,
+      status: 'sending',
     };
     
     setChatMessages(prev => ({
@@ -153,6 +155,33 @@ export const useChatLogic = () => {
     if (typingTimeout) {
       clearTimeout(typingTimeout);
     }
+
+    setTimeout(() => {
+      setChatMessages(prev => ({
+        ...prev,
+        [targetId]: prev[targetId].map(msg => 
+          msg.id === messageId ? { ...msg, status: 'sent' } : msg
+        )
+      }));
+    }, 500);
+
+    setTimeout(() => {
+      setChatMessages(prev => ({
+        ...prev,
+        [targetId]: prev[targetId].map(msg => 
+          msg.id === messageId ? { ...msg, status: 'delivered' } : msg
+        )
+      }));
+    }, 1000);
+
+    setTimeout(() => {
+      setChatMessages(prev => ({
+        ...prev,
+        [targetId]: prev[targetId].map(msg => 
+          msg.id === messageId ? { ...msg, status: 'read' } : msg
+        )
+      }));
+    }, 2000);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
