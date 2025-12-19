@@ -132,6 +132,8 @@ export const useChatLogic = () => {
   const handleSendMessage = () => {
     if (!selectedChat || (!messageText.trim() && attachments.length === 0)) return;
     
+    const targetId = selectedTopic || selectedChat;
+    
     const newMessage: Message = {
       id: Date.now().toString(),
       text: messageText || undefined,
@@ -143,10 +145,14 @@ export const useChatLogic = () => {
     
     setChatMessages(prev => ({
       ...prev,
-      [selectedChat]: [...(prev[selectedChat] || []), newMessage]
+      [targetId]: [...(prev[targetId] || []), newMessage]
     }));
     setMessageText('');
     setAttachments([]);
+    setIsTyping(false);
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
