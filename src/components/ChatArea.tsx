@@ -107,10 +107,10 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
         <div 
           className="absolute inset-0 opacity-50"
           style={{
-            backgroundImage: `url("https://cdn.poehali.dev/files/644f6ae1dd01071d4fecc784ad48a4a1_a1442311-5b28-4898-bba3-42674649ca4d.png")`,
-            backgroundSize: 'auto',
+            backgroundImage: `url("https://cdn.poehali.dev/files/c081a383e951f47cfd8f23a2d3a76c74_e2558362-1b7b-42ea-8f2b-1c812fa1c725 (1).png")`,
+            backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundRepeat: 'repeat',
+            backgroundRepeat: 'no-repeat',
             pointerEvents: 'none'
           }}
         />
