@@ -88,19 +88,22 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
                   allUsers.map((user) => (
                     <div
                       key={user.id}
-                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent cursor-pointer"
-                      onClick={() => toggleUser(user.id)}
+                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent"
                     >
                       <Checkbox
+                        id={`user-${user.id}`}
                         checked={selectedUsers.includes(user.id)}
                         onCheckedChange={() => toggleUser(user.id)}
                       />
-                      <div className="flex-1 min-w-0">
+                      <label
+                        htmlFor={`user-${user.id}`}
+                        className="flex-1 min-w-0 cursor-pointer"
+                      >
                         <p className="font-medium text-sm truncate">{user.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {roleLabels[user.role]} • {user.phone}
                         </p>
-                      </div>
+                      </label>
                     </div>
                   ))
                 )}
