@@ -1,5 +1,12 @@
 export type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
+export type TeacherAccount = {
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+};
+
 export type AttachedFile = {
   type: 'image' | 'file';
   fileUrl?: string;

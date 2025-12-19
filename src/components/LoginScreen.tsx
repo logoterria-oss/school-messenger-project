@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
+import { teacherAccounts } from '@/data/teacherAccounts';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -59,6 +60,23 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         setIsLoggingIn(true);
         setTimeout(() => {
           onLogin('admin');
+        }, 1500);
+      } else {
+        setError('Неверный логин или пароль');
+      }
+    } else if (selectedRole === 'teacher') {
+      const normalizedLogin = login.trim().toLowerCase();
+      const teacher = teacherAccounts.find(
+        acc => 
+          (acc.phone.replace(/\D/g, '').includes(normalizedLogin.replace(/\D/g, '')) || 
+           acc.email.toLowerCase() === normalizedLogin) &&
+          acc.password === password
+      );
+
+      if (teacher) {
+        setIsLoggingIn(true);
+        setTimeout(() => {
+          onLogin('teacher');
         }, 1500);
       } else {
         setError('Неверный логин или пароль');
