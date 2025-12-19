@@ -100,22 +100,12 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
       </div>
 
       <div 
-        className="flex-1 p-6 overflow-y-auto relative"
+        className="flex-1 p-6 overflow-y-auto"
         style={{
           backgroundColor: 'var(--background)'
         }}
       >
-        <div 
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: `url("https://cdn.poehali.dev/files/6427d7906566290060251bc477ff7a8f_cb458d0b-9dad-4171-a88c-faa334c82489.png")`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'repeat',
-            pointerEvents: 'none'
-          }}
-        />
-        <div className="space-y-3 max-w-5xl mx-auto relative z-10">
+        <div className="space-y-3 max-w-5xl mx-auto">
           {messages.map((message) => (
             <MessageBubble 
               key={message.id}
