@@ -38,9 +38,16 @@ const loadGroupTopicsFromStorage = (): GroupTopics => {
 };
 
 export const useChatLogic = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [userName, setUserName] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
+  const [userRole, setUserRole] = useState<UserRole | null>(() => {
+    const stored = localStorage.getItem('userRole');
+    return stored as UserRole | null;
+  });
+  const [userName, setUserName] = useState<string>(() => {
+    return localStorage.getItem('userName') || '';
+  });
   const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'settings' | 'users'>('chat');
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -183,6 +190,9 @@ export const useChatLogic = () => {
     setUserRole(role);
     setUserName(name || '');
     setIsAuthenticated(true);
+    localStorage.setItem('isAuthenticated', 'true');
+    localStorage.setItem('userRole', role);
+    localStorage.setItem('userName', name || '');
   };
 
   const handleLogout = () => {
@@ -195,6 +205,9 @@ export const useChatLogic = () => {
     setSelectedTopic(null);
     setMessageText('');
     setAttachments([]);
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
   };
 
   const handleOpenProfile = () => {
