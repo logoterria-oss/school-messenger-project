@@ -5,6 +5,7 @@ import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 export const useChatLogic = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [userName, setUserName] = useState<string>('');
   const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'settings'>('chat');
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -134,14 +135,16 @@ export const useChatLogic = () => {
     setAttachments(attachments.filter((_, i) => i !== index));
   };
 
-  const handleLogin = (role: UserRole) => {
+  const handleLogin = (role: UserRole, name?: string) => {
     setUserRole(role);
+    setUserName(name || '');
     setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserRole(null);
+    setUserName('');
     setCurrentView('chat');
     setSelectedChat(null);
     setSelectedGroup(null);
@@ -210,6 +213,7 @@ export const useChatLogic = () => {
   return {
     isAuthenticated,
     userRole,
+    userName,
     currentView,
     selectedChat,
     selectedGroup,

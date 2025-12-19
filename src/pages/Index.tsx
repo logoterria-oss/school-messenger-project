@@ -11,6 +11,7 @@ const Index = () => {
   const {
     isAuthenticated,
     userRole,
+    userName,
     currentView,
     selectedChat,
     selectedGroup,
@@ -62,6 +63,7 @@ const Index = () => {
         onOpenProfile={handleOpenProfile}
         onOpenSettings={handleOpenSettings} 
         userRole={userRole}
+        userName={userName}
         chats={chats}
         selectedChat={selectedChat}
         onSelectChat={handleSelectChat}

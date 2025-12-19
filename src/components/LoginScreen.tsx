@@ -7,7 +7,7 @@ import { teacherAccounts } from '@/data/teacherAccounts';
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
 type LoginScreenProps = {
-  onLogin: (role: UserRole) => void;
+  onLogin: (role: UserRole, name?: string) => void;
 };
 
 const ROLES = [
@@ -76,7 +76,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       if (teacher) {
         setIsLoggingIn(true);
         setTimeout(() => {
-          onLogin('teacher');
+          onLogin('teacher', teacher.name);
         }, 1500);
       } else {
         setError('Неверный логин или пароль');

@@ -26,6 +26,7 @@ type Chat = {
 
 type ChatSidebarProps = {
   userRole: UserRole;
+  userName?: string;
   chats: Chat[];
   selectedChat: string | null;
   onSelectChat: (chatId: string) => void;
@@ -34,7 +35,7 @@ type ChatSidebarProps = {
   onOpenSettings?: () => void;
 };
 
-export const ChatSidebar = ({ userRole, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings }: ChatSidebarProps) => {
   return (
     <div className="w-[420px] bg-card border-r border-border flex flex-col">
       <div className="p-4 bg-card">
@@ -49,9 +50,9 @@ export const ChatSidebar = ({ userRole, chats, selectedChat, onSelectChat, onLog
               <h1 className="text-base font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
               <p className="text-xs text-muted-foreground">
                 {userRole === 'admin' && 'Виктория Абраменко (админ)'}
-                {userRole === 'teacher' && 'Педагог'}
-                {userRole === 'parent' && 'Родитель'}
-                {userRole === 'student' && 'Ученик'}
+                {userRole === 'teacher' && (userName ? `${userName} (педагог)` : 'Педагог')}
+                {userRole === 'parent' && (userName ? `${userName} (родитель)` : 'Родитель')}
+                {userRole === 'student' && (userName ? `${userName} (ученик)` : 'Ученик')}
               </p>
             </div>
           </div>
