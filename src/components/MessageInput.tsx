@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 
 type AttachedFile = {
@@ -117,14 +117,18 @@ export const MessageInput = ({
           <Icon name="Paperclip" size={20} />
         </Button>
 
-        <Input
+        <Textarea
           placeholder="Введите сообщение"
           value={messageText}
           onChange={(e) => onMessageChange(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') onSendMessage();
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              onSendMessage();
+            }
           }}
-          className="flex-1 bg-card border-border h-10"
+          className="flex-1 bg-card border-border min-h-[40px] max-h-[120px] resize-none py-2"
+          rows={1}
         />
         <Button
           onClick={onSendMessage}
