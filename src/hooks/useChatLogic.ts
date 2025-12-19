@@ -58,7 +58,7 @@ export const useChatLogic = () => {
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromStorage);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
-  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState<string | null>(null);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const messages = selectedTopic 
@@ -151,7 +151,7 @@ export const useChatLogic = () => {
     }));
     setMessageText('');
     setAttachments([]);
-    setIsTyping(false);
+    setTypingUser(null);
     if (typingTimeout) {
       clearTimeout(typingTimeout);
     }
@@ -364,9 +364,12 @@ export const useChatLogic = () => {
         clearTimeout(typingTimeout);
       }
       
-      setIsTyping(true);
+      const randomUsers = ['Мария Вольт', 'Иван Петров', 'Анна Смирнова', 'Нонна Мельникова'];
+      const randomUser = randomUsers[Math.floor(Math.random() * randomUsers.length)];
+      setTypingUser(randomUser);
+      
       const timeout = setTimeout(() => {
-        setIsTyping(false);
+        setTypingUser(null);
       }, 2000);
       setTypingTimeout(timeout);
     }
@@ -386,7 +389,7 @@ export const useChatLogic = () => {
     groupTopics,
     messages,
     allUsers,
-    isTyping,
+    typingUser,
     setMessageText,
     handleTyping,
     handleSelectChat,

@@ -35,10 +35,10 @@ type ChatAreaProps = {
   topics?: Topic[];
   selectedTopic?: string;
   onTopicSelect?: (topicId: string) => void;
-  isTyping?: boolean;
+  typingUser?: string | null;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, isTyping }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUser }: ChatAreaProps) => {
   return (
     <>
       <div className="bg-card border-b border-border">
@@ -123,7 +123,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
               onReaction={onReaction}
             />
           ))}
-          {isGroup && isTyping && (
+          {isGroup && typingUser && (
             <div className="flex items-center gap-2 px-4 py-2">
               <div className="bg-accent rounded-2xl px-4 py-2 flex items-center gap-2">
                 <div className="flex gap-1">
@@ -131,7 +131,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
                   <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
                   <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                 </div>
-                <span className="text-xs text-muted-foreground ml-1">печатает...</span>
+                <span className="text-xs text-muted-foreground ml-1">{typingUser} печатает...</span>
               </div>
             </div>
           )}

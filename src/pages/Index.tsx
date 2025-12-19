@@ -31,7 +31,7 @@ const Index = () => {
     groupTopics,
     messages,
     allUsers,
-    isTyping,
+    typingUser,
     setMessageText,
     handleTyping,
     handleSelectChat,
@@ -127,7 +127,7 @@ const Index = () => {
               topics={selectedGroup ? groupTopics[selectedGroup] : undefined}
               selectedTopic={selectedTopic || undefined}
               onTopicSelect={handleSelectTopic}
-              isTyping={isTyping}
+              typingUser={typingUser}
             />
             <MessageInput 
               messageText={messageText}
