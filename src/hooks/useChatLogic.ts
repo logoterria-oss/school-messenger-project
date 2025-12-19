@@ -312,6 +312,7 @@ export const useChatLogic = () => {
         { id: `${newGroup.id}-homework`, name: 'ДЗ', icon: 'BookOpen', lastMessage: '', timestamp: '', unread: 0 },
         { id: `${newGroup.id}-reports`, name: 'Отчеты', icon: 'FileText', lastMessage: '', timestamp: '', unread: 0 },
         { id: `${newGroup.id}-payment`, name: 'Оплата', icon: 'CreditCard', lastMessage: '', timestamp: '', unread: 0 },
+        { id: `${newGroup.id}-cancellation`, name: 'Отмена занятий', icon: 'XCircle', lastMessage: '', timestamp: '', unread: 0 },
       ]
     }));
     console.log('Создана группа с участниками:', selectedUserIds);
