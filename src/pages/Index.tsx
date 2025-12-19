@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { ChatSidebar } from '@/components/ChatSidebar';
 import { ChatArea } from '@/components/ChatArea';
@@ -5,9 +6,16 @@ import { MessageInput } from '@/components/MessageInput';
 import { LoginScreen } from '@/components/LoginScreen';
 import { ProfileSettings } from '@/components/ProfileSettings';
 import { AppSettings } from '@/components/AppSettings';
+import { AddStudentDialog } from '@/components/AddStudentDialog';
+import { AddParentDialog } from '@/components/AddParentDialog';
+import { CreateGroupDialog } from '@/components/CreateGroupDialog';
 import { useChatLogic } from '@/hooks/useChatLogic';
 
 const Index = () => {
+  const [showAddStudent, setShowAddStudent] = useState(false);
+  const [showAddParent, setShowAddParent] = useState(false);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+
   const {
     isAuthenticated,
     userRole,
@@ -34,6 +42,9 @@ const Index = () => {
     handleOpenSettings,
     handleBackToChat,
     handleReaction,
+    handleAddStudent,
+    handleAddParent,
+    handleCreateGroup,
   } = useChatLogic();
 
   if (!isAuthenticated || !userRole) {
@@ -61,12 +72,33 @@ const Index = () => {
       <ChatSidebar
         onLogout={handleLogout}
         onOpenProfile={handleOpenProfile}
-        onOpenSettings={handleOpenSettings} 
+        onOpenSettings={handleOpenSettings}
+        onAddStudent={() => setShowAddStudent(true)}
+        onAddParent={() => setShowAddParent(true)}
+        onCreateGroup={() => setShowCreateGroup(true)}
         userRole={userRole}
         userName={userName}
         chats={chats}
         selectedChat={selectedChat}
         onSelectChat={handleSelectChat}
+      />
+
+      <AddStudentDialog
+        open={showAddStudent}
+        onClose={() => setShowAddStudent(false)}
+        onAdd={handleAddStudent}
+      />
+
+      <AddParentDialog
+        open={showAddParent}
+        onClose={() => setShowAddParent(false)}
+        onAdd={handleAddParent}
+      />
+
+      <CreateGroupDialog
+        open={showCreateGroup}
+        onClose={() => setShowCreateGroup(false)}
+        onCreate={handleCreateGroup}
       />
 
       <div className="flex-1 flex flex-col">

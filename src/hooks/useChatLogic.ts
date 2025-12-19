@@ -210,6 +210,36 @@ export const useChatLogic = () => {
     }));
   };
 
+  const handleAddStudent = (name: string, phone: string, password: string) => {
+    console.log('Добавлен ученик:', { name, phone, password });
+  };
+
+  const handleAddParent = (name: string, phone: string, email: string, password: string) => {
+    console.log('Добавлен родитель:', { name, phone, email, password });
+  };
+
+  const handleCreateGroup = (groupName: string) => {
+    const newGroup: Chat = {
+      id: Date.now().toString(),
+      name: groupName,
+      lastMessage: '',
+      timestamp: 'Сейчас',
+      unread: 0,
+      type: 'group',
+    };
+    setChats(prev => [newGroup, ...prev]);
+    setGroupTopics(prev => ({
+      ...prev,
+      [newGroup.id]: [
+        { id: `${newGroup.id}-important`, name: 'Важное', icon: 'AlertCircle', lastMessage: '', timestamp: '', unread: 0 },
+        { id: `${newGroup.id}-zoom`, name: 'Zoom', icon: 'Video', lastMessage: '', timestamp: '', unread: 0 },
+        { id: `${newGroup.id}-homework`, name: 'ДЗ', icon: 'BookOpen', lastMessage: '', timestamp: '', unread: 0 },
+        { id: `${newGroup.id}-reports`, name: 'Отчеты', icon: 'FileText', lastMessage: '', timestamp: '', unread: 0 },
+        { id: `${newGroup.id}-payment`, name: 'Оплата', icon: 'CreditCard', lastMessage: '', timestamp: '', unread: 0 },
+      ]
+    }));
+  };
+
   return {
     isAuthenticated,
     userRole,
@@ -236,5 +266,8 @@ export const useChatLogic = () => {
     handleOpenSettings,
     handleBackToChat,
     handleReaction,
+    handleAddStudent,
+    handleAddParent,
+    handleCreateGroup,
   };
 };

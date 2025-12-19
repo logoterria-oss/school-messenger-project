@@ -33,9 +33,12 @@ type ChatSidebarProps = {
   onLogout?: () => void;
   onOpenProfile?: () => void;
   onOpenSettings?: () => void;
+  onAddStudent?: () => void;
+  onAddParent?: () => void;
+  onCreateGroup?: () => void;
 };
 
-export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onAddStudent, onAddParent, onCreateGroup }: ChatSidebarProps) => {
   return (
     <div className="w-[420px] bg-card border-r border-border flex flex-col">
       <div className="p-4 bg-card">
@@ -63,6 +66,23 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              {userRole === 'admin' && (
+                <>
+                  <DropdownMenuItem onClick={onAddStudent}>
+                    <Icon name="UserPlus" size={16} className="mr-2" />
+                    Добавить ученика
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onAddParent}>
+                    <Icon name="UserPlus" size={16} className="mr-2" />
+                    Добавить родителя
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onCreateGroup}>
+                    <Icon name="Users" size={16} className="mr-2" />
+                    Создать группу
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem onClick={onOpenProfile}>
                 <Icon name="User" size={16} className="mr-2" />
                 Профиль
