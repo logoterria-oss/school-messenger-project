@@ -22,40 +22,7 @@ export const useChatLogic = () => {
     : [];
 
   useEffect(() => {
-    setChats([
-      {
-        id: '4',
-        name: 'Папа Ковалёв Дмитрий',
-        lastMessage: 'Здравствуйте! Я новый родитель...',
-        timestamp: '16:25',
-        unread: 1,
-        type: 'private',
-      },
-      {
-        id: '1',
-        name: 'Группа: Иванов Пётр',
-        lastMessage: 'Домашнее задание выполнено',
-        timestamp: '14:23',
-        unread: 0,
-        type: 'group',
-      },
-      {
-        id: '2',
-        name: 'Мама Петрова Анна',
-        lastMessage: 'Спасибо за информацию',
-        timestamp: '13:45',
-        unread: 0,
-        type: 'private',
-      },
-      {
-        id: '3',
-        name: 'Группа: Смирнова Мария',
-        lastMessage: 'Учитель математики: Отличная работа!',
-        timestamp: 'Вчера',
-        unread: 0,
-        type: 'group',
-      },
-    ]);
+    setChats([]);
   }, []);
 
   useEffect(() => {
