@@ -35,9 +35,10 @@ type ChatAreaProps = {
   topics?: Topic[];
   selectedTopic?: string;
   onTopicSelect?: (topicId: string) => void;
+  isTyping?: boolean;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, isTyping }: ChatAreaProps) => {
   return (
     <>
       <div className="bg-card border-b border-border">
@@ -122,6 +123,18 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
               onReaction={onReaction}
             />
           ))}
+          {isGroup && isTyping && (
+            <div className="flex items-center gap-2 px-4 py-2">
+              <div className="bg-accent rounded-2xl px-4 py-2 flex items-center gap-2">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
+                <span className="text-xs text-muted-foreground ml-1">печатает...</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -31,7 +31,9 @@ const Index = () => {
     groupTopics,
     messages,
     allUsers,
+    isTyping,
     setMessageText,
+    handleTyping,
     handleSelectChat,
     handleSelectTopic,
     handleSendMessage,
@@ -125,11 +127,12 @@ const Index = () => {
               topics={selectedGroup ? groupTopics[selectedGroup] : undefined}
               selectedTopic={selectedTopic || undefined}
               onTopicSelect={handleSelectTopic}
+              isTyping={isTyping}
             />
             <MessageInput 
               messageText={messageText}
               attachments={attachments}
-              onMessageChange={setMessageText}
+              onMessageChange={handleTyping}
               onSendMessage={handleSendMessage}
               onFileUpload={handleFileUpload}
               onImageUpload={handleImageUpload}

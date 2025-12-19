@@ -58,6 +58,8 @@ export const useChatLogic = () => {
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromStorage);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const messages = selectedTopic 
     ? (chatMessages[selectedTopic] || []) 
@@ -318,6 +320,23 @@ export const useChatLogic = () => {
     console.log('Создана группа с участниками:', selectedUserIds);
   };
 
+  const handleTyping = (text: string) => {
+    setMessageText(text);
+    
+    const chat = chats.find(c => c.id === selectedChat);
+    if (chat && chat.type === 'group') {
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+      
+      setIsTyping(true);
+      const timeout = setTimeout(() => {
+        setIsTyping(false);
+      }, 2000);
+      setTypingTimeout(timeout);
+    }
+  };
+
   return {
     isAuthenticated,
     userRole,
@@ -332,7 +351,9 @@ export const useChatLogic = () => {
     groupTopics,
     messages,
     allUsers,
+    isTyping,
     setMessageText,
+    handleTyping,
     handleSelectChat,
     handleSelectTopic,
     handleSendMessage,
