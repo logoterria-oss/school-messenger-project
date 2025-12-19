@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { teacherAccounts } from '@/data/teacherAccounts';
+import { studentAccounts } from '@/data/studentAccounts';
+import { parentAccounts } from '@/data/parentAccounts';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -77,6 +79,38 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         setIsLoggingIn(true);
         setTimeout(() => {
           onLogin('teacher', teacher.name);
+        }, 1500);
+      } else {
+        setError('Неверный логин или пароль');
+      }
+    } else if (selectedRole === 'student') {
+      const normalizedLogin = login.trim().replace(/\D/g, '');
+      const student = studentAccounts.find(
+        acc => 
+          acc.phone.replace(/\D/g, '').includes(normalizedLogin) &&
+          acc.password === password
+      );
+
+      if (student) {
+        setIsLoggingIn(true);
+        setTimeout(() => {
+          onLogin('student', student.name);
+        }, 1500);
+      } else {
+        setError('Неверный логин или пароль');
+      }
+    } else if (selectedRole === 'parent') {
+      const normalizedLogin = login.trim().replace(/\D/g, '');
+      const parent = parentAccounts.find(
+        acc => 
+          acc.phone.replace(/\D/g, '').includes(normalizedLogin) &&
+          acc.password === password
+      );
+
+      if (parent) {
+        setIsLoggingIn(true);
+        setTimeout(() => {
+          onLogin('parent', parent.name);
         }, 1500);
       } else {
         setError('Неверный логин или пароль');
