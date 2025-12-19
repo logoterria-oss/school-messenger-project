@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserRole, AttachedFile, Message, Chat, GroupTopics } from '@/types/chat.types';
 import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
+import { teacherAccounts } from '@/data/teacherAccounts';
 
 type User = {
   id: string;
@@ -24,7 +25,16 @@ export const useChatLogic = () => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(initialGroupTopics);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>(
+    teacherAccounts.map((teacher, index) => ({
+      id: `teacher-${index}`,
+      name: teacher.name,
+      role: 'teacher' as const,
+      phone: teacher.phone,
+      email: teacher.email,
+      password: teacher.password,
+    }))
+  );
 
   const messages = selectedTopic 
     ? (chatMessages[selectedTopic] || []) 
@@ -247,7 +257,7 @@ export const useChatLogic = () => {
     setAllUsers(prev => [...prev, newUser]);
   };
 
-  const handleCreateGroup = (groupName: string) => {
+  const handleCreateGroup = (groupName: string, selectedUserIds: string[]) => {
     const newGroup: Chat = {
       id: Date.now().toString(),
       name: groupName,
@@ -267,6 +277,7 @@ export const useChatLogic = () => {
         { id: `${newGroup.id}-payment`, name: 'Оплата', icon: 'CreditCard', lastMessage: '', timestamp: '', unread: 0 },
       ]
     }));
+    console.log('Создана группа с участниками:', selectedUserIds);
   };
 
   return {

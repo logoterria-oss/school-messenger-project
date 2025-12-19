@@ -111,6 +111,7 @@ const Index = () => {
         open={showCreateGroup}
         onClose={() => setShowCreateGroup(false)}
         onCreate={handleCreateGroup}
+        allUsers={allUsers}
       />
 
       <div className="flex-1 flex flex-col">
