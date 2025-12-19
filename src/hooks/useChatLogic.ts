@@ -12,6 +12,31 @@ type User = {
   password: string;
 };
 
+const loadUsersFromStorage = (): User[] => {
+  const stored = localStorage.getItem('allUsers');
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  return teacherAccounts.map((teacher, index) => ({
+    id: `teacher-${index}`,
+    name: teacher.name,
+    role: 'teacher' as const,
+    phone: teacher.phone,
+    email: teacher.email,
+    password: teacher.password,
+  }));
+};
+
+const loadChatsFromStorage = (): Chat[] => {
+  const stored = localStorage.getItem('chats');
+  return stored ? JSON.parse(stored) : [];
+};
+
+const loadGroupTopicsFromStorage = (): GroupTopics => {
+  const stored = localStorage.getItem('groupTopics');
+  return stored ? JSON.parse(stored) : initialGroupTopics;
+};
+
 export const useChatLogic = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
@@ -22,19 +47,10 @@ export const useChatLogic = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [groupTopics, setGroupTopics] = useState<GroupTopics>(initialGroupTopics);
+  const [chats, setChats] = useState<Chat[]>(loadChatsFromStorage);
+  const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromStorage);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
-  const [allUsers, setAllUsers] = useState<User[]>(
-    teacherAccounts.map((teacher, index) => ({
-      id: `teacher-${index}`,
-      name: teacher.name,
-      role: 'teacher' as const,
-      phone: teacher.phone,
-      email: teacher.email,
-      password: teacher.password,
-    }))
-  );
+  const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
 
   const messages = selectedTopic 
     ? (chatMessages[selectedTopic] || []) 
@@ -43,8 +59,16 @@ export const useChatLogic = () => {
     : [];
 
   useEffect(() => {
-    setChats([]);
-  }, []);
+    localStorage.setItem('allUsers', JSON.stringify(allUsers));
+  }, [allUsers]);
+
+  useEffect(() => {
+    localStorage.setItem('chats', JSON.stringify(chats));
+  }, [chats]);
+
+  useEffect(() => {
+    localStorage.setItem('groupTopics', JSON.stringify(groupTopics));
+  }, [groupTopics]);
 
   useEffect(() => {
     setChats(prevChats =>
