@@ -18,7 +18,8 @@ const loadUsersFromStorage = (): User[] => {
   if (stored) {
     return JSON.parse(stored);
   }
-  return teacherAccounts.map((teacher, index) => ({
+  
+  const teachers = teacherAccounts.map((teacher, index) => ({
     id: `teacher-${index}`,
     name: teacher.name,
     role: 'teacher' as const,
@@ -26,6 +27,17 @@ const loadUsersFromStorage = (): User[] => {
     email: teacher.email,
     password: teacher.password,
   }));
+  
+  const testUsers = testAccounts.map(account => ({
+    id: account.id,
+    name: account.name,
+    role: account.role,
+    phone: account.phone,
+    email: account.email,
+    password: account.password,
+  }));
+  
+  return [...teachers, ...testUsers];
 };
 
 const loadChatsFromStorage = (): Chat[] => {
