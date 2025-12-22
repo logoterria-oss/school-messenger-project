@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { teacherAccounts } from '@/data/teacherAccounts';
+import { testAccounts } from '@/data/testAccounts';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -77,6 +78,24 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         setIsLoggingIn(true);
         setTimeout(() => {
           onLogin('teacher', teacher.name);
+        }, 1500);
+      } else {
+        setError('Неверный логин или пароль');
+      }
+    } else if (selectedRole === 'parent' || selectedRole === 'student') {
+      const normalizedLogin = login.trim().toLowerCase();
+      const account = testAccounts.find(
+        acc => 
+          acc.role === selectedRole &&
+          (acc.phone.replace(/\D/g, '').includes(normalizedLogin.replace(/\D/g, '')) || 
+           acc.email.toLowerCase() === normalizedLogin) &&
+          acc.password === password
+      );
+
+      if (account) {
+        setIsLoggingIn(true);
+        setTimeout(() => {
+          onLogin(selectedRole, account.name);
         }, 1500);
       } else {
         setError('Неверный логин или пароль');
