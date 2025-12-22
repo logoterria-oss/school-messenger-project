@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { UserRole, AttachedFile, Message, Chat, GroupTopics } from '@/types/chat.types';
 import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
+import { testAccounts } from '@/data/testAccounts';
 
 type User = {
   id: string;
@@ -227,6 +228,74 @@ export const useChatLogic = () => {
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('userRole', role);
     localStorage.setItem('userName', name || '');
+    
+    // Инициализация тестовых групп для родителя и ученика
+    if (role === 'parent' || role === 'student') {
+      const existingChats = loadChatsFromStorage();
+      const hasTestGroup = existingChats.some(chat => chat.id === 'test-group-1');
+      
+      if (!hasTestGroup) {
+        const testGroupChat: Chat = {
+          id: 'test-group-1',
+          name: 'Тестовая группа',
+          type: 'group',
+          lastMessage: 'Добро пожаловать в тестовую группу!',
+          lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          unread: 0,
+          avatar: 'https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg',
+        };
+        
+        const newChats = [...existingChats, testGroupChat];
+        setChats(newChats);
+        localStorage.setItem('chats', JSON.stringify(newChats));
+        
+        // Создаем топики для группы
+        const testTopics = [
+          {
+            id: 'test-topic-1',
+            name: 'Общие вопросы',
+            icon: 'MessageCircle',
+            unread: 0,
+          },
+          {
+            id: 'test-topic-2',
+            name: 'Домашние задания',
+            icon: 'BookOpen',
+            unread: 0,
+          }
+        ];
+        
+        const newGroupTopics = {
+          ...loadGroupTopicsFromStorage(),
+          'test-group-1': testTopics
+        };
+        setGroupTopics(newGroupTopics);
+        localStorage.setItem('groupTopics', JSON.stringify(newGroupTopics));
+        
+        // Создаем приветственные сообщения
+        const welcomeMessages: Message[] = [
+          {
+            id: 'welcome-1',
+            text: 'Добро пожаловать в тестовую группу! Здесь собраны педагог, админ, родители и ученики.',
+            sender: 'Виктория Абрамова',
+            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            isOwn: false,
+          },
+          {
+            id: 'welcome-2',
+            text: 'Здесь мы можем обсуждать учебные вопросы и делиться новостями.',
+            sender: 'Анна Ковалева',
+            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            isOwn: false,
+          }
+        ];
+        
+        setChatMessages(prev => ({
+          ...prev,
+          'test-topic-1': welcomeMessages
+        }));
+      }
+    }
   };
 
   const handleLogout = () => {
