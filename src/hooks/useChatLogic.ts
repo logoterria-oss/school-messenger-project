@@ -14,10 +14,8 @@ type User = {
 };
 
 const loadUsersFromStorage = (): User[] => {
-  const stored = localStorage.getItem('allUsers');
-  if (stored) {
-    return JSON.parse(stored);
-  }
+  // Принудительно очищаем кеш и пересобираем список пользователей
+  localStorage.removeItem('allUsers');
   
   const teachers = teacherAccounts.map((teacher, index) => ({
     id: `teacher-${index}`,
@@ -37,7 +35,9 @@ const loadUsersFromStorage = (): User[] => {
     password: account.password,
   }));
   
-  return [...teachers, ...testUsers];
+  const allUsers = [...teachers, ...testUsers];
+  localStorage.setItem('allUsers', JSON.stringify(allUsers));
+  return allUsers;
 };
 
 const loadChatsFromStorage = (): Chat[] => {
