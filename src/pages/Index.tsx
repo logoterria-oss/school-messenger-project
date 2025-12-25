@@ -163,19 +163,24 @@ const Index = () => {
           )}
         </div>
 
-        {selectedChat && (
-          <ChatInfoSidebar
-            isOpen={showChatInfo}
-            onClose={() => setShowChatInfo(false)}
-            userRole={userRole}
-            chatInfo={{
-              students: allUsers.filter(u => u.role === 'student'),
-              parents: allUsers.filter(u => u.role === 'parent'),
-              schedule: 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
-              conclusionLink: 'https://example.com/conclusion.pdf',
-            }}
-          />
-        )}
+        {selectedChat && (() => {
+          const currentChat = chats.find(c => c.id === selectedChat);
+          const chatParticipants = currentChat?.participants || [];
+          
+          return (
+            <ChatInfoSidebar
+              isOpen={showChatInfo}
+              onClose={() => setShowChatInfo(false)}
+              userRole={userRole}
+              chatInfo={{
+                students: allUsers.filter(u => u.role === 'student' && chatParticipants.includes(u.id)),
+                parents: allUsers.filter(u => u.role === 'parent' && chatParticipants.includes(u.id)),
+                schedule: currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
+                conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
+              }}
+            />
+          );
+        })()}
       </div>
     </div>
   );
