@@ -306,6 +306,19 @@ export const useChatLogic = () => {
           ...prev,
           'test-topic-1': welcomeMessages
         }));
+        
+        // Автоматически выбираем группу для родителей и учеников
+        setSelectedChat('test-group-1');
+        setSelectedGroup('test-group-1');
+        setSelectedTopic('test-topic-1');
+      } else {
+        // Если группа уже есть, просто выбираем её
+        setSelectedChat('test-group-1');
+        setSelectedGroup('test-group-1');
+        const existingTopics = loadGroupTopicsFromStorage()['test-group-1'];
+        if (existingTopics && existingTopics.length > 0) {
+          setSelectedTopic(existingTopics[0].id);
+        }
       }
     }
   };

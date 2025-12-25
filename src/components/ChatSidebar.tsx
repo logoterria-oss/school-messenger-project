@@ -40,6 +40,29 @@ type ChatSidebarProps = {
 };
 
 export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onCreateGroup }: ChatSidebarProps) => {
+  const [selectedTag, setSelectedTag] = useState<string | null>('all');
+
+  const parentTags = [
+    { id: 'all', label: 'Все', icon: 'Inbox' },
+    { id: 'important', label: 'Важное', icon: 'CircleAlert' },
+    { id: 'zoom', label: 'Zoom', icon: 'Video' },
+    { id: 'homework', label: 'ДЗ', icon: 'BookOpen' },
+    { id: 'reports', label: 'Отчеты', icon: 'FileText' },
+    { id: 'payment', label: 'Оплата', icon: 'CreditCard' },
+    { id: 'cancellation', label: 'Отмена занятий', icon: 'Ban' },
+  ];
+
+  const studentTags = [
+    { id: 'all', label: 'Все', icon: 'Inbox' },
+    { id: 'important', label: 'Важное', icon: 'CircleAlert' },
+    { id: 'zoom', label: 'Zoom', icon: 'Video' },
+    { id: 'homework', label: 'ДЗ', icon: 'BookOpen' },
+    { id: 'cancellation', label: 'Отмена занятий', icon: 'Ban' },
+  ];
+
+  const isParentOrStudent = userRole === 'parent' || userRole === 'student';
+  const tags = userRole === 'parent' ? parentTags : userRole === 'student' ? studentTags : [];
+
   return (
     <div className="w-[420px] bg-card border-r border-border flex flex-col">
       <div className="p-4 bg-card">
@@ -113,51 +136,72 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
             className="pl-9 h-9 bg-accent border-0 text-sm"
           />
         </div>
+
+        {isParentOrStudent && (
+          <div className="mt-4 space-y-1">
+            {tags.map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() => setSelectedTag(tag.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  selectedTag === tag.id
+                    ? 'bg-primary text-white'
+                    : 'text-foreground hover:bg-accent'
+                }`}
+              >
+                <Icon name={tag.icon as any} size={18} />
+                <span className="font-medium">{tag.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <ScrollArea className="flex-1">
-        {chats.map((chat) => (
-          <button
-            key={chat.id}
-            onClick={() => onSelectChat(chat.id)}
-            className={`w-full px-4 py-3 text-left transition-colors border-l-4 ${
-              selectedChat === chat.id 
-                ? 'bg-accent border-primary' 
-                : 'border-transparent hover:bg-accent/50'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <Avatar className="w-12 h-12">
-                <AvatarFallback className="bg-primary text-white text-sm">
-                  {chat.type === 'group' ? (
-                    <Icon name="Users" size={20} />
-                  ) : (
-                    <Icon name="User" size={20} />
-                  )}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline justify-between mb-0.5">
-                  <h3 className="font-medium text-sm truncate text-foreground">{chat.name}</h3>
-                  <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                    {chat.timestamp}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm text-muted-foreground truncate flex-1">
-                    {chat.lastMessage}
-                  </p>
-                  {chat.unread > 0 && (
-                    <Badge className="bg-primary text-white text-xs px-2 py-0 h-5 min-w-5 rounded-full flex items-center justify-center">
-                      {chat.unread}
-                    </Badge>
-                  )}
+      {!isParentOrStudent && (
+        <ScrollArea className="flex-1">
+          {chats.map((chat) => (
+            <button
+              key={chat.id}
+              onClick={() => onSelectChat(chat.id)}
+              className={`w-full px-4 py-3 text-left transition-colors border-l-4 ${
+                selectedChat === chat.id 
+                  ? 'bg-accent border-primary' 
+                  : 'border-transparent hover:bg-accent/50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Avatar className="w-12 h-12">
+                  <AvatarFallback className="bg-primary text-white text-sm">
+                    {chat.type === 'group' ? (
+                      <Icon name="Users" size={20} />
+                    ) : (
+                      <Icon name="User" size={20} />
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline justify-between mb-0.5">
+                    <h3 className="font-medium text-sm truncate text-foreground">{chat.name}</h3>
+                    <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+                      {chat.timestamp}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm text-muted-foreground truncate flex-1">
+                      {chat.lastMessage}
+                    </p>
+                    {chat.unread > 0 && (
+                      <Badge className="bg-primary text-white text-xs px-2 py-0 h-5 min-w-5 rounded-full flex items-center justify-center">
+                        {chat.unread}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </button>
-        ))}
-      </ScrollArea>
+            </button>
+          ))}
+        </ScrollArea>
+      )}
     </div>
   );
 };

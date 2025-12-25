@@ -128,6 +128,7 @@ const Index = () => {
               selectedTopic={selectedTopic || undefined}
               onTopicSelect={handleSelectTopic}
               typingUsers={typingUsers}
+              userRole={userRole}
             />
             <MessageInput 
               messageText={messageText}

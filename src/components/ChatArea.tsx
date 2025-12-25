@@ -27,6 +27,8 @@ type Topic = {
   unread: number;
 };
 
+type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
+
 type ChatAreaProps = {
   messages: Message[];
   onReaction: (messageId: string, emoji: string) => void;
@@ -36,9 +38,11 @@ type ChatAreaProps = {
   selectedTopic?: string;
   onTopicSelect?: (topicId: string) => void;
   typingUsers?: string[];
+  userRole?: UserRole;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole }: ChatAreaProps) => {
+  const shouldShowTopics = isGroup && topics && topics.length > 0 && (userRole === 'admin' || userRole === 'teacher');
   return (
     <>
       <div className="bg-card border-b border-border">
@@ -72,7 +76,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
           </div>
         </div>
         
-        {isGroup && topics && topics.length > 0 && (
+        {shouldShowTopics && (
           <div className="px-4 pb-3 border-t border-border/50">
             <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
               {topics.map((topic) => (
