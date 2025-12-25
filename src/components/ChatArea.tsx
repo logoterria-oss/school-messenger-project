@@ -44,38 +44,40 @@ type ChatAreaProps = {
 
 export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo }: ChatAreaProps) => {
   const shouldShowTopics = isGroup && topics && topics.length > 0 && (userRole === 'admin' || userRole === 'teacher');
+  const isParentOrStudent = userRole === 'parent' || userRole === 'student';
+  
   return (
     <>
       <div className="bg-card border-b border-border">
         <div className="flex items-center justify-between px-4 py-3">
-          <button 
-            onClick={onOpenChatInfo}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-          >
-            <Avatar className="w-10 h-10">
-              <AvatarFallback className="bg-primary text-white">
-                {isGroup ? <Icon name="Users" size={18} /> : <Icon name="User" size={18} />}
-              </AvatarFallback>
-            </Avatar>
-            <div className="text-left">
-              <h2 className="font-medium text-base">{chatName}</h2>
-              <p className="text-xs text-muted-foreground">
-                {isGroup ? '5 участников' : 'Личный чат'}
-              </p>
+          {!isParentOrStudent && (
+            <div className="flex items-center gap-3">
+              <Avatar className="w-10 h-10">
+                <AvatarFallback className="bg-primary text-white">
+                  {isGroup ? <Icon name="Users" size={18} /> : <Icon name="User" size={18} />}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h2 className="font-medium text-base">{chatName}</h2>
+                <p className="text-xs text-muted-foreground">
+                  {isGroup ? '5 участников' : 'Личный чат'}
+                </p>
+              </div>
             </div>
-          </button>
+          )}
+          {isParentOrStudent && <div />}
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <Icon name="Phone" size={20} />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <Icon name="Video" size={20} />
-            </Button>
             <Button variant="ghost" size="icon" className="text-muted-foreground">
               <Icon name="Search" size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <Icon name="MoreVertical" size={20} />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onOpenChatInfo}
+              className="text-sm font-medium"
+            >
+              <Icon name="Info" size={16} className="mr-2" />
+              Основное
             </Button>
           </div>
         </div>
