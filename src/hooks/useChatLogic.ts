@@ -520,6 +520,7 @@ export const useChatLogic = () => {
       timestamp: 'Сейчас',
       unread: 0,
       type: 'group',
+      participants: allParticipants,
     };
     setChats(prev => [newGroup, ...prev]);
     setGroupTopics(prev => ({
