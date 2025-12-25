@@ -83,6 +83,23 @@ export const useChatLogic = () => {
     ? (chatMessages[selectedChat] || []) 
     : [];
 
+  // Автоматически выбираем чат для родителей и учеников при загрузке
+  useEffect(() => {
+    if (isAuthenticated && (userRole === 'parent' || userRole === 'student')) {
+      const existingChats = loadChatsFromStorage();
+      const testGroup = existingChats.find(chat => chat.id === 'test-group-1');
+      
+      if (testGroup && !selectedChat) {
+        setSelectedChat('test-group-1');
+        setSelectedGroup('test-group-1');
+        const topics = loadGroupTopicsFromStorage()['test-group-1'];
+        if (topics && topics.length > 0) {
+          setSelectedTopic(topics[0].id);
+        }
+      }
+    }
+  }, [isAuthenticated, userRole, selectedChat]);
+
   useEffect(() => {
     localStorage.setItem('allUsers', JSON.stringify(allUsers));
   }, [allUsers]);
