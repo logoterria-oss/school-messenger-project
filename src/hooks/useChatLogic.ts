@@ -273,6 +273,30 @@ export const useChatLogic = () => {
           ? `Группа: ${name || 'Родитель'}`
           : 'Тестовая группа';
         
+        // Находим ID текущего пользователя по имени и роли
+        const currentUserId = allUsers.find(u => u.name === name && u.role === role)?.id;
+        
+        // Для родителя находим связанного ученика, для ученика — родителя
+        const linkedUser = allUsers.find(u => {
+          if (role === 'parent' && u.role === 'student') {
+            // Ищем ученика, связанного с этим родителем
+            return testAccounts.find(acc => acc.id === currentUserId)?.linkedTo?.includes(u.id);
+          } else if (role === 'student' && u.role === 'parent') {
+            // Ищем родителя, связанного с этим учеником
+            return testAccounts.find(acc => acc.id === currentUserId)?.linkedTo?.includes(u.id);
+          }
+          return false;
+        });
+        
+        // Собираем участников: текущий пользователь + связанный + все учителя + админ
+        const teachers = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
+        const participantIds = [
+          currentUserId,
+          linkedUser?.id,
+          ...teachers,
+          'admin'
+        ].filter(Boolean) as string[];
+        
         const testGroupChat: Chat = {
           id: 'test-group-1',
           name: chatName,
@@ -281,6 +305,7 @@ export const useChatLogic = () => {
           lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
           unread: 0,
           avatar: 'https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg',
+          participants: participantIds,
         };
         
         const newChats = [...existingChats, testGroupChat];
