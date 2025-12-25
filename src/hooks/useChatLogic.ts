@@ -548,6 +548,38 @@ export const useChatLogic = () => {
     // Другие участники получат событие и добавят userName в свой список typingUsers
   };
 
+  const handleDeleteGroup = (chatId: string) => {
+    // Удаляем чат из списка
+    setChats(prev => prev.filter(chat => chat.id !== chatId));
+    
+    // Удаляем топики группы
+    setGroupTopics(prev => {
+      const newTopics = { ...prev };
+      delete newTopics[chatId];
+      return newTopics;
+    });
+    
+    // Удаляем сообщения группы
+    setChatMessages(prev => {
+      const newMessages = { ...prev };
+      delete newMessages[chatId];
+      // Также удаляем сообщения из топиков этой группы
+      Object.keys(newMessages).forEach(key => {
+        if (key.startsWith(chatId)) {
+          delete newMessages[key];
+        }
+      });
+      return newMessages;
+    });
+    
+    // Если удаляемый чат был выбран, сбрасываем выбор
+    if (selectedChat === chatId) {
+      setSelectedChat(null);
+      setSelectedGroup(null);
+      setSelectedTopic(null);
+    }
+  };
+
   return {
     isAuthenticated,
     userRole,
@@ -581,5 +613,6 @@ export const useChatLogic = () => {
     handleAddStudent,
     handleAddParent,
     handleCreateGroup,
+    handleDeleteGroup,
   };
 };

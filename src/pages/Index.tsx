@@ -52,6 +52,7 @@ const Index = () => {
     handleAddStudent,
     handleAddParent,
     handleCreateGroup,
+    handleDeleteGroup,
   } = useChatLogic();
 
   if (!isAuthenticated || !userRole) {
@@ -177,6 +178,12 @@ const Index = () => {
                 parents: allUsers.filter(u => u.role === 'parent' && chatParticipants.includes(u.id)),
                 schedule: currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
                 conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
+              }}
+              onDeleteGroup={() => {
+                if (selectedChat && confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
+                  handleDeleteGroup(selectedChat);
+                  setShowChatInfo(false);
+                }
               }}
             />
           );

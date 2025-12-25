@@ -22,12 +22,14 @@ type ChatInfoSidebarProps = {
   onClose: () => void;
   chatInfo: ChatInfo;
   userRole: 'admin' | 'teacher' | 'parent' | 'student';
+  onDeleteGroup?: () => void;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup }: ChatInfoSidebarProps) => {
   if (!isOpen) return null;
 
   const isAdminOrTeacher = userRole === 'admin' || userRole === 'teacher';
+  const isAdmin = userRole === 'admin';
 
   return (
     <div className="w-[380px] bg-card border-l border-border flex flex-col">
@@ -147,6 +149,20 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole }: ChatInf
               <p className="text-sm text-muted-foreground">Заключение не добавлено</p>
             )}
           </div>
+
+          {/* Удалить группу (только для админа) */}
+          {isAdmin && onDeleteGroup && (
+            <div className="pt-4 border-t border-border">
+              <Button 
+                variant="destructive" 
+                className="w-full"
+                onClick={onDeleteGroup}
+              >
+                <Icon name="Trash2" size={16} className="mr-2" />
+                Удалить группу
+              </Button>
+            </div>
+          )}
         </div>
       </ScrollArea>
     </div>
