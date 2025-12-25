@@ -10,12 +10,14 @@ import { AllUsersView } from '@/components/AllUsersView';
 import { AddStudentDialog } from '@/components/AddStudentDialog';
 import { AddParentDialog } from '@/components/AddParentDialog';
 import { CreateGroupDialog } from '@/components/CreateGroupDialog';
+import { ChatInfoSidebar } from '@/components/ChatInfoSidebar';
 import { useChatLogic } from '@/hooks/useChatLogic';
 
 const Index = () => {
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showAddParent, setShowAddParent] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showChatInfo, setShowChatInfo] = useState(false);
 
   const {
     isAuthenticated,
@@ -116,46 +118,63 @@ const Index = () => {
         allUsers={allUsers}
       />
 
-      <div className="flex-1 flex flex-col">
-        {selectedChat ? (
-          <>
-            <ChatArea 
-              messages={messages}
-              onReaction={handleReaction}
-              chatName={chats.find(c => c.id === selectedChat)?.name || ''}
-              isGroup={selectedGroup !== null}
-              topics={selectedGroup ? groupTopics[selectedGroup] : undefined}
-              selectedTopic={selectedTopic || undefined}
-              onTopicSelect={handleSelectTopic}
-              typingUsers={typingUsers}
-              userRole={userRole}
-            />
-            <MessageInput 
-              messageText={messageText}
-              attachments={attachments}
-              onMessageChange={handleTyping}
-              onSendMessage={handleSendMessage}
-              onFileUpload={handleFileUpload}
-              onImageUpload={handleImageUpload}
-              onRemoveAttachment={removeAttachment}
-            />
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-accent/20">
-            <div className="text-center space-y-3">
-              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <Icon name="MessageSquare" size={36} className="text-primary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-medium mb-1">
-                  Выберите чат
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Начните общение с педагогами и родителями
-                </p>
+      <div className="flex-1 flex">
+        <div className="flex-1 flex flex-col">
+          {selectedChat ? (
+            <>
+              <ChatArea 
+                messages={messages}
+                onReaction={handleReaction}
+                chatName={chats.find(c => c.id === selectedChat)?.name || ''}
+                isGroup={selectedGroup !== null}
+                topics={selectedGroup ? groupTopics[selectedGroup] : undefined}
+                selectedTopic={selectedTopic || undefined}
+                onTopicSelect={handleSelectTopic}
+                typingUsers={typingUsers}
+                userRole={userRole}
+                onOpenChatInfo={() => setShowChatInfo(true)}
+              />
+              <MessageInput 
+                messageText={messageText}
+                attachments={attachments}
+                onMessageChange={handleTyping}
+                onSendMessage={handleSendMessage}
+                onFileUpload={handleFileUpload}
+                onImageUpload={handleImageUpload}
+                onRemoveAttachment={removeAttachment}
+              />
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-accent/20">
+              <div className="text-center space-y-3">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <Icon name="MessageSquare" size={36} className="text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-medium mb-1">
+                    Выберите чат
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Начните общение с педагогами и родителями
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+        </div>
+
+        {selectedChat && (
+          <ChatInfoSidebar
+            isOpen={showChatInfo}
+            onClose={() => setShowChatInfo(false)}
+            userRole={userRole}
+            chatInfo={{
+              students: allUsers.filter(u => u.role === 'student'),
+              parents: allUsers.filter(u => u.role === 'parent'),
+              schedule: 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
+              conclusionLink: 'https://example.com/conclusion.pdf',
+            }}
+          />
         )}
       </div>
     </div>

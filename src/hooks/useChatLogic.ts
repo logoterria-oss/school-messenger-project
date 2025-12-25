@@ -11,6 +11,7 @@ type User = {
   phone: string;
   email?: string;
   password: string;
+  avatar?: string;
 };
 
 const loadUsersFromStorage = (): User[] => {
@@ -33,6 +34,7 @@ const loadUsersFromStorage = (): User[] => {
     phone: account.phone,
     email: account.email,
     password: account.password,
+    avatar: account.avatar,
   }));
   
   const allUsers = [...teachers, ...testUsers];
@@ -247,9 +249,16 @@ export const useChatLogic = () => {
       const hasTestGroup = existingChats.some(chat => chat.id === 'test-group-1');
       
       if (!hasTestGroup) {
+        // Название чата зависит от роли
+        const chatName = role === 'student' 
+          ? `${name || 'Ученик'}` 
+          : role === 'parent'
+          ? `Группа: ${name || 'Родитель'}`
+          : 'Тестовая группа';
+        
         const testGroupChat: Chat = {
           id: 'test-group-1',
-          name: 'Тестовая группа',
+          name: chatName,
           type: 'group',
           lastMessage: 'Добро пожаловать в тестовую группу!',
           lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),

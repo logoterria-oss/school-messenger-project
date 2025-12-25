@@ -39,27 +39,31 @@ type ChatAreaProps = {
   onTopicSelect?: (topicId: string) => void;
   typingUsers?: string[];
   userRole?: UserRole;
+  onOpenChatInfo?: () => void;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo }: ChatAreaProps) => {
   const shouldShowTopics = isGroup && topics && topics.length > 0 && (userRole === 'admin' || userRole === 'teacher');
   return (
     <>
       <div className="bg-card border-b border-border">
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
+          <button 
+            onClick={onOpenChatInfo}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
             <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-primary text-white">
                 {isGroup ? <Icon name="Users" size={18} /> : <Icon name="User" size={18} />}
               </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="text-left">
               <h2 className="font-medium text-base">{chatName}</h2>
               <p className="text-xs text-muted-foreground">
                 {isGroup ? '5 участников' : 'Личный чат'}
               </p>
             </div>
-          </div>
+          </button>
           <div className="flex gap-2">
             <Button variant="ghost" size="icon" className="text-muted-foreground">
               <Icon name="Phone" size={20} />
