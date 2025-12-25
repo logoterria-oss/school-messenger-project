@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,7 +20,7 @@ type User = {
 type CreateGroupDialogProps = {
   open: boolean;
   onClose: () => void;
-  onCreate: (groupName: string, selectedUserIds: string[]) => void;
+  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string) => void;
   allUsers: User[];
 };
 
@@ -32,20 +33,26 @@ const roleLabels = {
 export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDialogProps) => {
   const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [schedule, setSchedule] = useState('');
+  const [conclusionLink, setConclusionLink] = useState('');
 
   const handleCreate = () => {
     if (!groupName.trim()) {
       return;
     }
-    onCreate(groupName.trim(), selectedUsers);
+    onCreate(groupName.trim(), selectedUsers, schedule.trim(), conclusionLink.trim());
     setGroupName('');
     setSelectedUsers([]);
+    setSchedule('');
+    setConclusionLink('');
     onClose();
   };
 
   const handleClose = () => {
     setGroupName('');
     setSelectedUsers([]);
+    setSchedule('');
+    setConclusionLink('');
     onClose();
   };
 
@@ -75,8 +82,30 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="schedule">Расписание</Label>
+            <Textarea
+              id="schedule"
+              placeholder="ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог..."
+              value={schedule}
+              onChange={(e) => setSchedule(e.target.value)}
+              rows={4}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="conclusionLink">Ссылка на заключение</Label>
+            <Input
+              id="conclusionLink"
+              type="url"
+              placeholder="https://example.com/conclusion.pdf"
+              value={conclusionLink}
+              onChange={(e) => setConclusionLink(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label>Участники группы ({selectedUsers.length} выбрано)</Label>
-            <ScrollArea className="h-[300px] border rounded-md">
+            <ScrollArea className="h-[200px] border rounded-md">
               <div className="p-3 space-y-2">
                 {allUsers.length === 0 ? (
                   <div className="text-center py-8 text-sm text-muted-foreground">

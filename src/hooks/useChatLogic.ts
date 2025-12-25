@@ -501,7 +501,7 @@ export const useChatLogic = () => {
     setAllUsers(prev => [...prev, newUser]);
   };
 
-  const handleCreateGroup = (groupName: string, selectedUserIds: string[]) => {
+  const handleCreateGroup = (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string) => {
     // Автоматически добавляем всех педагогов и админа
     const teachersAndAdmins = allUsers
       .filter(user => user.role === 'teacher')
@@ -521,6 +521,8 @@ export const useChatLogic = () => {
       unread: 0,
       type: 'group',
       participants: allParticipants,
+      schedule: schedule || undefined,
+      conclusionLink: conclusionLink || undefined,
     };
     setChats(prev => [newGroup, ...prev]);
     setGroupTopics(prev => ({
