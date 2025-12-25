@@ -363,7 +363,35 @@ export const useChatLogic = () => {
         setSelectedGroup('test-group-1');
         setSelectedTopic('test-topic-1');
       } else {
-        // Если группа уже есть, просто выбираем её
+        // Если группа уже есть, обновляем participants для текущего пользователя
+        const currentUserId = allUsers.find(u => u.name === name && u.role === role)?.id;
+        
+        const linkedUser = allUsers.find(u => {
+          if (role === 'parent' && u.role === 'student') {
+            return testAccounts.find(acc => acc.id === currentUserId)?.linkedTo?.includes(u.id);
+          } else if (role === 'student' && u.role === 'parent') {
+            return testAccounts.find(acc => acc.id === currentUserId)?.linkedTo?.includes(u.id);
+          }
+          return false;
+        });
+        
+        const teachers = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
+        const participantIds = [
+          currentUserId,
+          linkedUser?.id,
+          ...teachers,
+          'admin'
+        ].filter(Boolean) as string[];
+        
+        // Обновляем существующий чат с новыми participants
+        const updatedChats = existingChats.map(chat => 
+          chat.id === 'test-group-1' 
+            ? { ...chat, participants: participantIds }
+            : chat
+        );
+        setChats(updatedChats);
+        localStorage.setItem('chats', JSON.stringify(updatedChats));
+        
         setSelectedChat('test-group-1');
         setSelectedGroup('test-group-1');
         const existingTopics = loadGroupTopicsFromStorage()['test-group-1'];
