@@ -423,6 +423,17 @@ export const useChatLogic = () => {
   };
 
   const handleCreateGroup = (groupName: string, selectedUserIds: string[]) => {
+    // Автоматически добавляем всех педагогов и админа
+    const teachersAndAdmins = allUsers
+      .filter(user => user.role === 'teacher')
+      .map(user => user.id);
+    
+    // Добавляем ID админа (Виктория Абраменко всегда с ID 'admin')
+    const adminId = 'admin';
+    
+    // Объединяем выбранных пользователей с педагогами и админом
+    const allParticipants = [...new Set([...selectedUserIds, ...teachersAndAdmins, adminId])];
+    
     const newGroup: Chat = {
       id: Date.now().toString(),
       name: groupName,
@@ -443,7 +454,7 @@ export const useChatLogic = () => {
         { id: `${newGroup.id}-cancellation`, name: 'Отмена занятий', icon: 'XCircle', lastMessage: '', timestamp: '', unread: 0 },
       ]
     }));
-    console.log('Создана группа с участниками:', selectedUserIds);
+    console.log('Создана группа с участниками:', allParticipants);
   };
 
   const handleTyping = (text: string) => {
