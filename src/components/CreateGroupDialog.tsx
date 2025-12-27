@@ -86,11 +86,11 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg max-h-[80vh]">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Создать группу</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 overflow-y-auto flex-1 px-1">
           <div className="space-y-2">
             <Label htmlFor="groupName">Название группы</Label>
             <Input
@@ -98,28 +98,6 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
               placeholder="Группа: Иван Петров"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="schedule">Расписание</Label>
-            <Textarea
-              id="schedule"
-              placeholder="ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог..."
-              value={schedule}
-              onChange={(e) => setSchedule(e.target.value)}
-              rows={4}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="conclusionLink">Ссылка на заключение</Label>
-            <Input
-              id="conclusionLink"
-              type="url"
-              placeholder="https://example.com/conclusion.pdf"
-              value={conclusionLink}
-              onChange={(e) => setConclusionLink(e.target.value)}
             />
           </div>
 
@@ -134,7 +112,7 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
               className="mb-2"
             />
             
-            <ScrollArea className="h-[300px] border rounded-md">
+            <ScrollArea className="h-[200px] border rounded-md">
               <div className="p-3 space-y-4">
                 {parents.length === 0 && students.length === 0 ? (
                   <div className="text-center py-8 text-sm text-muted-foreground">
@@ -209,8 +187,31 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
               </div>
             </ScrollArea>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="schedule">Расписание</Label>
+            <Textarea
+              id="schedule"
+              placeholder="ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог..."
+              value={schedule}
+              onChange={(e) => setSchedule(e.target.value)}
+              rows={3}
+              className="resize-none"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="conclusionLink">Ссылка на заключение</Label>
+            <Input
+              id="conclusionLink"
+              type="url"
+              placeholder="https://example.com/conclusion.pdf"
+              value={conclusionLink}
+              onChange={(e) => setConclusionLink(e.target.value)}
+            />
+          </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="mt-4">
           <Button variant="outline" onClick={handleClose}>
             Отмена
           </Button>
