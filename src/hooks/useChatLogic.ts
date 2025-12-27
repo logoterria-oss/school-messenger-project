@@ -15,8 +15,10 @@ type User = {
 };
 
 const loadUsersFromStorage = (): User[] => {
-  // Принудительно очищаем кеш и пересобираем список пользователей
-  localStorage.removeItem('allUsers');
+  const stored = localStorage.getItem('allUsers');
+  if (stored) {
+    return JSON.parse(stored);
+  }
   
   const teachers = teacherAccounts.map((teacher, index) => ({
     id: `teacher-${index}`,
