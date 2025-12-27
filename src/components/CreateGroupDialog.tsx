@@ -35,16 +35,35 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [schedule, setSchedule] = useState('');
   const [conclusionLink, setConclusionLink] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Автоматически добавляем всех педагогов
+  const teachers = allUsers.filter(u => u.role === 'teacher');
+  const parents = allUsers.filter(u => u.role === 'parent');
+  const students = allUsers.filter(u => u.role === 'student');
+
+  // Фильтруем родителей и учеников по поиску
+  const filteredParents = parents.filter(u => 
+    u.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredStudents = students.filter(u => 
+    u.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleCreate = () => {
     if (!groupName.trim()) {
       return;
     }
-    onCreate(groupName.trim(), selectedUsers, schedule.trim(), conclusionLink.trim());
+    // Добавляем всех педагогов автоматически
+    const allTeacherIds = teachers.map(t => t.id);
+    const finalUsers = [...new Set([...allTeacherIds, ...selectedUsers])];
+    
+    onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim());
     setGroupName('');
     setSelectedUsers([]);
     setSchedule('');
     setConclusionLink('');
+    setSearchQuery('');
     onClose();
   };
 
@@ -53,6 +72,7 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
     setSelectedUsers([]);
     setSchedule('');
     setConclusionLink('');
+    setSearchQuery('');
     onClose();
   };
 
@@ -104,37 +124,87 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
           </div>
 
           <div className="space-y-2">
-            <Label>Участники группы ({selectedUsers.length} выбрано)</Label>
-            <ScrollArea className="h-[200px] border rounded-md">
-              <div className="p-3 space-y-2">
-                {allUsers.length === 0 ? (
+            <Label>Участники группы ({selectedUsers.length + teachers.length} выбрано)</Label>
+            <p className="text-xs text-muted-foreground">Все педагоги добавляются автоматически</p>
+            
+            <Input
+              placeholder="Поиск по имени и фамилии..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="mb-2"
+            />
+            
+            <ScrollArea className="h-[300px] border rounded-md">
+              <div className="p-3 space-y-4">
+                {parents.length === 0 && students.length === 0 ? (
                   <div className="text-center py-8 text-sm text-muted-foreground">
                     <Icon name="Users" size={32} className="mx-auto mb-2 opacity-50" />
                     <p>Пользователей пока нет</p>
                     <p className="text-xs mt-1">Добавьте учеников и родителей</p>
                   </div>
                 ) : (
-                  allUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent"
-                    >
-                      <Checkbox
-                        id={`user-${user.id}`}
-                        checked={selectedUsers.includes(user.id)}
-                        onCheckedChange={() => toggleUser(user.id)}
-                      />
-                      <label
-                        htmlFor={`user-${user.id}`}
-                        className="flex-1 min-w-0 cursor-pointer"
-                      >
-                        <p className="font-medium text-sm truncate">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {roleLabels[user.role]} • {user.phone}
-                        </p>
-                      </label>
-                    </div>
-                  ))
+                  <>
+                    {filteredParents.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Родители</h4>
+                        <div className="space-y-2">
+                          {filteredParents.map((user) => (
+                            <div
+                              key={user.id}
+                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent"
+                            >
+                              <Checkbox
+                                id={`user-${user.id}`}
+                                checked={selectedUsers.includes(user.id)}
+                                onCheckedChange={() => toggleUser(user.id)}
+                              />
+                              <label
+                                htmlFor={`user-${user.id}`}
+                                className="flex-1 min-w-0 cursor-pointer"
+                              >
+                                <p className="font-medium text-sm truncate">{user.name}</p>
+                                <p className="text-xs text-muted-foreground">{user.phone}</p>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {filteredStudents.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Ученики</h4>
+                        <div className="space-y-2">
+                          {filteredStudents.map((user) => (
+                            <div
+                              key={user.id}
+                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent"
+                            >
+                              <Checkbox
+                                id={`user-${user.id}`}
+                                checked={selectedUsers.includes(user.id)}
+                                onCheckedChange={() => toggleUser(user.id)}
+                              />
+                              <label
+                                htmlFor={`user-${user.id}`}
+                                className="flex-1 min-w-0 cursor-pointer"
+                              >
+                                <p className="font-medium text-sm truncate">{user.name}</p>
+                                <p className="text-xs text-muted-foreground">{user.phone}</p>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {searchQuery && filteredParents.length === 0 && filteredStudents.length === 0 && (
+                      <div className="text-center py-8 text-sm text-muted-foreground">
+                        <Icon name="Search" size={32} className="mx-auto mb-2 opacity-50" />
+                        <p>Ничего не найдено</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </ScrollArea>
