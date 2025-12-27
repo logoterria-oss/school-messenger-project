@@ -287,10 +287,11 @@ export const useChatLogic = () => {
           name: 'Педагоги',
           type: 'group',
           lastMessage: 'Общий чат педагогов',
-          lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
           unread: 0,
           participants: [...allTeacherIds, 'admin'],
           isPinned: true,
+          avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
         };
         existingChats.unshift(teachersGroupChat);
       }
@@ -305,10 +306,11 @@ export const useChatLogic = () => {
           name: 'Виктория Абраменко',
           type: 'private',
           lastMessage: '',
-          lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
           unread: 0,
           participants: [currentUserId, 'admin'],
           isPinned: true,
+          avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
         };
         existingChats.unshift(adminChat);
       }
@@ -330,10 +332,11 @@ export const useChatLogic = () => {
           name: 'Педагоги',
           type: 'group',
           lastMessage: 'Общий чат педагогов',
-          lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
           unread: 0,
           participants: [...allTeacherIds, 'admin'],
           isPinned: true,
+          avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
         };
         existingChats.unshift(teachersGroupChat);
       }
@@ -350,10 +353,11 @@ export const useChatLogic = () => {
             name: teacher.name,
             type: 'private',
             lastMessage: '',
-            lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             unread: 0,
             participants: [teacher.id, 'admin'],
             isPinned: true,
+            avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
           };
           existingChats.unshift(privateChat);
         }
@@ -642,6 +646,7 @@ export const useChatLogic = () => {
             unread: 0,
             participants: [newUser.id, 'admin'],
             isPinned: true,
+            avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
           };
           updatedChats.unshift(privateChat);
         }
@@ -673,6 +678,7 @@ export const useChatLogic = () => {
       participants: allParticipants,
       schedule: schedule || undefined,
       conclusionLink: conclusionLink || undefined,
+      avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
     };
     setChats(prev => [newGroup, ...prev]);
     setGroupTopics(prev => ({

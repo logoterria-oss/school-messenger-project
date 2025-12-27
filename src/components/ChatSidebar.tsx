@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Icon from '@/components/ui/icon';
@@ -176,6 +176,7 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
             >
               <div className="flex items-center gap-3">
                 <Avatar className="w-12 h-12">
+                  {chat.avatar && <AvatarImage src={chat.avatar} />}
                   <AvatarFallback className="bg-primary text-white text-sm">
                     {chat.type === 'group' ? (
                       <Icon name="Users" size={20} />
