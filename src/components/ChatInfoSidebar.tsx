@@ -13,6 +13,7 @@ type User = {
 type ChatInfo = {
   students: User[];
   parents: User[];
+  teachers: User[];
   schedule?: string;
   conclusionLink?: string;
 };
@@ -149,6 +150,24 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
               <p className="text-sm text-muted-foreground">Заключение не добавлено</p>
             )}
           </div>
+
+          {/* Педагоги (только для админа) */}
+          {isAdmin && (
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground mb-3">
+                Педагоги в группе
+              </h4>
+              {chatInfo.teachers.length > 0 ? (
+                <div className="p-3 rounded-lg bg-accent/50">
+                  <p className="text-sm leading-relaxed">
+                    {chatInfo.teachers.map(t => t.name).join(', ')}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Нет педагогов в группе</p>
+              )}
+            </div>
+          )}
 
           {/* Удалить группу (только для админа) */}
           {isAdmin && onDeleteGroup && (
