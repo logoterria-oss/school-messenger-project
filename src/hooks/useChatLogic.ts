@@ -511,6 +511,31 @@ export const useChatLogic = () => {
     setAllUsers(prev => [...prev, newUser]);
   };
 
+  const handleAddTeacher = (name: string, phone: string, email: string, password: string) => {
+    const newUser: User = {
+      id: Date.now().toString(),
+      name,
+      phone,
+      email,
+      password,
+      role: 'teacher',
+    };
+    setAllUsers(prev => [...prev, newUser]);
+    
+    // Автоматически добавляем нового педагога во все существующие группы
+    setChats(prevChats => 
+      prevChats.map(chat => {
+        if (chat.type === 'group' && chat.participants) {
+          return {
+            ...chat,
+            participants: [...chat.participants, newUser.id]
+          };
+        }
+        return chat;
+      })
+    );
+  };
+
   const handleCreateGroup = (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string) => {
     // Автоматически добавляем всех педагогов и админа
     const teachersAndAdmins = allUsers
@@ -622,6 +647,7 @@ export const useChatLogic = () => {
     handleReaction,
     handleAddStudent,
     handleAddParent,
+    handleAddTeacher,
     handleCreateGroup,
     handleDeleteGroup,
   };

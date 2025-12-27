@@ -9,6 +9,7 @@ import { AppSettings } from '@/components/AppSettings';
 import { AllUsersView } from '@/components/AllUsersView';
 import { AddStudentDialog } from '@/components/AddStudentDialog';
 import { AddParentDialog } from '@/components/AddParentDialog';
+import { AddTeacherDialog } from '@/components/AddTeacherDialog';
 import { CreateGroupDialog } from '@/components/CreateGroupDialog';
 import { ChatInfoSidebar } from '@/components/ChatInfoSidebar';
 import { useChatLogic } from '@/hooks/useChatLogic';
@@ -16,6 +17,7 @@ import { useChatLogic } from '@/hooks/useChatLogic';
 const Index = () => {
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showAddParent, setShowAddParent] = useState(false);
+  const [showAddTeacher, setShowAddTeacher] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showChatInfo, setShowChatInfo] = useState(false);
 
@@ -51,6 +53,7 @@ const Index = () => {
     handleReaction,
     handleAddStudent,
     handleAddParent,
+    handleAddTeacher,
     handleCreateGroup,
     handleDeleteGroup,
   } = useChatLogic();
@@ -92,6 +95,7 @@ const Index = () => {
         onOpenUsers={handleOpenUsers}
         onAddStudent={() => setShowAddStudent(true)}
         onAddParent={() => setShowAddParent(true)}
+        onAddTeacher={() => setShowAddTeacher(true)}
         onCreateGroup={() => setShowCreateGroup(true)}
         userRole={userRole}
         userName={userName}
@@ -110,6 +114,12 @@ const Index = () => {
         open={showAddParent}
         onClose={() => setShowAddParent(false)}
         onAdd={handleAddParent}
+      />
+
+      <AddTeacherDialog
+        open={showAddTeacher}
+        onClose={() => setShowAddTeacher(false)}
+        onAdd={handleAddTeacher}
       />
 
       <CreateGroupDialog

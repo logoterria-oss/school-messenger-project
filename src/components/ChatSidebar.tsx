@@ -36,10 +36,11 @@ type ChatSidebarProps = {
   onOpenUsers?: () => void;
   onAddStudent?: () => void;
   onAddParent?: () => void;
+  onAddTeacher?: () => void;
   onCreateGroup?: () => void;
 };
 
-export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onCreateGroup }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup }: ChatSidebarProps) => {
   const [selectedTag, setSelectedTag] = useState<string | null>('all');
 
   const parentTags = [
@@ -104,6 +105,10 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
                   <DropdownMenuItem onClick={onAddParent}>
                     <Icon name="UserPlus" size={16} className="mr-2" />
                     Добавить родителя
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onAddTeacher}>
+                    <Icon name="UserPlus" size={16} className="mr-2" />
+                    Добавить педагога
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={onCreateGroup}>
                     <Icon name="Users" size={16} className="mr-2" />
