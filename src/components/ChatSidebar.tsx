@@ -176,20 +176,18 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
             <button
               key={chat.id}
               onClick={() => onSelectChat(chat.id)}
-              className={`w-full px-4 py-3 text-left transition-colors ${
-                chat.id === 'teachers-group'
-                  ? 'border-2 border-[#3BA662] rounded-lg mx-2 mb-2'
-                  : 'border-l-4'
-              } ${
+              className={`w-full px-4 py-3 text-left transition-colors border-l-4 ${
                 selectedChat === chat.id 
                   ? 'bg-accent border-primary' 
-                  : chat.id === 'teachers-group' 
-                  ? 'border-[#3BA662] hover:bg-accent/50' 
                   : 'border-transparent hover:bg-accent/50'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Avatar className="w-12 h-12">
+                <Avatar className={`w-12 h-12 ${
+                  chat.id === 'teachers-group' 
+                    ? 'ring-2 ring-[#3BA662] ring-offset-2' 
+                    : ''
+                }`}>
                   {chat.avatar && <AvatarImage src={chat.avatar} />}
                   <AvatarFallback className="bg-primary text-white text-sm">
                     {chat.type === 'group' ? (
