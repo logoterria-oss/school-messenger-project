@@ -164,13 +164,27 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
 
       {!isParentOrStudent && (
         <ScrollArea className="flex-1">
-          {chats.map((chat) => (
+          {chats
+            .sort((a, b) => {
+              if (a.id === 'teachers-group') return -1;
+              if (b.id === 'teachers-group') return 1;
+              if (a.isPinned && !b.isPinned) return -1;
+              if (!a.isPinned && b.isPinned) return 1;
+              return 0;
+            })
+            .map((chat) => (
             <button
               key={chat.id}
               onClick={() => onSelectChat(chat.id)}
-              className={`w-full px-4 py-3 text-left transition-colors border-l-4 ${
+              className={`w-full px-4 py-3 text-left transition-colors ${
+                chat.id === 'teachers-group'
+                  ? 'border-2 border-[#3BA662] rounded-lg mx-2 mb-2'
+                  : 'border-l-4'
+              } ${
                 selectedChat === chat.id 
                   ? 'bg-accent border-primary' 
+                  : chat.id === 'teachers-group' 
+                  ? 'border-[#3BA662] hover:bg-accent/50' 
                   : 'border-transparent hover:bg-accent/50'
               }`}
             >
