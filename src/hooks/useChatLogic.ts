@@ -15,9 +15,16 @@ type User = {
 };
 
 const loadUsersFromStorage = (): User[] => {
+  const VERSION = 'v2';
+  const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
-  if (stored) {
-    return JSON.parse(stored);
+  
+  if (stored && storedVersion === VERSION) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error('Failed to parse stored users', e);
+    }
   }
   
   const teachers = teacherAccounts.map((teacher, index) => ({
@@ -41,6 +48,7 @@ const loadUsersFromStorage = (): User[] => {
   
   const allUsers = [...teachers, ...testUsers];
   localStorage.setItem('allUsers', JSON.stringify(allUsers));
+  localStorage.setItem('usersVersion', VERSION);
   return allUsers;
 };
 
