@@ -164,7 +164,7 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
 
       {!isParentOrStudent && (
         <ScrollArea className="flex-1">
-          {chats
+          {[...chats]
             .sort((a, b) => {
               if (a.id === 'teachers-group') return -1;
               if (b.id === 'teachers-group') return 1;
