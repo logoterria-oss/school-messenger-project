@@ -79,7 +79,30 @@ export const useChatLogic = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
-  const [chats, setChats] = useState<Chat[]>(loadChatsFromStorage);
+  const [chats, setChats] = useState<Chat[]>(() => {
+    const storedChats = loadChatsFromStorage();
+    // Миграция: обновляем аватары у существующих чатов
+    return storedChats.map(chat => {
+      if (chat.avatar) return chat; // уже есть аватар
+      
+      // Чат "Педагоги"
+      if (chat.id === 'teachers-group') {
+        return { ...chat, avatar: 'https://cdn.poehali.dev/files/Педагог.jpg' };
+      }
+      
+      // Личные чаты админ-педагог
+      if (chat.type === 'private' && chat.id.includes('admin')) {
+        return { ...chat, avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
+      }
+      
+      // Группы с учениками
+      if (chat.type === 'group' && chat.id !== 'teachers-group') {
+        return { ...chat, avatar: 'https://cdn.poehali.dev/files/Ученик.jpg' };
+      }
+      
+      return chat;
+    });
+  });
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromStorage);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
@@ -109,6 +132,13 @@ export const useChatLogic = () => {
       }
     }
   }, [isAuthenticated, userRole, selectedChat]);
+
+  // Миграция: сохраняем обновленные чаты при первой загрузке
+  useEffect(() => {
+    if (chats.length > 0) {
+      localStorage.setItem('chats', JSON.stringify(chats));
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('allUsers', JSON.stringify(allUsers));
