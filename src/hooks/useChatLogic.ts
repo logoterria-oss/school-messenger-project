@@ -270,6 +270,99 @@ export const useChatLogic = () => {
     localStorage.setItem('userRole', role);
     localStorage.setItem('userName', name || '');
     
+    const existingChats = loadChatsFromStorage();
+    
+    // Создание закрепленных чатов для педагогов
+    if (role === 'teacher') {
+      const currentUserId = allUsers.find(u => u.name === name && u.role === 'teacher')?.id;
+      
+      // 1. Чат "Педагоги" (групповой чат всех педагогов)
+      const teachersGroupId = 'teachers-group';
+      const hasTeachersGroup = existingChats.some(chat => chat.id === teachersGroupId);
+      
+      if (!hasTeachersGroup) {
+        const allTeacherIds = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
+        const teachersGroupChat: Chat = {
+          id: teachersGroupId,
+          name: 'Педагоги',
+          type: 'group',
+          lastMessage: 'Общий чат педагогов',
+          lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          unread: 0,
+          participants: [...allTeacherIds, 'admin'],
+          isPinned: true,
+        };
+        existingChats.unshift(teachersGroupChat);
+      }
+      
+      // 2. Личный чат с админом
+      const adminChatId = `private-${currentUserId}-admin`;
+      const hasAdminChat = existingChats.some(chat => chat.id === adminChatId);
+      
+      if (!hasAdminChat && currentUserId) {
+        const adminChat: Chat = {
+          id: adminChatId,
+          name: 'Виктория Абраменко',
+          type: 'private',
+          lastMessage: '',
+          lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          unread: 0,
+          participants: [currentUserId, 'admin'],
+          isPinned: true,
+        };
+        existingChats.unshift(adminChat);
+      }
+      
+      setChats(existingChats);
+      localStorage.setItem('chats', JSON.stringify(existingChats));
+    }
+    
+    // Создание закрепленных чатов для админа
+    if (role === 'admin') {
+      // 1. Чат "Педагоги" (групповой чат всех педагогов + админ)
+      const teachersGroupId = 'teachers-group';
+      const hasTeachersGroup = existingChats.some(chat => chat.id === teachersGroupId);
+      
+      if (!hasTeachersGroup) {
+        const allTeacherIds = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
+        const teachersGroupChat: Chat = {
+          id: teachersGroupId,
+          name: 'Педагоги',
+          type: 'group',
+          lastMessage: 'Общий чат педагогов',
+          lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          unread: 0,
+          participants: [...allTeacherIds, 'admin'],
+          isPinned: true,
+        };
+        existingChats.unshift(teachersGroupChat);
+      }
+      
+      // 2. Личные чаты с каждым педагогом
+      const teachers = allUsers.filter(u => u.role === 'teacher');
+      teachers.forEach(teacher => {
+        const privateChatId = `private-${teacher.id}-admin`;
+        const hasPrivateChat = existingChats.some(chat => chat.id === privateChatId);
+        
+        if (!hasPrivateChat) {
+          const privateChat: Chat = {
+            id: privateChatId,
+            name: teacher.name,
+            type: 'private',
+            lastMessage: '',
+            lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            unread: 0,
+            participants: [teacher.id, 'admin'],
+            isPinned: true,
+          };
+          existingChats.unshift(privateChat);
+        }
+      });
+      
+      setChats(existingChats);
+      localStorage.setItem('chats', JSON.stringify(existingChats));
+    }
+    
     // Инициализация тестовых групп для родителя и ученика
     if (role === 'parent' || role === 'student') {
       const existingChats = loadChatsFromStorage();
@@ -523,8 +616,8 @@ export const useChatLogic = () => {
     setAllUsers(prev => [...prev, newUser]);
     
     // Автоматически добавляем нового педагога во все существующие группы
-    setChats(prevChats => 
-      prevChats.map(chat => {
+    setChats(prevChats => {
+      const updatedChats = prevChats.map(chat => {
         if (chat.type === 'group' && chat.participants) {
           return {
             ...chat,
@@ -532,8 +625,30 @@ export const useChatLogic = () => {
           };
         }
         return chat;
-      })
-    );
+      });
+      
+      // Создаем личный чат нового педагога с админом (если мы админ)
+      if (userRole === 'admin') {
+        const privateChatId = `private-${newUser.id}-admin`;
+        const hasPrivateChat = updatedChats.some(chat => chat.id === privateChatId);
+        
+        if (!hasPrivateChat) {
+          const privateChat: Chat = {
+            id: privateChatId,
+            name: newUser.name,
+            type: 'private',
+            lastMessage: '',
+            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            unread: 0,
+            participants: [newUser.id, 'admin'],
+            isPinned: true,
+          };
+          updatedChats.unshift(privateChat);
+        }
+      }
+      
+      return updatedChats;
+    });
   };
 
   const handleCreateGroup = (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string) => {

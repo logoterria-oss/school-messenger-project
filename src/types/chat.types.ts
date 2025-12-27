@@ -32,6 +32,12 @@ export type Chat = {
   timestamp: string;
   unread: number;
   type: 'group' | 'private';
+  isPinned?: boolean;
+  participants?: string[];
+  schedule?: string;
+  conclusionLink?: string;
+  avatar?: string;
+  lastTime?: string;
 };
 
 export type Topic = {

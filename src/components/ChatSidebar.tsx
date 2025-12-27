@@ -186,7 +186,12 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between mb-0.5">
-                    <h3 className="font-medium text-sm truncate text-foreground">{chat.name}</h3>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <h3 className="font-medium text-sm truncate text-foreground">{chat.name}</h3>
+                      {chat.isPinned && (
+                        <Icon name="Pin" size={14} className="text-muted-foreground flex-shrink-0" />
+                      )}
+                    </div>
                     <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
                       {chat.timestamp}
                     </span>
