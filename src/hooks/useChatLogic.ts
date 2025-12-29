@@ -500,7 +500,7 @@ export const useChatLogic = () => {
         existingChats.unshift(teachersGroupChat);
       }
       
-      // 2. Личные чаты с каждым педагогом
+      // 2. Личные чаты с каждым педагогом (для админа чат называется по имени педагога)
       const teachers = allUsers.filter(u => u.role === 'teacher');
       teachers.forEach(teacher => {
         const privateChatId = `private-${teacher.id}-admin`;
@@ -509,14 +509,14 @@ export const useChatLogic = () => {
         if (!hasPrivateChat) {
           const privateChat: Chat = {
             id: privateChatId,
-            name: teacher.name,
+            name: teacher.name, // У админа чат называется по имени педагога
             type: 'private',
             lastMessage: '',
             timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             unread: 0,
             participants: [teacher.id, 'admin'],
             isPinned: true,
-            avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
+            avatar: teacher.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg', // Аватар педагога
           };
           existingChats.unshift(privateChat);
         }
