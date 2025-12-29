@@ -355,6 +355,7 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
                 value={newSlotTime}
                 onChange={(e) => setNewSlotTime(e.target.value)}
                 className="mt-2"
+                step="300"
               />
             </div>
           </div>
