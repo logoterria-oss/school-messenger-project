@@ -163,6 +163,7 @@ const Index = () => {
                 typingUsers={typingUsers}
                 userRole={userRole}
                 onOpenChatInfo={() => setShowChatInfo(true)}
+                chatId={selectedChat}
               />
               <MessageInput 
                 messageText={messageText}

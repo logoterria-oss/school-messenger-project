@@ -40,11 +40,13 @@ type ChatAreaProps = {
   typingUsers?: string[];
   userRole?: UserRole;
   onOpenChatInfo?: () => void;
+  chatId?: string;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId }: ChatAreaProps) => {
   const shouldShowTopics = isGroup && topics && topics.length > 0 && (userRole === 'admin' || userRole === 'teacher');
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
+  const isTeachersGroup = chatId === 'teachers-group';
   
   return (
     <>
@@ -70,15 +72,17 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
             <Button variant="ghost" size="icon" className="text-muted-foreground">
               <Icon name="Search" size={20} />
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onOpenChatInfo}
-              className="text-sm font-medium"
-            >
-              <Icon name="Info" size={16} className="mr-2" />
-              Основное
-            </Button>
+            {!isTeachersGroup && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onOpenChatInfo}
+                className="text-sm font-medium"
+              >
+                <Icon name="Info" size={16} className="mr-2" />
+                Основное
+              </Button>
+            )}
           </div>
         </div>
         
