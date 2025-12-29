@@ -27,7 +27,9 @@ type Chat = {
 type ChatSidebarProps = {
   userRole: UserRole;
   userName?: string;
+  userId?: string;
   chats: Chat[];
+  allUsers?: Array<{id: string, name: string, role: string, avatar?: string}>;
   selectedChat: string | null;
   onSelectChat: (chatId: string) => void;
   onLogout?: () => void;
@@ -88,7 +90,23 @@ const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: 
 ));
 ChatItem.displayName = 'ChatItem';
 
-export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup }: ChatSidebarProps) => {
+  
+  const getDisplayChat = (chat: Chat) => {
+    if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
+      const otherUserId = chat.participants.find(id => id !== userId && id !== 'current');
+      if (otherUserId === 'admin' && userRole !== 'admin') {
+        return { ...chat, name: 'Виктория Абраменко', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
+      }
+      if (userRole === 'admin' && otherUserId) {
+        const otherUser = allUsers.find(u => u.id === otherUserId);
+        if (otherUser) {
+          return { ...chat, name: otherUser.name, avatar: otherUser.avatar || chat.avatar };
+        }
+      }
+    }
+    return chat;
+  };
   const [selectedTag, setSelectedTag] = useState<string | null>('all');
 
   const parentTags = [
@@ -221,14 +239,17 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
               if (!a.isPinned && b.isPinned) return 1;
               return 0;
             })
-            .map((chat) => (
-              <ChatItem
-                key={chat.id}
-                chat={chat}
-                isSelected={selectedChat === chat.id}
-                onClick={() => onSelectChat(chat.id)}
-              />
-          ))}
+            .map((chat) => {
+              const displayChat = getDisplayChat(chat);
+              return (
+                <ChatItem
+                  key={chat.id}
+                  chat={displayChat}
+                  isSelected={selectedChat === chat.id}
+                  onClick={() => onSelectChat(chat.id)}
+                />
+              );
+            })}
         </ScrollArea>
       )}
     </div>

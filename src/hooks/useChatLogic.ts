@@ -91,6 +91,9 @@ export const useChatLogic = () => {
   const [userName, setUserName] = useState<string>(() => {
     return localStorage.getItem('userName') || '';
   });
+  const [userId, setUserId] = useState<string>(() => {
+    return localStorage.getItem('userId') || '';
+  });
   const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'settings' | 'users'>('chat');
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -360,10 +363,15 @@ export const useChatLogic = () => {
   const handleLogin = (role: UserRole, name?: string) => {
     setUserRole(role);
     setUserName(name || '');
+    
+    const currentUserId = role === 'admin' ? 'admin' : allUsers.find(u => u.name === name && u.role === role)?.id || '';
+    setUserId(currentUserId);
+    
     setIsAuthenticated(true);
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('userRole', role);
     localStorage.setItem('userName', name || '');
+    localStorage.setItem('userId', currentUserId);
     
     let existingChats = loadChatsFromStorage();
     
@@ -884,6 +892,7 @@ export const useChatLogic = () => {
     isAuthenticated,
     userRole,
     userName,
+    userId,
     currentView,
     selectedChat,
     selectedGroup,

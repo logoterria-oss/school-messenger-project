@@ -26,6 +26,7 @@ const Index = () => {
     isAuthenticated,
     userRole,
     userName,
+    userId,
     currentView,
     selectedChat,
     selectedGroup,
@@ -106,7 +107,9 @@ const Index = () => {
         onCreateGroup={() => setShowCreateGroup(true)}
         userRole={userRole}
         userName={userName}
+        userId={userId}
         chats={chats}
+        allUsers={allUsers}
         selectedChat={selectedChat}
         onSelectChat={handleSelectChat}
       />
