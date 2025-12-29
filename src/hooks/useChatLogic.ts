@@ -15,7 +15,7 @@ type User = {
 };
 
 const loadUsersFromStorage = (): User[] => {
-  const VERSION = 'v3-no-test-teachers';
+  const VERSION = 'v4-fix-dynamic-teachers';
   const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
   
