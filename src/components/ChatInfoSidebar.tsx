@@ -24,9 +24,10 @@ type ChatInfoSidebarProps = {
   chatInfo: ChatInfo;
   userRole: 'admin' | 'teacher' | 'parent' | 'student';
   onDeleteGroup?: () => void;
+  isTeachersGroup?: boolean;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false }: ChatInfoSidebarProps) => {
   if (!isOpen) return null;
 
   const isAdminOrTeacher = userRole === 'admin' || userRole === 'teacher';
@@ -99,57 +100,61 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
             </div>
           </div>
 
-          {/* Расписание */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
-                <Icon name="Calendar" size={16} />
-                Расписание
-              </h4>
-              {isAdminOrTeacher && (
-                <Button variant="ghost" size="sm" className="h-7 text-xs">
-                  <Icon name="Pencil" size={14} className="mr-1" />
-                  Изменить
-                </Button>
-              )}
-            </div>
-            {chatInfo.schedule ? (
-              <div className="p-3 rounded-lg bg-accent/50 text-sm whitespace-pre-line">
-                {chatInfo.schedule}
+          {/* Расписание - только для учебных групп */}
+          {!isTeachersGroup && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
+                  <Icon name="Calendar" size={16} />
+                  Расписание
+                </h4>
+                {isAdminOrTeacher && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs">
+                    <Icon name="Pencil" size={14} className="mr-1" />
+                    Изменить
+                  </Button>
+                )}
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Расписание не задано</p>
-            )}
-          </div>
-
-          {/* Заключение */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
-                <Icon name="FileText" size={16} />
-                Заключение
-              </h4>
-              {isAdminOrTeacher && (
-                <Button variant="ghost" size="sm" className="h-7 text-xs">
-                  <Icon name="Pencil" size={14} className="mr-1" />
-                  Изменить
-                </Button>
+              {chatInfo.schedule ? (
+                <div className="p-3 rounded-lg bg-accent/50 text-sm whitespace-pre-line">
+                  {chatInfo.schedule}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Расписание не задано</p>
               )}
             </div>
-            {chatInfo.conclusionLink ? (
-              <a 
-                href={chatInfo.conclusionLink} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors text-sm text-primary"
-              >
-                <Icon name="ExternalLink" size={16} />
-                Открыть заключение
-              </a>
-            ) : (
-              <p className="text-sm text-muted-foreground">Заключение не добавлено</p>
-            )}
-          </div>
+          )}
+
+          {/* Заключение - только для учебных групп */}
+          {!isTeachersGroup && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
+                  <Icon name="FileText" size={16} />
+                  Заключение
+                </h4>
+                {isAdminOrTeacher && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs">
+                    <Icon name="Pencil" size={14} className="mr-1" />
+                    Изменить
+                  </Button>
+                )}
+              </div>
+              {chatInfo.conclusionLink ? (
+                <a 
+                  href={chatInfo.conclusionLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors text-sm text-primary"
+                >
+                  <Icon name="ExternalLink" size={16} />
+                  Открыть заключение
+                </a>
+              ) : (
+                <p className="text-sm text-muted-foreground">Заключение не добавлено</p>
+              )}
+            </div>
+          )}
 
           {/* Педагоги (только для админа) */}
           {isAdmin && (

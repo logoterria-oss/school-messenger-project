@@ -232,6 +232,7 @@ const Index = () => {
                 isOpen={showChatInfo}
                 onClose={() => setShowChatInfo(false)}
                 userRole={userRole}
+                isTeachersGroup={currentChat?.id === 'teachers-group'}
                 chatInfo={{
                   students: allUsers.filter(u => u.role === 'student' && chatParticipants.includes(u.id)),
                   parents: allUsers.filter(u => u.role === 'parent' && chatParticipants.includes(u.id)),
