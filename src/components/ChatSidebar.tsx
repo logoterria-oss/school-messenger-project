@@ -50,11 +50,7 @@ const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: 
     }`}
   >
     <div className="flex items-center gap-3">
-      <Avatar className={`w-12 h-12 ${
-        chat.id === 'teachers-group' 
-          ? 'ring-2 ring-[#3BA662] ring-offset-2' 
-          : ''
-      }`}>
+      <Avatar className="w-12 h-12">
         {chat.avatar && <AvatarImage src={chat.avatar} />}
         <AvatarFallback className="bg-primary text-white text-sm">
           {chat.type === 'group' ? (

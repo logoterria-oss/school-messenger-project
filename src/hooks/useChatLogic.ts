@@ -144,11 +144,11 @@ export const useChatLogic = () => {
     
     // Миграция: обновляем аватары
     const chatsWithAvatars = filteredChats.map(chat => {
-      if (chat.avatar) return chat;
-      
       if (chat.id === 'teachers-group') {
-        return { ...chat, avatar: 'https://cdn.poehali.dev/files/Педагог.jpg' };
+        return { ...chat, avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg' };
       }
+      
+      if (chat.avatar) return chat;
       
       if (chat.type === 'private' && chat.id.includes('admin')) {
         return { ...chat, avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
@@ -421,7 +421,7 @@ export const useChatLogic = () => {
           unread: 0,
           participants: [...allTeacherIds, 'admin'],
           isPinned: true,
-          avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
+          avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg',
         };
         existingChats.unshift(teachersGroupChat);
       }
@@ -480,7 +480,7 @@ export const useChatLogic = () => {
           unread: 0,
           participants: [...allTeacherIds, 'admin'],
           isPinned: true,
-          avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
+          avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg',
         };
         existingChats.unshift(teachersGroupChat);
       }
