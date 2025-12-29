@@ -455,11 +455,25 @@ export const useChatLogic = () => {
         existingChats.unshift(teachersGroupChat);
       }
       
-      // 2. Личный чат с админом
+      // 2. Личный чат с админом (у педагога чат называется "Виктория Абраменко")
       const adminChatId = `private-${currentUserId}-admin`;
-      const hasAdminChat = existingChats.some(chat => chat.id === adminChatId);
+      let adminChatExists = false;
       
-      if (!hasAdminChat && currentUserId) {
+      // Обновляем существующий чат или создаем новый
+      existingChats = existingChats.map(chat => {
+        if (chat.id === adminChatId) {
+          adminChatExists = true;
+          return {
+            ...chat,
+            name: 'Виктория Абраменко', // Исправляем имя
+            avatar: 'https://cdn.poehali.dev/files/Админ.jpg', // Исправляем аватар
+            participants: [currentUserId, 'admin'],
+          };
+        }
+        return chat;
+      });
+      
+      if (!adminChatExists && currentUserId) {
         const adminChat: Chat = {
           id: adminChatId,
           name: 'Виктория Абраменко',
