@@ -200,11 +200,19 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
             </div>
             <div className="space-y-2">
               {teacherInfo.availableSlots.length > 0 ? (
-                teacherInfo.availableSlots.map((slot, index) => (
-                  <div key={index} className="text-sm text-muted-foreground p-2 bg-accent rounded-lg">
-                    {slot}
-                  </div>
-                ))
+                (() => {
+                  const grouped: Record<string, string[]> = {};
+                  teacherInfo.availableSlots.forEach(slot => {
+                    const [day, time] = slot.split(' в ');
+                    if (!grouped[day]) grouped[day] = [];
+                    grouped[day].push(time);
+                  });
+                  return Object.entries(grouped).map(([day, times]) => (
+                    <div key={day} className="text-sm text-muted-foreground p-2 bg-accent rounded-lg">
+                      {day} в {times.join(', ')}
+                    </div>
+                  ));
+                })()
               ) : (
                 <p className="text-sm text-muted-foreground">Нет свободных слотов</p>
               )}
