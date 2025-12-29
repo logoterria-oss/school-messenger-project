@@ -768,6 +768,7 @@ export const useChatLogic = () => {
       email,
       password,
       role: 'teacher',
+      avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
     };
     setAllUsers(prev => [...prev, newUser]);
     
@@ -798,7 +799,7 @@ export const useChatLogic = () => {
             unread: 0,
             participants: [newUser.id, 'admin'],
             isPinned: true,
-            avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
+            avatar: newUser.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
           };
           updatedChats.unshift(privateChat);
         }
