@@ -53,8 +53,55 @@ const loadUsersFromStorage = (): User[] => {
 };
 
 const loadChatsFromStorage = (): Chat[] => {
+  const MIGRATION_VERSION = 'v3-fix-teacher-chats';
+  const migrationDone = localStorage.getItem('chatsMigration');
+  
   const stored = localStorage.getItem('chats');
-  return stored ? JSON.parse(stored) : [];
+  if (!stored) return [];
+  
+  let chats: Chat[] = JSON.parse(stored);
+  
+  // Миграция: удаляем чаты педагог-педагог (без админа)
+  if (migrationDone !== MIGRATION_VERSION) {
+    const allUsers = loadUsersFromStorage();
+    
+    chats = chats.filter(chat => {
+      // Оставляем все групповые чаты
+      if (chat.type === 'group') return true;
+      
+      // Для приватных чатов проверяем участников
+      if (chat.type === 'private') {
+        const participants = chat.participants || [];
+        
+        // Если нет поля participants - удаляем чаты с именами педагогов
+        if (participants.length === 0) {
+          const isTeacherChat = teacherAccounts.some(t => t.name === chat.name);
+          if (isTeacherChat) return false;
+        }
+        
+        // Если есть participants - проверяем что это НЕ два педагога между собой
+        if (participants.length > 0) {
+          const isAdminInChat = participants.includes('admin');
+          const allParticipantsAreTeachers = participants.every(id => 
+            allUsers.find(u => u.id === id && u.role === 'teacher')
+          );
+          
+          // Удаляем если все участники педагоги И нет админа
+          if (allParticipantsAreTeachers && !isAdminInChat) {
+            return false;
+          }
+        }
+      }
+      
+      return true;
+    });
+    
+    // Сохраняем очищенные чаты
+    localStorage.setItem('chats', JSON.stringify(chats));
+    localStorage.setItem('chatsMigration', MIGRATION_VERSION);
+  }
+  
+  return chats;
 };
 
 const loadGroupTopicsFromStorage = (): GroupTopics => {
