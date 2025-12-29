@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -66,6 +66,11 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
   };
   
   const timeSlots = generateTimeSlots();
+
+  useEffect(() => {
+    setEditPhone(teacherInfo.phone);
+    setEditEmail(teacherInfo.email);
+  }, [teacherInfo.phone, teacherInfo.email]);
 
   const handleSavePhone = () => {
     onUpdateTeacher({ phone: editPhone });
