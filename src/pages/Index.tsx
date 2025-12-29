@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import Icon from '@/components/ui/icon';
 import { ChatSidebar } from '@/components/ChatSidebar';
 import { ChatArea } from '@/components/ChatArea';
 import { MessageInput } from '@/components/MessageInput';
 import { LoginScreen } from '@/components/LoginScreen';
-import { ProfileSettings } from '@/components/ProfileSettings';
-import { AppSettings } from '@/components/AppSettings';
-import { AllUsersView } from '@/components/AllUsersView';
-import { AddStudentDialog } from '@/components/AddStudentDialog';
-import { AddParentDialog } from '@/components/AddParentDialog';
-import { AddTeacherDialog } from '@/components/AddTeacherDialog';
-import { CreateGroupDialog } from '@/components/CreateGroupDialog';
-import { ChatInfoSidebar } from '@/components/ChatInfoSidebar';
 import { useChatLogic } from '@/hooks/useChatLogic';
+
+const ProfileSettings = lazy(() => import('@/components/ProfileSettings').then(m => ({ default: m.ProfileSettings })));
+const AppSettings = lazy(() => import('@/components/AppSettings').then(m => ({ default: m.AppSettings })));
+const AllUsersView = lazy(() => import('@/components/AllUsersView').then(m => ({ default: m.AllUsersView })));
+const AddStudentDialog = lazy(() => import('@/components/AddStudentDialog').then(m => ({ default: m.AddStudentDialog })));
+const AddParentDialog = lazy(() => import('@/components/AddParentDialog').then(m => ({ default: m.AddParentDialog })));
+const AddTeacherDialog = lazy(() => import('@/components/AddTeacherDialog').then(m => ({ default: m.AddTeacherDialog })));
+const CreateGroupDialog = lazy(() => import('@/components/CreateGroupDialog').then(m => ({ default: m.CreateGroupDialog })));
+const ChatInfoSidebar = lazy(() => import('@/components/ChatInfoSidebar').then(m => ({ default: m.ChatInfoSidebar })));
 
 const Index = () => {
   const [showAddStudent, setShowAddStudent] = useState(false);
@@ -65,7 +66,9 @@ const Index = () => {
   if (currentView === 'profile') {
     return (
       <div className="flex h-screen bg-background">
-        <ProfileSettings userRole={userRole} onBack={handleBackToChat} />
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Icon name="Loader2" className="animate-spin" size={32} /></div>}>
+          <ProfileSettings userRole={userRole} onBack={handleBackToChat} />
+        </Suspense>
       </div>
     );
   }
@@ -73,7 +76,9 @@ const Index = () => {
   if (currentView === 'settings') {
     return (
       <div className="flex h-screen bg-background">
-        <AppSettings onBack={handleBackToChat} />
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Icon name="Loader2" className="animate-spin" size={32} /></div>}>
+          <AppSettings onBack={handleBackToChat} />
+        </Suspense>
       </div>
     );
   }
@@ -81,7 +86,9 @@ const Index = () => {
   if (currentView === 'users') {
     return (
       <div className="flex h-screen bg-background">
-        <AllUsersView users={allUsers} onBack={handleBackToChat} />
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Icon name="Loader2" className="animate-spin" size={32} /></div>}>
+          <AllUsersView users={allUsers} onBack={handleBackToChat} />
+        </Suspense>
       </div>
     );
   }
@@ -104,30 +111,32 @@ const Index = () => {
         onSelectChat={handleSelectChat}
       />
 
-      <AddStudentDialog
-        open={showAddStudent}
-        onClose={() => setShowAddStudent(false)}
-        onAdd={handleAddStudent}
-      />
+      <Suspense fallback={null}>
+        <AddStudentDialog
+          open={showAddStudent}
+          onClose={() => setShowAddStudent(false)}
+          onAdd={handleAddStudent}
+        />
 
-      <AddParentDialog
-        open={showAddParent}
-        onClose={() => setShowAddParent(false)}
-        onAdd={handleAddParent}
-      />
+        <AddParentDialog
+          open={showAddParent}
+          onClose={() => setShowAddParent(false)}
+          onAdd={handleAddParent}
+        />
 
-      <AddTeacherDialog
-        open={showAddTeacher}
-        onClose={() => setShowAddTeacher(false)}
-        onAdd={handleAddTeacher}
-      />
+        <AddTeacherDialog
+          open={showAddTeacher}
+          onClose={() => setShowAddTeacher(false)}
+          onAdd={handleAddTeacher}
+        />
 
-      <CreateGroupDialog
-        open={showCreateGroup}
-        onClose={() => setShowCreateGroup(false)}
-        onCreate={handleCreateGroup}
-        allUsers={allUsers}
-      />
+        <CreateGroupDialog
+          open={showCreateGroup}
+          onClose={() => setShowCreateGroup(false)}
+          onCreate={handleCreateGroup}
+          allUsers={allUsers}
+        />
+      </Suspense>
 
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col">
@@ -179,24 +188,26 @@ const Index = () => {
           const chatParticipants = currentChat?.participants || [];
           
           return (
-            <ChatInfoSidebar
-              isOpen={showChatInfo}
-              onClose={() => setShowChatInfo(false)}
-              userRole={userRole}
-              chatInfo={{
-                students: allUsers.filter(u => u.role === 'student' && chatParticipants.includes(u.id)),
-                parents: allUsers.filter(u => u.role === 'parent' && chatParticipants.includes(u.id)),
-                teachers: allUsers.filter(u => u.role === 'teacher' && chatParticipants.includes(u.id)),
-                schedule: currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
-                conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
-              }}
-              onDeleteGroup={() => {
-                if (selectedChat && confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
-                  handleDeleteGroup(selectedChat);
-                  setShowChatInfo(false);
-                }
-              }}
-            />
+            <Suspense fallback={null}>
+              <ChatInfoSidebar
+                isOpen={showChatInfo}
+                onClose={() => setShowChatInfo(false)}
+                userRole={userRole}
+                chatInfo={{
+                  students: allUsers.filter(u => u.role === 'student' && chatParticipants.includes(u.id)),
+                  parents: allUsers.filter(u => u.role === 'parent' && chatParticipants.includes(u.id)),
+                  teachers: allUsers.filter(u => u.role === 'teacher' && chatParticipants.includes(u.id)),
+                  schedule: currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
+                  conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
+                }}
+                onDeleteGroup={() => {
+                  if (selectedChat && confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
+                    handleDeleteGroup(selectedChat);
+                    setShowChatInfo(false);
+                  }
+                }}
+              />
+            </Suspense>
           );
         })()}
       </div>

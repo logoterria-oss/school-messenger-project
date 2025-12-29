@@ -136,6 +136,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
                       src={img.fileUrl} 
                       alt={`Изображение ${idx + 1}`}
                       className="w-full h-full object-cover group-hover/img:brightness-90 transition-all"
+                      loading="lazy"
                     />
                     {images.length > 4 && idx === 3 && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -256,6 +257,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
                   src={images[selectedImageIndex].fileUrl} 
                   alt={`Изображение ${selectedImageIndex + 1} из ${images.length}`}
                   className="w-full h-auto max-h-[90vh] object-contain"
+                  loading="eager"
                 />
                 
                 {images.length > 1 && (

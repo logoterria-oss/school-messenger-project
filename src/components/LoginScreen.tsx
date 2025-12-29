@@ -132,7 +132,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 
                 <div className="relative flex items-center gap-6">
                   <div className="w-32 h-32 rounded-full shadow-lg flex-shrink-0 overflow-hidden">
-                    <img src={role.image} alt={role.name} className="w-full h-full object-cover" />
+                    <img src={role.image} alt={role.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                   
                   <div className="flex-1 text-left">
@@ -164,6 +164,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
             alt="LineaSchool" 
             className="rounded-3xl object-cover"
+            loading="eager"
             style={{
               animation: 'expand 1.5s ease-in-out forwards'
             }}
@@ -197,7 +198,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         <img 
           src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
           alt="LineaSchool" 
-          className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0" 
+          className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0"
+          loading="eager"
         />
         <div className="flex flex-col">
           <h1 className="text-5xl font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
@@ -217,7 +219,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
           <div className="flex items-start gap-8 mt-8">
             <div className="w-40 h-40 rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700">
-              <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" />
+              <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" loading="eager" />
             </div>
 
             <div className="flex-1 space-y-4 animate-in fade-in slide-in-from-right duration-700">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -40,6 +40,58 @@ type ChatSidebarProps = {
   onCreateGroup?: () => void;
 };
 
+const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: string; isPinned?: boolean }, isSelected: boolean, onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className={`w-full px-4 py-3 text-left transition-colors border-l-4 ${
+      isSelected 
+        ? 'bg-accent border-primary' 
+        : 'border-transparent hover:bg-accent/50'
+    }`}
+  >
+    <div className="flex items-center gap-3">
+      <Avatar className={`w-12 h-12 ${
+        chat.id === 'teachers-group' 
+          ? 'ring-2 ring-[#3BA662] ring-offset-2' 
+          : ''
+      }`}>
+        {chat.avatar && <AvatarImage src={chat.avatar} />}
+        <AvatarFallback className="bg-primary text-white text-sm">
+          {chat.type === 'group' ? (
+            <Icon name="Users" size={20} />
+          ) : (
+            <Icon name="User" size={20} />
+          )}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline justify-between mb-0.5">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <h3 className="font-medium text-sm truncate text-foreground">{chat.name}</h3>
+            {chat.isPinned && (
+              <Icon name="Pin" size={14} className="text-muted-foreground flex-shrink-0" />
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+            {chat.timestamp}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground truncate flex-1">
+            {chat.lastMessage}
+          </p>
+          {chat.unread > 0 && (
+            <Badge className="bg-primary text-white text-xs px-2 py-0 h-5 min-w-5 rounded-full flex items-center justify-center">
+              {chat.unread}
+            </Badge>
+          )}
+        </div>
+      </div>
+    </div>
+  </button>
+));
+ChatItem.displayName = 'ChatItem';
+
 export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup }: ChatSidebarProps) => {
   const [selectedTag, setSelectedTag] = useState<string | null>('all');
 
@@ -72,7 +124,8 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
             <img 
               src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
               alt="LineaSchool" 
-              className="w-10 h-10 rounded-lg flex-shrink-0" 
+              className="w-10 h-10 rounded-lg flex-shrink-0"
+              loading="lazy"
             />
             <div>
               <h1 className="text-base font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
@@ -173,55 +226,12 @@ export const ChatSidebar = ({ userRole, userName, chats, selectedChat, onSelectC
               return 0;
             })
             .map((chat) => (
-            <button
-              key={chat.id}
-              onClick={() => onSelectChat(chat.id)}
-              className={`w-full px-4 py-3 text-left transition-colors border-l-4 ${
-                selectedChat === chat.id 
-                  ? 'bg-accent border-primary' 
-                  : 'border-transparent hover:bg-accent/50'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Avatar className={`w-12 h-12 ${
-                  chat.id === 'teachers-group' 
-                    ? 'ring-2 ring-[#3BA662] ring-offset-2' 
-                    : ''
-                }`}>
-                  {chat.avatar && <AvatarImage src={chat.avatar} />}
-                  <AvatarFallback className="bg-primary text-white text-sm">
-                    {chat.type === 'group' ? (
-                      <Icon name="Users" size={20} />
-                    ) : (
-                      <Icon name="User" size={20} />
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline justify-between mb-0.5">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <h3 className="font-medium text-sm truncate text-foreground">{chat.name}</h3>
-                      {chat.isPinned && (
-                        <Icon name="Pin" size={14} className="text-muted-foreground flex-shrink-0" />
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                      {chat.timestamp}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm text-muted-foreground truncate flex-1">
-                      {chat.lastMessage}
-                    </p>
-                    {chat.unread > 0 && (
-                      <Badge className="bg-primary text-white text-xs px-2 py-0 h-5 min-w-5 rounded-full flex items-center justify-center">
-                        {chat.unread}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </button>
+              <ChatItem
+                key={chat.id}
+                chat={chat}
+                isSelected={selectedChat === chat.id}
+                onClick={() => onSelectChat(chat.id)}
+              />
           ))}
         </ScrollArea>
       )}

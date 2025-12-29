@@ -125,4 +125,12 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  img {
+    content-visibility: auto;
+  }
+
+  * {
+    will-change: auto;
+  }
 }
