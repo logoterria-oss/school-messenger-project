@@ -128,27 +128,73 @@ export const useChatLogic = () => {
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
   const [chats, setChats] = useState<Chat[]>(() => {
     const storedChats = loadChatsFromStorage();
-    // Миграция: обновляем аватары у существующих чатов
-    return storedChats.map(chat => {
-      if (chat.avatar) return chat; // уже есть аватар
+    const currentUserRole = localStorage.getItem('userRole');
+    const currentUserName = localStorage.getItem('userName');
+    
+    // Фильтруем чаты сразу при загрузке для педагогов
+    let filteredChats = storedChats;
+    
+    if (currentUserRole === 'teacher') {
+      const allUsers = loadUsersFromStorage();
       
-      // Чат "Педагоги"
+      filteredChats = storedChats.filter(chat => {
+        // Оставляем все групповые чаты
+        if (chat.type === 'group') return true;
+        
+        // Для приватных чатов
+        if (chat.type === 'private') {
+          const participants = chat.participants || [];
+          
+          // Если нет participants - проверяем по имени
+          if (participants.length === 0) {
+            // Если имя чата совпадает с именем педагога (кроме текущего) - удаляем
+            const isOtherTeacher = teacherAccounts.some(t => 
+              t.name === chat.name && t.name !== currentUserName
+            );
+            if (isOtherTeacher) return false;
+          }
+          
+          // Если есть participants - проверяем
+          if (participants.length > 0) {
+            const hasAdmin = participants.includes('admin');
+            const allAreTeachers = participants.every(id => 
+              allUsers.find(u => u.id === id && u.role === 'teacher')
+            );
+            
+            // Удаляем если все педагоги и нет админа
+            if (allAreTeachers && !hasAdmin) return false;
+          }
+        }
+        
+        return true;
+      });
+    }
+    
+    // Миграция: обновляем аватары
+    const chatsWithAvatars = filteredChats.map(chat => {
+      if (chat.avatar) return chat;
+      
       if (chat.id === 'teachers-group') {
         return { ...chat, avatar: 'https://cdn.poehali.dev/files/Педагог.jpg' };
       }
       
-      // Личные чаты админ-педагог
       if (chat.type === 'private' && chat.id.includes('admin')) {
         return { ...chat, avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
       }
       
-      // Группы с учениками
       if (chat.type === 'group' && chat.id !== 'teachers-group') {
         return { ...chat, avatar: 'https://cdn.poehali.dev/files/Ученик.jpg' };
       }
       
       return chat;
     });
+    
+    // Сохраняем очищенные чаты
+    if (currentUserRole === 'teacher' && chatsWithAvatars.length !== storedChats.length) {
+      localStorage.setItem('chats', JSON.stringify(chatsWithAvatars));
+    }
+    
+    return chatsWithAvatars;
   });
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromStorage);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
