@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
-import { teacherAccounts } from '@/data/teacherAccounts';
-import { testAccounts } from '@/data/testAccounts';
+import { login as apiLogin } from '@/services/api';
+import { initializeDatabase } from '@/utils/initDatabase';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -17,9 +17,6 @@ const ROLES = [
   { id: 'teacher' as UserRole, name: 'педагог', image: 'https://cdn.poehali.dev/files/Педагог.jpg', color: 'from-[#40916C] to-[#2D6A4F]' },
   { id: 'admin' as UserRole, name: 'админ', image: 'https://cdn.poehali.dev/files/Админ.jpg', color: 'from-[#2D6A4F] to-[#1B4332]' },
 ];
-
-const ADMIN_LOGINS = ['79236251611', '89236251611', '9236251611', 'abram.viktoriya.00@mail.ru'];
-const ADMIN_PASSWORD = 'Barabulka.2000';
 
 export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
@@ -43,7 +40,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     setPassword('');
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
 
     if (!login.trim() || !password.trim()) {
@@ -51,57 +48,20 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       return;
     }
 
-    if (selectedRole === 'admin') {
-      const normalizedLogin = login.trim().toLowerCase();
-      const isValidLogin = ADMIN_LOGINS.some(adminLogin => 
-        adminLogin.toLowerCase() === normalizedLogin
-      );
+    setIsLoggingIn(true);
 
-      if (isValidLogin && password === ADMIN_PASSWORD) {
-        setIsLoggingIn(true);
-        setTimeout(() => {
-          onLogin('admin');
-        }, 1500);
-      } else {
-        setError('Неверный логин или пароль');
-      }
-    } else if (selectedRole === 'teacher') {
-      const normalizedLogin = login.trim().toLowerCase();
-      const teacher = teacherAccounts.find(
-        acc => 
-          (acc.phone.replace(/\D/g, '').includes(normalizedLogin.replace(/\D/g, '')) || 
-           acc.email.toLowerCase() === normalizedLogin) &&
-          acc.password === password
-      );
-
-      if (teacher) {
-        setIsLoggingIn(true);
-        setTimeout(() => {
-          onLogin('teacher', teacher.name);
-        }, 1500);
-      } else {
-        setError('Неверный логин или пароль');
-      }
-    } else if (selectedRole === 'parent' || selectedRole === 'student') {
-      const normalizedLogin = login.trim().toLowerCase();
-      const account = testAccounts.find(
-        acc => 
-          acc.role === selectedRole &&
-          (acc.phone.replace(/\D/g, '').includes(normalizedLogin.replace(/\D/g, '')) || 
-           acc.email.toLowerCase() === normalizedLogin) &&
-          acc.password === password
-      );
-
-      if (account) {
-        setIsLoggingIn(true);
-        setTimeout(() => {
-          onLogin(selectedRole, account.name);
-        }, 1500);
-      } else {
-        setError('Неверный логин или пароль');
-      }
-    } else {
-      setError('Функция авторизации для этой роли находится в разработке');
+    try {
+      // Пытаемся войти через API
+      const user = await apiLogin(login.trim(), password);
+      
+      // Успешный вход
+      setTimeout(() => {
+        onLogin(user.role, user.name);
+      }, 500);
+    } catch (err) {
+      console.error('Login error:', err);
+      setIsLoggingIn(false);
+      setError('Неверный логин или пароль');
     }
   };
 
@@ -148,6 +108,21 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 </div>
               </button>
             ))}
+          </div>
+          
+          <div className="mt-6 text-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                console.log('Initializing database...');
+                await initializeDatabase();
+              }}
+              className="text-xs"
+            >
+              <Icon name="Database" size={14} className="mr-2" />
+              Инициализировать БД
+            </Button>
           </div>
         </div>
       </div>
