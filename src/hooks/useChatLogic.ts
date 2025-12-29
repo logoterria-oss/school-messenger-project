@@ -3,6 +3,8 @@ import { UserRole, AttachedFile, Message, Chat, GroupTopics } from '@/types/chat
 import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
+import { wsService } from '@/services/websocket';
+import { getUsers, getChats, getMessages } from '@/services/api';
 
 type User = {
   id: string;
@@ -214,6 +216,65 @@ export const useChatLogic = () => {
     localStorage.setItem('allUsers', JSON.stringify(allUsers));
   }, [allUsers]);
 
+  // Подключение WebSocket и загрузка данных из API
+  useEffect(() => {
+    if (!isAuthenticated || !userId) return;
+
+    // Подключаем WebSocket
+    wsService.connect(userId);
+
+    // Загружаем пользователей из API
+    getUsers()
+      .then(users => {
+        console.log('📥 Loaded users from API:', users.length);
+        setAllUsers(users as any);
+      })
+      .catch(err => console.error('Failed to load users:', err));
+
+    // Загружаем чаты из API
+    getChats(userId)
+      .then(data => {
+        console.log('📥 Loaded chats from API:', data.chats.length);
+        setChats(data.chats as any);
+        setGroupTopics(data.topics as any);
+      })
+      .catch(err => console.error('Failed to load chats:', err));
+
+    // Обработчики WebSocket событий
+    const handleUserUpdate = async (data: { userId: string }) => {
+      console.log('🔄 User updated:', data.userId);
+      try {
+        const users = await getUsers();
+        setAllUsers(users as any);
+      } catch (err) {
+        console.error('Failed to reload users:', err);
+      }
+    };
+
+    const handleNewMessage = async (data: { chatId: string; topicId?: string }) => {
+      console.log('💬 New message:', data);
+      try {
+        const messages = await getMessages(data.chatId, data.topicId);
+        const targetId = data.topicId || data.chatId;
+        setChatMessages(prev => ({
+          ...prev,
+          [targetId]: messages as any
+        }));
+      } catch (err) {
+        console.error('Failed to reload messages:', err);
+      }
+    };
+
+    wsService.on('user_update', handleUserUpdate);
+    wsService.on('message_new', handleNewMessage);
+
+    return () => {
+      wsService.off('user_update', handleUserUpdate);
+      wsService.off('message_new', handleNewMessage);
+      wsService.disconnect();
+    };
+  }, [isAuthenticated, userId]);
+
   // Слушаем изменения localStorage из других вкладок
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -290,7 +351,7 @@ export const useChatLogic = () => {
     }
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!selectedChat || (!messageText.trim() && attachments.length === 0)) return;
     
     const targetId = selectedTopic || selectedChat;
@@ -312,6 +373,43 @@ export const useChatLogic = () => {
     }));
     setMessageText('');
     setAttachments([]);
+
+    try {
+      // Отправляем сообщение в API
+      const { sendMessage } = await import('@/services/api');
+      await sendMessage({
+        id: messageId,
+        chatId: selectedChat,
+        topicId: selectedTopic || undefined,
+        senderId: userId,
+        senderName: userName,
+        text: messageText || undefined,
+        attachments: attachments.map(att => ({
+          type: att.type,
+          fileUrl: att.fileUrl,
+          fileName: att.fileName,
+          fileSize: att.fileSize,
+        })),
+      });
+
+      // Уведомляем через WebSocket
+      wsService.notifyNewMessage(messageId, selectedChat, selectedTopic || undefined);
+
+      setChatMessages(prev => ({
+        ...prev,
+        [targetId]: prev[targetId].map(msg => 
+          msg.id === messageId ? { ...msg, status: 'sent' } : msg
+        )
+      }));
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setChatMessages(prev => ({
+        ...prev,
+        [targetId]: prev[targetId].map(msg => 
+          msg.id === messageId ? { ...msg, status: 'sent' } : msg
+        )
+      }));
+    }
 
     setTimeout(() => {
       setChatMessages(prev => ({
@@ -909,15 +1007,25 @@ export const useChatLogic = () => {
     }
   };
 
-  const handleUpdateTeacher = (teacherId: string, updates: Partial<User>) => {
-    console.log('📝 Updating teacher:', teacherId, updates);
-    setAllUsers(prev => {
-      const updated = prev.map(user => 
-        user.id === teacherId ? { ...user, ...updates } : user
+  const handleUpdateTeacher = async (teacherId: string, updates: Partial<User>) => {
+    try {
+      // Отправляем обновление в API
+      const { updateUser } = await import('@/services/api');
+      await updateUser(teacherId, updates as any);
+      
+      // Обновляем локальное состояние
+      setAllUsers(prev => 
+        prev.map(user => 
+          user.id === teacherId ? { ...user, ...updates } : user
+        )
       );
-      console.log('✅ Users updated:', updated.find(u => u.id === teacherId));
-      return updated;
-    });
+
+      // Уведомляем через WebSocket
+      wsService.notifyUserUpdate(teacherId);
+      
+    } catch (error) {
+      console.error('Failed to update teacher:', error);
+    }
   };
 
   return {
