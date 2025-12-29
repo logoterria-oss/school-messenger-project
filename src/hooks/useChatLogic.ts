@@ -15,7 +15,7 @@ type User = {
 };
 
 const loadUsersFromStorage = (): User[] => {
-  const VERSION = 'v2';
+  const VERSION = 'v3-no-test-teachers';
   const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
   
@@ -34,6 +34,7 @@ const loadUsersFromStorage = (): User[] => {
     phone: teacher.phone,
     email: teacher.email,
     password: teacher.password,
+    avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
   }));
   
   const testUsers = testAccounts.map(account => ({
@@ -49,6 +50,11 @@ const loadUsersFromStorage = (): User[] => {
   const allUsers = [...teachers, ...testUsers];
   localStorage.setItem('allUsers', JSON.stringify(allUsers));
   localStorage.setItem('usersVersion', VERSION);
+  
+  // ВАЖНО: При смене версии пользователей очищаем чаты
+  localStorage.removeItem('chats');
+  localStorage.removeItem('chatsMigration');
+  
   return allUsers;
 };
 
