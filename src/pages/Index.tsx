@@ -199,12 +199,16 @@ const Index = () => {
           const chatParticipants = currentChat?.participants || [];
           
           if (isPrivateTeacherAdminChat) {
-            const otherUserId = chatParticipants.find(id => id !== userId && id !== 'admin');
-            const teacherData = otherUserId && otherUserId !== 'admin' 
-              ? allUsers.find(u => u.id === otherUserId)
-              : userRole === 'admin' 
-                ? allUsers.find(u => u.id === otherUserId)
-                : null;
+            let teacherData;
+            
+            if (userRole === 'admin') {
+              // Админ видит информацию о педагоге
+              const teacherId = chatParticipants.find(id => id !== 'admin');
+              teacherData = allUsers.find(u => u.id === teacherId);
+            } else if (userRole === 'teacher') {
+              // Педагог видит свою собственную информацию
+              teacherData = allUsers.find(u => u.id === userId);
+            }
 
             if (teacherData) {
               return (
