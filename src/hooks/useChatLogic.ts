@@ -315,15 +315,26 @@ export const useChatLogic = () => {
         if (chat.type === 'private') {
           const participants = chat.participants || [];
           
-          // Если это чат между двумя педагогами (без админа) - удаляем
-          const allTeachers = participants.every(id => 
-            allUsers.find(u => u.id === id && u.role === 'teacher')
-          );
-          if (allTeachers && !participants.includes('admin')) {
-            return false; // удаляем
+          // Если нет поля participants - удаляем (старые чаты)
+          if (participants.length === 0) {
+            // Проверяем по имени чата - если это другой педагог, удаляем
+            const isTeacherChat = teacherAccounts.some(t => t.name === chat.name);
+            if (isTeacherChat) return false;
           }
           
-          // Оставляем чаты с админом
+          // Если есть participants - проверяем что это НЕ два педагога между собой
+          if (participants.length > 0) {
+            const isAdminInChat = participants.includes('admin');
+            const allParticipantsAreTeachers = participants.every(id => 
+              allUsers.find(u => u.id === id && u.role === 'teacher')
+            );
+            
+            // Удаляем если все участники педагоги И нет админа
+            if (allParticipantsAreTeachers && !isAdminInChat) {
+              return false;
+            }
+          }
+          
           return true;
         }
         
