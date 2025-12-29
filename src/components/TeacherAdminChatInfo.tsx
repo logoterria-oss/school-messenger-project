@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 
 type TeacherInfo = {
@@ -51,6 +52,20 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
   });
 
   const daysOfWeek = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+  
+  const generateTimeSlots = () => {
+    const slots: string[] = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 5) {
+        const h = hour.toString().padStart(2, '0');
+        const m = minute.toString().padStart(2, '0');
+        slots.push(`${h}:${m}`);
+      }
+    }
+    return slots;
+  };
+  
+  const timeSlots = generateTimeSlots();
 
   const handleSavePhone = () => {
     onUpdateTeacher({ phone: editPhone });
@@ -349,14 +364,18 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
           <div className="space-y-4 py-4">
             <div>
               <Label htmlFor="slot-time">Время</Label>
-              <Input
-                id="slot-time"
-                type="time"
-                value={newSlotTime}
-                onChange={(e) => setNewSlotTime(e.target.value)}
-                className="mt-2"
-                step="300"
-              />
+              <Select value={newSlotTime} onValueChange={setNewSlotTime}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Выберите время" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {timeSlots.map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
