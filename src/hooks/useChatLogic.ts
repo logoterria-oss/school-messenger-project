@@ -143,18 +143,16 @@ export const useChatLogic = () => {
         
         // Для приватных чатов
         if (chat.type === 'private') {
+          // Проверяем по имени - если это другой педагог, удаляем
+          const isOtherTeacher = allUsers.some(u => 
+            u.role === 'teacher' && 
+            u.name === chat.name && 
+            u.name !== currentUserName
+          );
+          if (isOtherTeacher) return false;
+          
+          // Проверяем по participants
           const participants = chat.participants || [];
-          
-          // Если нет participants - проверяем по имени
-          if (participants.length === 0) {
-            // Если имя чата совпадает с именем педагога (кроме текущего) - удаляем
-            const isOtherTeacher = teacherAccounts.some(t => 
-              t.name === chat.name && t.name !== currentUserName
-            );
-            if (isOtherTeacher) return false;
-          }
-          
-          // Если есть participants - проверяем
           if (participants.length > 0) {
             const hasAdmin = participants.includes('admin');
             const allAreTeachers = participants.every(id => 
@@ -164,6 +162,9 @@ export const useChatLogic = () => {
             // Удаляем если все педагоги и нет админа
             if (allAreTeachers && !hasAdmin) return false;
           }
+          
+          // Оставляем чат только если это админ
+          return chat.name === 'Виктория Абраменко' || chat.id.includes('admin');
         }
         
         return true;
