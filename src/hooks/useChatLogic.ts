@@ -214,6 +214,24 @@ export const useChatLogic = () => {
     localStorage.setItem('allUsers', JSON.stringify(allUsers));
   }, [allUsers]);
 
+  // Слушаем изменения localStorage из других вкладок
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'allUsers' && e.newValue) {
+        console.log('🔔 Storage changed, updating users from another tab');
+        try {
+          const updatedUsers = JSON.parse(e.newValue);
+          setAllUsers(updatedUsers);
+        } catch (error) {
+          console.error('Failed to parse updated users:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('chats', JSON.stringify(chats));
   }, [chats]);
