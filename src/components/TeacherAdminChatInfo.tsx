@@ -40,6 +40,13 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
       if (!grouped[day]) grouped[day] = [];
       grouped[day].push(time);
     });
+    Object.keys(grouped).forEach(day => {
+      grouped[day].sort((a, b) => {
+        const [aHours, aMinutes] = a.split(':').map(Number);
+        const [bHours, bMinutes] = b.split(':').map(Number);
+        return aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
+      });
+    });
     return grouped;
   });
 
@@ -72,10 +79,17 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
 
   const handleSaveNewSlot = () => {
     if (selectedDay && newSlotTime) {
-      setEditSlots(prev => ({
-        ...prev,
-        [selectedDay]: [...(prev[selectedDay] || []), newSlotTime]
-      }));
+      setEditSlots(prev => {
+        const newTimes = [...(prev[selectedDay] || []), newSlotTime].sort((a, b) => {
+          const [aHours, aMinutes] = a.split(':').map(Number);
+          const [bHours, bMinutes] = b.split(':').map(Number);
+          return aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
+        });
+        return {
+          ...prev,
+          [selectedDay]: newTimes
+        };
+      });
       setIsAddingSlot(false);
       setNewSlotTime('');
     }
