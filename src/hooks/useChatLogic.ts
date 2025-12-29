@@ -12,6 +12,8 @@ type User = {
   email?: string;
   password: string;
   avatar?: string;
+  availableSlots?: string[];
+  educationDocs?: string[];
 };
 
 const loadUsersFromStorage = (): User[] => {
@@ -889,6 +891,12 @@ export const useChatLogic = () => {
     }
   };
 
+  const handleUpdateTeacher = (teacherId: string, updates: Partial<User>) => {
+    setAllUsers(prev => prev.map(user => 
+      user.id === teacherId ? { ...user, ...updates } : user
+    ));
+  };
+
   return {
     isAuthenticated,
     userRole,
@@ -925,5 +933,6 @@ export const useChatLogic = () => {
     handleAddTeacher,
     handleCreateGroup,
     handleDeleteGroup,
+    handleUpdateTeacher,
   };
 };

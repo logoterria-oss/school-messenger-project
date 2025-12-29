@@ -14,6 +14,7 @@ const AddParentDialog = lazy(() => import('@/components/AddParentDialog').then(m
 const AddTeacherDialog = lazy(() => import('@/components/AddTeacherDialog').then(m => ({ default: m.AddTeacherDialog })));
 const CreateGroupDialog = lazy(() => import('@/components/CreateGroupDialog').then(m => ({ default: m.CreateGroupDialog })));
 const ChatInfoSidebar = lazy(() => import('@/components/ChatInfoSidebar').then(m => ({ default: m.ChatInfoSidebar })));
+const TeacherAdminChatInfo = lazy(() => import('@/components/TeacherAdminChatInfo').then(m => ({ default: m.TeacherAdminChatInfo })));
 
 const Index = () => {
   const [showAddStudent, setShowAddStudent] = useState(false);
@@ -58,7 +59,13 @@ const Index = () => {
     handleAddTeacher,
     handleCreateGroup,
     handleDeleteGroup,
+    handleUpdateTeacher,
   } = useChatLogic();
+
+  const selectedChatData = chats.find(c => c.id === selectedChat);
+  const isPrivateTeacherAdminChat = selectedChatData?.type === 'private' && 
+    selectedChatData?.participants?.includes('admin') && 
+    (userRole === 'admin' || userRole === 'teacher');
 
   if (!isAuthenticated || !userRole) {
     return <LoginScreen onLogin={handleLogin} />;
@@ -143,7 +150,7 @@ const Index = () => {
 
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col">
-          {selectedChat ? (
+          {selectedChat && selectedChatData ? (
             <>
               <ChatArea 
                 messages={messages}
@@ -189,6 +196,35 @@ const Index = () => {
         {selectedChat && (() => {
           const currentChat = chats.find(c => c.id === selectedChat);
           const chatParticipants = currentChat?.participants || [];
+          
+          if (isPrivateTeacherAdminChat) {
+            const otherUserId = chatParticipants.find(id => id !== userId && id !== 'admin');
+            const teacherData = otherUserId && otherUserId !== 'admin' 
+              ? allUsers.find(u => u.id === otherUserId)
+              : userRole === 'admin' 
+                ? allUsers.find(u => u.id === otherUserId)
+                : null;
+
+            if (teacherData) {
+              return (
+                <Suspense fallback={null}>
+                  <TeacherAdminChatInfo
+                    isOpen={showChatInfo}
+                    onClose={() => setShowChatInfo(false)}
+                    teacherInfo={{
+                      id: teacherData.id,
+                      name: teacherData.name,
+                      phone: teacherData.phone,
+                      email: teacherData.email || '',
+                      availableSlots: teacherData.availableSlots || [],
+                      educationDocs: teacherData.educationDocs || [],
+                    }}
+                    onUpdateTeacher={(updates) => handleUpdateTeacher(teacherData.id, updates)}
+                  />
+                </Suspense>
+              );
+            }
+          }
           
           return (
             <Suspense fallback={null}>
