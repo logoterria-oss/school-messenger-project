@@ -300,11 +300,35 @@ export const useChatLogic = () => {
     localStorage.setItem('userRole', role);
     localStorage.setItem('userName', name || '');
     
-    const existingChats = loadChatsFromStorage();
+    let existingChats = loadChatsFromStorage();
     
     // Создание закрепленных чатов для педагогов
     if (role === 'teacher') {
       const currentUserId = allUsers.find(u => u.name === name && u.role === 'teacher')?.id;
+      
+      // ВАЖНО: Удаляем старые неправильные чаты (педагог-педагог)
+      existingChats = existingChats.filter(chat => {
+        // Оставляем все групповые чаты
+        if (chat.type === 'group') return true;
+        
+        // Для приватных чатов проверяем участников
+        if (chat.type === 'private') {
+          const participants = chat.participants || [];
+          
+          // Если это чат между двумя педагогами (без админа) - удаляем
+          const allTeachers = participants.every(id => 
+            allUsers.find(u => u.id === id && u.role === 'teacher')
+          );
+          if (allTeachers && !participants.includes('admin')) {
+            return false; // удаляем
+          }
+          
+          // Оставляем чаты с админом
+          return true;
+        }
+        
+        return true;
+      });
       
       // 1. Чат "Педагоги" (групповой чат всех педагогов)
       const teachersGroupId = 'teachers-group';
