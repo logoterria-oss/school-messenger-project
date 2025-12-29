@@ -70,7 +70,23 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
   useEffect(() => {
     setEditPhone(teacherInfo.phone);
     setEditEmail(teacherInfo.email);
-  }, [teacherInfo.phone, teacherInfo.email]);
+    
+    // Синхронизируем слоты
+    const grouped: Record<string, string[]> = {};
+    teacherInfo.availableSlots.forEach(slot => {
+      const [day, time] = slot.split(' в ');
+      if (!grouped[day]) grouped[day] = [];
+      grouped[day].push(time);
+    });
+    Object.keys(grouped).forEach(day => {
+      grouped[day].sort((a, b) => {
+        const [aHours, aMinutes] = a.split(':').map(Number);
+        const [bHours, bMinutes] = b.split(':').map(Number);
+        return aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
+      });
+    });
+    setEditSlots(grouped);
+  }, [teacherInfo.phone, teacherInfo.email, teacherInfo.availableSlots]);
 
   const handleSavePhone = () => {
     onUpdateTeacher({ phone: editPhone });
