@@ -69,23 +69,5 @@ export const testAccounts: TestAccount[] = [
     role: 'student',
     avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
     linkedTo: ['parent-test-3']
-  },
-  {
-    id: 'teacher-test-1',
-    name: 'Ольга Тестовна',
-    phone: '89991119999',
-    email: 'teacher.test@example.com',
-    password: 'test123',
-    role: 'teacher',
-    avatar: 'https://cdn.poehali.dev/files/Педагог.jpg'
-  },
-  {
-    id: 'teacher-test-2',
-    name: 'Алексей Тестович',
-    phone: '89992229999',
-    email: 'teacher2.test@example.com',
-    password: 'test123',
-    role: 'teacher',
-    avatar: 'https://cdn.poehali.dev/files/Педагог.jpg'
   }
 ];
