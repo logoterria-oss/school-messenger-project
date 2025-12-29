@@ -362,20 +362,42 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
             <DialogTitle>Добавить время для {selectedDay}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="slot-time">Время</Label>
-              <Select value={newSlotTime} onValueChange={setNewSlotTime}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Выберите время" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {timeSlots.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="slot-time-select">Выбрать из списка (шаг 5 минут)</Label>
+                <Select value={newSlotTime} onValueChange={setNewSlotTime}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Выберите время" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {timeSlots.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">или</span>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="slot-time-input">Ввести вручную</Label>
+                <Input
+                  id="slot-time-input"
+                  type="time"
+                  value={newSlotTime}
+                  onChange={(e) => setNewSlotTime(e.target.value)}
+                  className="mt-2"
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
