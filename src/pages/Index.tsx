@@ -214,6 +214,7 @@ const Index = () => {
               return (
                 <Suspense fallback={null}>
                   <TeacherAdminChatInfo
+                    key={`teacher-info-${teacherData.id}-${teacherData.phone}-${teacherData.email}-${teacherData.availableSlots?.length || 0}`}
                     isOpen={showChatInfo}
                     onClose={() => setShowChatInfo(false)}
                     teacherInfo={{

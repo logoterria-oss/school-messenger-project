@@ -892,9 +892,14 @@ export const useChatLogic = () => {
   };
 
   const handleUpdateTeacher = (teacherId: string, updates: Partial<User>) => {
-    setAllUsers(prev => prev.map(user => 
-      user.id === teacherId ? { ...user, ...updates } : user
-    ));
+    console.log('📝 Updating teacher:', teacherId, updates);
+    setAllUsers(prev => {
+      const updated = prev.map(user => 
+        user.id === teacherId ? { ...user, ...updates } : user
+      );
+      console.log('✅ Users updated:', updated.find(u => u.id === teacherId));
+      return updated;
+    });
   };
 
   return {

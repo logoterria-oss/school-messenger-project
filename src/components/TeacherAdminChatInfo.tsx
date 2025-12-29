@@ -68,6 +68,7 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
   const timeSlots = generateTimeSlots();
 
   useEffect(() => {
+    console.log('🔄 TeacherInfo updated:', teacherInfo);
     setEditPhone(teacherInfo.phone);
     setEditEmail(teacherInfo.email);
     
@@ -86,7 +87,7 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
       });
     });
     setEditSlots(grouped);
-  }, [teacherInfo.phone, teacherInfo.email, teacherInfo.availableSlots]);
+  }, [teacherInfo]);
 
   const handleSavePhone = () => {
     onUpdateTeacher({ phone: editPhone });
