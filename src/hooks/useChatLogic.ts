@@ -59,7 +59,7 @@ const loadUsersFromStorage = (): User[] => {
 };
 
 const loadChatsFromStorage = (): Chat[] => {
-  const MIGRATION_VERSION = 'v4-force-reset-all-chats';
+  const MIGRATION_VERSION = 'v5-fix-teacher-avatars';
   const migrationDone = localStorage.getItem('chatsMigration');
   
   // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА: удаляем все чаты при новой миграции
