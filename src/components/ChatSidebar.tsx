@@ -50,7 +50,7 @@ const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: 
     }`}
   >
     <div className="flex items-center gap-3">
-      <Avatar className="w-12 h-12">
+      <Avatar className="w-14 h-14">
         {chat.avatar && <AvatarImage src={chat.avatar} />}
         <AvatarFallback className="bg-primary text-white text-sm">
           {chat.type === 'group' ? (
