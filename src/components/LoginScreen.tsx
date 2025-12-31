@@ -90,17 +90,17 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                 
-                <div className="relative flex items-center gap-3 max-sm:flex-col max-sm:justify-center max-sm:gap-2.5">
+                <div className="relative flex items-center justify-center gap-3 max-sm:gap-2.5">
                   <div className="w-20 h-20 max-sm:w-16 max-sm:h-16 rounded-full shadow-md flex-shrink-0 overflow-hidden">
                     <img src={role.image} alt={role.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                   
-                  <div className="text-left max-sm:text-center">
+                  <div className="text-left">
                     <h3 className="font-bold" style={{ color: '#5B7C99' }}>
-                      <div className="text-2xl max-sm:text-2xl leading-tight">Я -</div>
-                      <div className="text-lg max-sm:text-xl leading-tight">{role.name}</div>
+                      <div className="text-2xl max-sm:text-xl leading-tight">Я -</div>
+                      <div className="text-lg max-sm:text-base leading-tight">{role.name}</div>
                     </h3>
-                    <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 mt-1 max-sm:hidden">
+                    <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 mt-1">
                       <span className="text-sm font-medium">Войти</span>
                       <span className="text-sm">→</span>
                     </div>
@@ -192,12 +192,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             <span className="text-sm font-medium">Назад</span>
           </button>
 
-          <div className="flex items-start gap-6 max-sm:flex-col max-sm:items-center max-sm:gap-4 mt-6 max-sm:mt-4">
+          <div className="flex flex-col items-center gap-6 max-sm:gap-4 mt-6 max-sm:mt-4">
             <div className="w-28 h-28 max-sm:w-20 max-sm:h-20 rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700">
               <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" loading="eager" />
             </div>
 
-            <div className="flex-1 max-sm:w-full max-sm:max-w-sm space-y-3 max-sm:space-y-2.5 animate-in fade-in slide-in-from-right duration-700">
+            <div className="w-full max-w-sm space-y-3 max-sm:space-y-2.5 animate-in fade-in slide-in-from-right duration-700">
               <div>
               <label className="block text-sm font-medium mb-2">
                 Логин (телефон или email)
