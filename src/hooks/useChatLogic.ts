@@ -511,6 +511,16 @@ export const useChatLogic = () => {
     
     // Создание закрепленных чатов для админа
     if (role === 'admin') {
+      // ВАЖНО: Удаляем чаты админа с самим собой
+      existingChats = existingChats.filter(chat => {
+        if (chat.type === 'private' && chat.participants) {
+          const hasOnlyAdmin = chat.participants.every(id => id === 'admin');
+          const hasTwoAdmins = chat.participants.filter(id => id === 'admin').length >= 2;
+          return !hasOnlyAdmin && !hasTwoAdmins;
+        }
+        return true;
+      });
+      
       // 1. Чат "Педагоги" (групповой чат всех педагогов + админ)
       const teachersGroupId = 'teachers-group';
       const hasTeachersGroup = existingChats.some(chat => chat.id === teachersGroupId);
