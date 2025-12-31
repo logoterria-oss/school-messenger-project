@@ -1,11 +1,11 @@
 import { useState, lazy, Suspense } from 'react';
 import Icon from '@/components/ui/icon';
-import { ChatSidebar } from '@/components/ChatSidebar';
-import { ChatArea } from '@/components/ChatArea';
-import { MessageInput } from '@/components/MessageInput';
 import { LoginScreen } from '@/components/LoginScreen';
 import { useChatLogic } from '@/hooks/useChatLogic';
 
+const ChatSidebar = lazy(() => import('@/components/ChatSidebar').then(m => ({ default: m.ChatSidebar })));
+const ChatArea = lazy(() => import('@/components/ChatArea').then(m => ({ default: m.ChatArea })));
+const MessageInput = lazy(() => import('@/components/MessageInput').then(m => ({ default: m.MessageInput })));
 const ProfileSettings = lazy(() => import('@/components/ProfileSettings').then(m => ({ default: m.ProfileSettings })));
 const AppSettings = lazy(() => import('@/components/AppSettings').then(m => ({ default: m.AppSettings })));
 const AllUsersView = lazy(() => import('@/components/AllUsersView').then(m => ({ default: m.AllUsersView })));
@@ -103,23 +103,25 @@ const Index = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <ChatSidebar
-        onLogout={handleLogout}
-        onOpenProfile={handleOpenProfile}
-        onOpenSettings={handleOpenSettings}
-        onOpenUsers={handleOpenUsers}
-        onAddStudent={() => setShowAddStudent(true)}
-        onAddParent={() => setShowAddParent(true)}
-        onAddTeacher={() => setShowAddTeacher(true)}
-        onCreateGroup={() => setShowCreateGroup(true)}
-        userRole={userRole}
-        userName={userName}
-        userId={userId}
-        chats={chats}
-        allUsers={allUsers}
-        selectedChat={selectedChat}
-        onSelectChat={handleSelectChat}
-      />
+      <Suspense fallback={<div className="w-[420px] bg-card border-r border-border" />}>
+        <ChatSidebar
+          onLogout={handleLogout}
+          onOpenProfile={handleOpenProfile}
+          onOpenSettings={handleOpenSettings}
+          onOpenUsers={handleOpenUsers}
+          onAddStudent={() => setShowAddStudent(true)}
+          onAddParent={() => setShowAddParent(true)}
+          onAddTeacher={() => setShowAddTeacher(true)}
+          onCreateGroup={() => setShowCreateGroup(true)}
+          userRole={userRole}
+          userName={userName}
+          userId={userId}
+          chats={chats}
+          allUsers={allUsers}
+          selectedChat={selectedChat}
+          onSelectChat={handleSelectChat}
+        />
+      </Suspense>
 
       <Suspense fallback={null}>
         <AddStudentDialog
@@ -151,7 +153,7 @@ const Index = () => {
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col">
           {selectedChat && selectedChatData ? (
-            <>
+            <Suspense fallback={<div className="flex-1 bg-background" />}>
               <ChatArea 
                 messages={messages}
                 onReaction={handleReaction}
@@ -174,7 +176,7 @@ const Index = () => {
                 onImageUpload={handleImageUpload}
                 onRemoveAttachment={removeAttachment}
               />
-            </>
+            </Suspense>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-accent/20">
               <div className="text-center space-y-3">

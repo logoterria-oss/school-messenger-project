@@ -63,20 +63,8 @@ const loadUsersFromStorage = (): User[] => {
 };
 
 const loadChatsFromStorage = (): Chat[] => {
-  const MIGRATION_VERSION = 'v5-fix-teacher-avatars';
-  const migrationDone = localStorage.getItem('chatsMigration');
-  
-  // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА: удаляем все чаты при новой миграции
-  if (migrationDone !== MIGRATION_VERSION) {
-    localStorage.removeItem('chats');
-    localStorage.setItem('chatsMigration', MIGRATION_VERSION);
-    return [];
-  }
-  
   const stored = localStorage.getItem('chats');
-  if (!stored) return [];
-  
-  return JSON.parse(stored);
+  return stored ? JSON.parse(stored) : [];
 };
 
 const loadGroupTopicsFromStorage = (): GroupTopics => {
@@ -104,77 +92,7 @@ export const useChatLogic = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
-  const [chats, setChats] = useState<Chat[]>(() => {
-    const storedChats = loadChatsFromStorage();
-    const currentUserRole = localStorage.getItem('userRole');
-    const currentUserName = localStorage.getItem('userName');
-    
-    // Фильтруем чаты сразу при загрузке для педагогов
-    let filteredChats = storedChats;
-    
-    if (currentUserRole === 'teacher') {
-      const allUsers = loadUsersFromStorage();
-      
-      filteredChats = storedChats.filter(chat => {
-        // Оставляем все групповые чаты
-        if (chat.type === 'group') return true;
-        
-        // Для приватных чатов
-        if (chat.type === 'private') {
-          // Проверяем по имени - если это другой педагог, удаляем
-          const isOtherTeacher = allUsers.some(u => 
-            u.role === 'teacher' && 
-            u.name === chat.name && 
-            u.name !== currentUserName
-          );
-          if (isOtherTeacher) return false;
-          
-          // Проверяем по participants
-          const participants = chat.participants || [];
-          if (participants.length > 0) {
-            const hasAdmin = participants.includes('admin');
-            const allAreTeachers = participants.every(id => 
-              allUsers.find(u => u.id === id && u.role === 'teacher')
-            );
-            
-            // Удаляем если все педагоги и нет админа
-            if (allAreTeachers && !hasAdmin) return false;
-          }
-          
-          // Оставляем чат только если это админ
-          return chat.name === 'Виктория Абраменко' || chat.id.includes('admin');
-        }
-        
-        return true;
-      });
-    }
-    
-    // Миграция: обновляем аватары
-    const chatsWithAvatars = filteredChats.map(chat => {
-      if (chat.id === 'teachers-group') {
-        return { ...chat, avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg' };
-      }
-      
-      if (chat.avatar) return chat;
-      
-      if (chat.type === 'private' && chat.id.includes('admin')) {
-        return { ...chat, avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
-      }
-      
-      if (chat.type === 'group' && chat.id !== 'teachers-group') {
-        return { ...chat, avatar: 'https://cdn.poehali.dev/files/Ученик.jpg' };
-      }
-      
-      return chat;
-    });
-    
-    // Сохраняем очищенные чаты
-    if (currentUserRole === 'teacher' && chatsWithAvatars.length !== storedChats.length) {
-      localStorage.setItem('chats', JSON.stringify(chatsWithAvatars));
-    }
-    
-    return chatsWithAvatars;
-  });
+  const [chats, setChats] = useState<Chat[]>(() => loadChatsFromStorage());
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromStorage);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
@@ -205,13 +123,6 @@ export const useChatLogic = () => {
     }
   }, [isAuthenticated, userRole, selectedChat]);
 
-  // Миграция: сохраняем обновленные чаты при первой загрузке
-  useEffect(() => {
-    if (chats.length > 0) {
-      localStorage.setItem('chats', JSON.stringify(chats));
-    }
-  }, []);
-
   useEffect(() => {
     localStorage.setItem('allUsers', JSON.stringify(allUsers));
   }, [allUsers]);
@@ -223,22 +134,28 @@ export const useChatLogic = () => {
     // Подключаем WebSocket
     wsService.connect(userId);
 
-    // Загружаем пользователей из API
-    getUsers()
-      .then(users => {
-        console.log('📥 Loaded users from API:', users.length);
-        setAllUsers(users as any);
-      })
-      .catch(err => console.error('Failed to load users:', err));
+    // Загружаем все данные параллельно только один раз
+    const loadData = async () => {
+      try {
+        const [users, chatsData] = await Promise.all([
+          getUsers().catch(() => []),
+          getChats(userId).catch(() => ({ chats: [], topics: {} }))
+        ]);
+        
+        if (users.length > 0) {
+          setAllUsers(users as any);
+        }
+        
+        if (chatsData.chats.length > 0) {
+          setChats(chatsData.chats as any);
+          setGroupTopics(chatsData.topics as any);
+        }
+      } catch (err) {
+        console.error('Failed to load data:', err);
+      }
+    };
 
-    // Загружаем чаты из API
-    getChats(userId)
-      .then(data => {
-        console.log('📥 Loaded chats from API:', data.chats.length);
-        setChats(data.chats as any);
-        setGroupTopics(data.topics as any);
-      })
-      .catch(err => console.error('Failed to load chats:', err));
+    loadData();
 
     // Обработчики WebSocket событий
     const handleUserUpdate = async (data: { userId: string }) => {
