@@ -62,15 +62,7 @@ const loadUsersFromStorage = (): User[] => {
   return allUsers;
 };
 
-const loadChatsFromStorage = (): Chat[] => {
-  const stored = localStorage.getItem('chats');
-  return stored ? JSON.parse(stored) : [];
-};
-
-const loadGroupTopicsFromStorage = (): GroupTopics => {
-  const stored = localStorage.getItem('groupTopics');
-  return stored ? JSON.parse(stored) : initialGroupTopics;
-};
+// Удалены дублирующие функции - используем inline в useState
 
 export const useChatLogic = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -92,8 +84,14 @@ export const useChatLogic = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
-  const [chats, setChats] = useState<Chat[]>(() => loadChatsFromStorage());
-  const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromStorage);
+  const [chats, setChats] = useState<Chat[]>(() => {
+    const stored = localStorage.getItem('chats');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [groupTopics, setGroupTopics] = useState<GroupTopics>(() => {
+    const stored = localStorage.getItem('groupTopics');
+    return stored ? JSON.parse(stored) : initialGroupTopics;
+  });
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
   // Список пользователей, которые сейчас печатают (кроме текущего)
@@ -396,7 +394,7 @@ export const useChatLogic = () => {
     localStorage.setItem('userName', name || '');
     localStorage.setItem('userId', currentUserId);
     
-    let existingChats = loadChatsFromStorage();
+    let existingChats = chats;
     
     // Создание закрепленных чатов для педагогов
     if (role === 'teacher') {
@@ -611,7 +609,7 @@ export const useChatLogic = () => {
         ];
         
         const newGroupTopics = {
-          ...loadGroupTopicsFromStorage(),
+          ...groupTopics,
           'test-group-1': testTopics
         };
         setGroupTopics(newGroupTopics);
