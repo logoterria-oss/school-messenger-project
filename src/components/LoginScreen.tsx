@@ -90,12 +90,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                 
-                <div className="relative flex items-center gap-3 max-sm:gap-2.5">
+                <div className="relative flex items-center justify-center gap-3 max-sm:gap-2.5">
                   <div className="w-20 h-20 max-sm:w-16 max-sm:h-16 rounded-full shadow-md flex-shrink-0 overflow-hidden">
                     <img src={role.image} alt={role.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                   
-                  <div className="flex-1 text-left">
+                  <div className="text-left">
                     <h3 className="font-bold" style={{ color: '#5B7C99' }}>
                       <div className="text-2xl max-sm:text-xl leading-tight">Я -</div>
                       <div className="text-lg max-sm:text-base leading-tight">{role.name}</div>
