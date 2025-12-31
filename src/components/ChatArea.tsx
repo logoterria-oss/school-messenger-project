@@ -40,10 +40,11 @@ type ChatAreaProps = {
   typingUsers?: string[];
   userRole?: UserRole;
   onOpenChatInfo?: () => void;
+  onOpenMobileSidebar?: () => void;
   chatId?: string;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, onOpenMobileSidebar, chatId }: ChatAreaProps) => {
   const shouldShowTopics = isGroup && topics && topics.length > 0 && (userRole === 'admin' || userRole === 'teacher');
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
   const isTeachersGroup = chatId === 'teachers-group';
@@ -52,6 +53,14 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
     <>
       <div className="bg-card border-b border-border">
         <div className="flex items-center justify-between px-4 py-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="lg:hidden text-muted-foreground mr-2"
+            onClick={onOpenMobileSidebar}
+          >
+            <Icon name="Menu" size={20} />
+          </Button>
           {!isParentOrStudent && (
             <div className="flex items-center gap-3">
               <Avatar className="w-10 h-10">

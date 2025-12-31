@@ -69,19 +69,19 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl">
-          <div className="flex items-center justify-center gap-6 mb-8">
+          <div className="flex items-center justify-center gap-6 mb-8 max-sm:gap-4">
             <img 
               src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
               alt="LineaSchool" 
-              className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0" 
+              className="w-28 h-28 max-sm:w-20 max-sm:h-20 rounded-3xl shadow-xl flex-shrink-0" 
             />
             <div className="flex flex-col">
-              <h1 className="text-5xl font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
-              <p className="text-xl font-normal" style={{ color: '#3BA662' }}>мессенджер</p>
+              <h1 className="text-5xl max-sm:text-3xl font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
+              <p className="text-xl max-sm:text-base font-normal" style={{ color: '#3BA662' }}>мессенджер</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-3">
             {ROLES.map((role) => (
               <button
                 key={role.id}
@@ -169,21 +169,21 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         </div>
       )}
       
-      <div className={`flex items-center justify-center gap-6 mb-8 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`flex items-center justify-center gap-6 max-sm:gap-4 mb-8 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
         <img 
           src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
           alt="LineaSchool" 
-          className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0"
+          className="w-28 h-28 max-sm:w-20 max-sm:h-20 rounded-3xl shadow-xl flex-shrink-0"
           loading="eager"
         />
         <div className="flex flex-col">
-          <h1 className="text-5xl font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
-          <p className="text-xl font-normal" style={{ color: '#3BA662' }}>мессенджер</p>
+          <h1 className="text-5xl max-sm:text-3xl font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
+          <p className="text-xl max-sm:text-base font-normal" style={{ color: '#3BA662' }}>мессенджер</p>
         </div>
       </div>
 
       <div className={`w-full max-w-2xl animate-in fade-in zoom-in duration-500 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="bg-card rounded-xl shadow-xl p-8 border-2 border-border relative">
+        <div className="bg-card rounded-xl shadow-xl p-8 max-sm:p-4 border-2 border-border relative">
           <button
             onClick={handleBack}
             className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors z-10"
@@ -192,12 +192,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             <span className="text-sm font-medium">Назад</span>
           </button>
 
-          <div className="flex items-start gap-8 mt-8">
-            <div className="w-40 h-40 rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700">
+          <div className="flex max-sm:flex-col items-start gap-8 max-sm:gap-4 mt-8">
+            <div className="w-40 h-40 max-sm:w-24 max-sm:h-24 max-sm:mx-auto rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700">
               <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" loading="eager" />
             </div>
 
-            <div className="flex-1 space-y-4 animate-in fade-in slide-in-from-right duration-700">
+            <div className="flex-1 space-y-4 max-sm:space-y-3 animate-in fade-in slide-in-from-right duration-700">
               <div>
               <label className="block text-sm font-medium mb-2">
                 Логин (телефон или email)

@@ -101,6 +101,8 @@ const Index = () => {
     );
   }
 
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   return (
     <div className="flex h-screen bg-background">
       <ChatSidebar
@@ -118,7 +120,12 @@ const Index = () => {
         chats={chats}
         allUsers={allUsers}
         selectedChat={selectedChat}
-        onSelectChat={handleSelectChat}
+        onSelectChat={(chatId) => {
+          handleSelectChat(chatId);
+          setIsMobileSidebarOpen(false);
+        }}
+        isMobileOpen={isMobileSidebarOpen}
+        onMobileClose={() => setIsMobileSidebarOpen(false)}
       />
 
       <Suspense fallback={null}>
@@ -163,6 +170,7 @@ const Index = () => {
                 typingUsers={typingUsers}
                 userRole={userRole}
                 onOpenChatInfo={() => setShowChatInfo(true)}
+                onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
                 chatId={selectedChat}
               />
               <MessageInput 
