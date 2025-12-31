@@ -232,6 +232,17 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
       {!isParentOrStudent && (
         <ScrollArea className="flex-1">
           {[...chats]
+            .filter((chat) => {
+              // Убираем чаты с самим собой
+              if (chat.type === 'private' && chat.participants) {
+                const otherUserId = chat.participants.find(id => id !== userId);
+                // Если другой участник это тоже текущий пользователь - пропускаем
+                if (otherUserId === userId || otherUserId === 'admin' && userId === 'admin') {
+                  return false;
+                }
+              }
+              return true;
+            })
             .sort((a, b) => {
               if (a.id === 'teachers-group') return -1;
               if (b.id === 'teachers-group') return 1;
