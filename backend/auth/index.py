@@ -21,25 +21,40 @@ def handler(event: dict, context) -> dict:
     if method == 'POST':
         try:
             data = json.loads(event.get('body', '{}'))
-            phone = data.get('phone')
+            login = data.get('phone')
             password = data.get('password')
 
-            if not phone or not password:
+            if not login or not password:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Phone and password are required'})
+                    'body': json.dumps({'error': 'Login and password are required'})
                 }
+
+            # Нормализация телефона
+            def normalize_phone(phone_str):
+                normalized = ''.join(c for c in phone_str if c.isdigit())
+                if normalized.startswith('8'):
+                    normalized = '7' + normalized[1:]
+                return normalized
 
             # Подключение к БД
             conn = psycopg2.connect(os.environ['DATABASE_URL'])
             cur = conn.cursor(cursor_factory=RealDictCursor)
 
-            # Поиск пользователя
-            cur.execute(
-                "SELECT id, name, phone, email, role, avatar, available_slots, education_docs FROM users WHERE phone = %s AND password = %s",
-                (phone, password)
-            )
+            # Проверяем, это email или телефон
+            if '@' in login:
+                cur.execute(
+                    "SELECT id, name, phone, email, role, avatar, available_slots, education_docs FROM users WHERE email = %s AND password = %s",
+                    (login, password)
+                )
+            else:
+                normalized_login = normalize_phone(login)
+                cur.execute(
+                    "SELECT id, name, phone, email, role, avatar, available_slots, education_docs FROM users WHERE phone = %s AND password = %s",
+                    (normalized_login, password)
+                )
+            
             user = cur.fetchone()
 
             cur.close()
