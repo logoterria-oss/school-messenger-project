@@ -67,38 +67,38 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
   if (!selectedRole) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4 max-lg:p-3">
-        <div className="w-full max-w-2xl max-lg:max-w-md">
-          <div className="flex items-center justify-center gap-6 mb-8 max-lg:gap-3 max-lg:mb-6">
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4 max-lg:p-4">
+        <div className="w-full max-w-2xl max-lg:max-w-[340px]">
+          <div className="flex items-center justify-center gap-6 mb-8 max-lg:gap-2.5 max-lg:mb-8">
             <img 
               src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
               alt="LineaSchool" 
-              className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0 max-lg:w-16 max-lg:h-16 max-lg:rounded-2xl" 
+              className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0 max-lg:w-12 max-lg:h-12 max-lg:rounded-xl" 
             />
             <div className="flex flex-col">
-              <h1 className="text-5xl font-extrabold max-lg:text-3xl" style={{ color: '#3BA662' }}>LineaSchool</h1>
-              <p className="text-xl font-normal max-lg:text-sm" style={{ color: '#3BA662' }}>мессенджер</p>
+              <h1 className="text-5xl font-extrabold max-lg:text-2xl" style={{ color: '#3BA662' }}>LineaSchool</h1>
+              <p className="text-xl font-normal max-lg:text-xs" style={{ color: '#3BA662' }}>мессенджер</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 max-lg:grid-cols-1 max-lg:gap-2">
+          <div className="grid grid-cols-2 gap-3 max-lg:gap-2.5">
             {ROLES.map((role) => (
               <button
                 key={role.id}
                 onClick={() => handleRoleSelect(role.id)}
-                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 border-2 border-border hover:border-primary/50 overflow-hidden max-lg:px-4 max-lg:py-2.5"
+                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 border-2 border-border hover:border-primary/50 overflow-hidden max-lg:px-2.5 max-lg:py-3 max-lg:rounded-lg"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                 
-                <div className="relative flex items-center gap-6 max-lg:flex-col max-lg:gap-3 max-lg:text-center">
-                  <div className="w-32 h-32 rounded-full shadow-lg flex-shrink-0 overflow-hidden max-lg:w-24 max-lg:h-24">
+                <div className="relative flex items-center gap-6 max-lg:flex-col max-lg:gap-2 max-lg:justify-center">
+                  <div className="w-32 h-32 rounded-full shadow-lg flex-shrink-0 overflow-hidden max-lg:w-16 max-lg:h-16">
                     <img src={role.image} alt={role.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                   
-                  <div className="flex-1 text-left max-lg:text-center max-lg:w-full">
-                    <h3 className="font-bold mb-2 max-lg:mb-1" style={{ color: '#5B7C99' }}>
-                      <div className="text-4xl max-lg:text-2xl">Я -</div>
-                      <div className="text-2xl max-lg:text-xl">{role.name}</div>
+                  <div className="flex-1 text-left max-lg:text-center">
+                    <h3 className="font-bold mb-2 max-lg:mb-0" style={{ color: '#5B7C99' }}>
+                      <div className="text-4xl max-lg:text-base max-lg:leading-tight">Я -</div>
+                      <div className="text-2xl max-lg:text-sm max-lg:leading-tight">{role.name}</div>
                     </h3>
                     <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 max-lg:hidden">
                       <span className="text-base font-medium">Войти</span>
@@ -110,7 +110,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             ))}
           </div>
           
-          <div className="mt-6 text-center max-lg:mt-4">
+          <div className="mt-6 text-center max-lg:mt-6">
             <Button
               variant="outline"
               size="sm"
@@ -118,7 +118,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 console.log('Initializing database...');
                 await initializeDatabase();
               }}
-              className="text-xs max-lg:text-[10px] max-lg:h-8"
+              className="text-xs max-lg:text-[9px] max-lg:h-7 max-lg:px-2"
             >
               <Icon name="Database" size={14} className="mr-2 max-lg:mr-1 max-lg:w-3 max-lg:h-3" />
               Инициализировать БД
@@ -169,47 +169,47 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         </div>
       )}
       
-      <div className={`flex items-center justify-center gap-6 mb-8 max-lg:gap-3 max-lg:mb-6 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`flex items-center justify-center gap-6 mb-8 max-lg:gap-2.5 max-lg:mb-5 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
         <img 
           src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
           alt="LineaSchool" 
-          className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0 max-lg:w-16 max-lg:h-16 max-lg:rounded-2xl"
+          className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0 max-lg:w-12 max-lg:h-12 max-lg:rounded-xl"
           loading="eager"
         />
         <div className="flex flex-col">
-          <h1 className="text-5xl font-extrabold max-lg:text-3xl" style={{ color: '#3BA662' }}>LineaSchool</h1>
-          <p className="text-xl font-normal max-lg:text-sm" style={{ color: '#3BA662' }}>мессенджер</p>
+          <h1 className="text-5xl font-extrabold max-lg:text-2xl" style={{ color: '#3BA662' }}>LineaSchool</h1>
+          <p className="text-xl font-normal max-lg:text-xs" style={{ color: '#3BA662' }}>мессенджер</p>
         </div>
       </div>
 
-      <div className={`w-full max-w-2xl max-lg:max-w-md animate-in fade-in zoom-in duration-500 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="bg-card rounded-xl shadow-xl p-8 border-2 border-border relative max-lg:p-5">
+      <div className={`w-full max-w-2xl max-lg:max-w-[340px] animate-in fade-in zoom-in duration-500 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
+        <div className="bg-card rounded-xl shadow-xl p-8 border-2 border-border relative max-lg:p-4 max-lg:rounded-lg">
           <button
             onClick={handleBack}
-            className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors z-10 max-lg:top-3 max-lg:left-3"
+            className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors z-10 max-lg:top-2.5 max-lg:left-2.5"
           >
-            <Icon name="ArrowLeft" size={20} className="max-lg:w-4 max-lg:h-4" />
-            <span className="text-sm font-medium max-lg:text-xs">Назад</span>
+            <Icon name="ArrowLeft" size={20} className="max-lg:w-3.5 max-lg:h-3.5" />
+            <span className="text-sm font-medium max-lg:text-[10px]">Назад</span>
           </button>
 
-          <div className="flex items-start gap-8 mt-8 max-lg:flex-col max-lg:items-center max-lg:gap-5 max-lg:mt-10">
-            <div className="w-40 h-40 rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700 max-lg:w-24 max-lg:h-24">
+          <div className="flex items-start gap-8 mt-8 max-lg:flex-col max-lg:items-center max-lg:gap-3 max-lg:mt-8">
+            <div className="w-40 h-40 rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700 max-lg:w-16 max-lg:h-16">
               <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" loading="eager" />
             </div>
 
-            <div className="flex-1 space-y-4 animate-in fade-in slide-in-from-right duration-700 max-lg:w-full max-lg:space-y-3">
+            <div className="flex-1 space-y-4 animate-in fade-in slide-in-from-right duration-700 max-lg:w-full max-lg:space-y-2.5">
               <div>
-              <label className="block text-sm font-medium mb-2 max-lg:text-xs max-lg:mb-1.5">
+              <label className="block text-sm font-medium mb-2 max-lg:text-[10px] max-lg:mb-1">
                 Логин (телефон или email)
               </label>
               <div className="relative">
-                <Icon name="User" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground max-lg:left-3 max-lg:w-4 max-lg:h-4" />
+                <Icon name="User" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground max-lg:left-2.5 max-lg:w-3.5 max-lg:h-3.5" />
                 <Input
                   type="text"
                   placeholder="Введите логин"
                   value={login}
                   onChange={(e) => setLogin(e.target.value)}
-                  className="pl-11 h-12 rounded-xl max-lg:pl-9 max-lg:h-10 max-lg:text-sm"
+                  className="pl-11 h-12 rounded-xl max-lg:pl-8 max-lg:h-9 max-lg:text-xs max-lg:rounded-lg"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') handleLogin();
                   }}
@@ -218,17 +218,17 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 max-lg:text-xs max-lg:mb-1.5">
+              <label className="block text-sm font-medium mb-2 max-lg:text-[10px] max-lg:mb-1">
                 Пароль
               </label>
               <div className="relative">
-                <Icon name="Lock" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground max-lg:left-3 max-lg:w-4 max-lg:h-4" />
+                <Icon name="Lock" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground max-lg:left-2.5 max-lg:w-3.5 max-lg:h-3.5" />
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Введите пароль"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-11 pr-11 h-12 rounded-xl max-lg:pl-9 max-lg:pr-9 max-lg:h-10 max-lg:text-sm"
+                  className="pl-11 pr-11 h-12 rounded-xl max-lg:pl-8 max-lg:pr-8 max-lg:h-9 max-lg:text-xs max-lg:rounded-lg"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') handleLogin();
                   }}
@@ -236,23 +236,23 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors max-lg:right-3"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors max-lg:right-2.5"
                 >
-                  <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={18} className="max-lg:w-4 max-lg:h-4" />
+                  <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={18} className="max-lg:w-3.5 max-lg:h-3.5" />
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-3 flex items-start gap-2 max-lg:p-2 max-lg:gap-1.5">
-                <Icon name="AlertCircle" size={18} className="text-destructive flex-shrink-0 mt-0.5 max-lg:w-4 max-lg:h-4" />
-                <p className="text-sm text-destructive max-lg:text-xs">{error}</p>
+              <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-3 flex items-start gap-2 max-lg:p-1.5 max-lg:gap-1 max-lg:rounded-lg">
+                <Icon name="AlertCircle" size={18} className="text-destructive flex-shrink-0 mt-0.5 max-lg:w-3.5 max-lg:h-3.5" />
+                <p className="text-sm text-destructive max-lg:text-[10px]">{error}</p>
               </div>
             )}
 
               <Button
                 onClick={handleLogin}
-                className="w-full h-12 rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-lg text-white max-lg:h-10 max-lg:text-sm"
+                className="w-full h-12 rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-lg text-white max-lg:h-9 max-lg:text-xs max-lg:rounded-lg"
                 style={{ backgroundColor: '#3BA662' }}
               >
                 Войти
