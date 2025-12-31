@@ -47,16 +47,26 @@
 <body>
 <div id="root">
   <!-- Splash screen пока грузится React -->
-  <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #0A0A0A; color: white; font-family: system-ui, -apple-system, sans-serif;">
+  <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #ffffff; color: #333; font-family: system-ui, -apple-system, sans-serif;">
     <div style="text-align: center;">
-      <div style="font-size: 48px; margin-bottom: 20px; animation: pulse 1.5s ease-in-out infinite;">🚀</div>
-      <div style="font-size: 20px; font-weight: 500;">Загружаем мессенджер...</div>
+      <img src="https://cdn.poehali.dev/files/0745cec48d8caaf428479d00ecec0c58_f4559d6e-16cf-4159-90c5-7f4a9272d716.png" 
+           alt="Loading..." 
+           style="width: 200px; height: auto; margin-bottom: 24px; animation: sway 2s ease-in-out infinite;">
+      <div style="font-size: 20px; font-weight: 500; color: #4CAF50;">Загружаем мессенджер...</div>
+      <div style="margin-top: 16px; width: 200px; height: 3px; background: #e0e0e0; border-radius: 2px; overflow: hidden; margin-left: auto; margin-right: auto;">
+        <div style="height: 100%; background: linear-gradient(90deg, #4CAF50, #45a049); animation: progress 1.5s ease-in-out infinite;"></div>
+      </div>
     </div>
   </div>
   <style>
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.1); }
+    @keyframes sway {
+      0%, 100% { transform: rotate(-3deg) translateY(0); }
+      50% { transform: rotate(3deg) translateY(-10px); }
+    }
+    @keyframes progress {
+      0% { width: 0%; transform: translateX(0); }
+      50% { width: 70%; }
+      100% { width: 100%; transform: translateX(0); }
     }
   </style>
 </div>
