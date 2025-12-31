@@ -40,6 +40,8 @@ type ChatSidebarProps = {
   onAddParent?: () => void;
   onAddTeacher?: () => void;
   onCreateGroup?: () => void;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 };
 
 const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: string; isPinned?: boolean }, isSelected: boolean, onClick: () => void }) => (
@@ -90,7 +92,7 @@ const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: 
 ));
 ChatItem.displayName = 'ChatItem';
 
-export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, isMobileOpen = false, onMobileClose }: ChatSidebarProps) => {
   
   const getDisplayChat = (chat: Chat) => {
     if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
@@ -131,7 +133,21 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
   const tags = userRole === 'parent' ? parentTags : userRole === 'student' ? studentTags : [];
 
   return (
-    <div className="w-[420px] bg-card border-r border-border flex flex-col">
+    <>
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          onClick={onMobileClose}
+        />
+      )}
+      <div className={`
+        w-[420px] bg-card border-r border-border flex flex-col
+        fixed lg:relative inset-y-0 left-0 z-50
+        transform transition-transform duration-300 ease-in-out
+        max-lg:w-full max-lg:max-w-sm
+        ${isMobileOpen ? 'translate-x-0' : 'max-lg:-translate-x-full'}
+        lg:translate-x-0
+      `}>
       <div className="p-4 bg-card">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
@@ -252,6 +268,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
             })}
         </ScrollArea>
       )}
-    </div>
+      </div>
+    </>
   );
 };

@@ -42,7 +42,7 @@ export const MessageInput = ({
   }, [messageText]);
 
   return (
-    <div className="bg-card border-t border-border px-4 py-3">
+    <div className="bg-card border-t border-border px-4 py-3 max-lg:px-3 max-lg:py-2">
       {attachments.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
           {attachments.map((attachment, idx) => (
