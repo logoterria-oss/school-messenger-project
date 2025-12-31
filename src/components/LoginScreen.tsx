@@ -86,21 +86,21 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               <button
                 key={role.id}
                 onClick={() => handleRoleSelect(role.id)}
-                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl px-3 py-2.5 max-sm:px-2.5 max-sm:py-2 border-2 border-border hover:border-primary/50 overflow-hidden"
+                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl px-3 py-3 max-sm:px-2.5 max-sm:py-2.5 border-2 border-border hover:border-primary/50 overflow-hidden"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
                 
-                <div className="relative flex items-center gap-3 max-sm:gap-2.5">
+                <div className="relative flex flex-col items-center text-center gap-2.5 max-sm:gap-2">
                   <div className="w-20 h-20 max-sm:w-16 max-sm:h-16 rounded-full shadow-md flex-shrink-0 overflow-hidden">
                     <img src={role.image} alt={role.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                   
-                  <div className="flex-1 text-left">
-                    <h3 className="font-bold" style={{ color: '#5B7C99' }}>
-                      <div className="text-2xl max-sm:text-xl leading-tight">Я -</div>
-                      <div className="text-lg max-sm:text-base leading-tight">{role.name}</div>
+                  <div className="w-full">
+                    <h3 className="font-bold leading-tight" style={{ color: '#5B7C99' }}>
+                      <div className="text-xl max-sm:text-lg">Я -</div>
+                      <div className="text-base max-sm:text-sm">{role.name}</div>
                     </h3>
-                    <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 mt-1">
+                    <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 mt-1.5">
                       <span className="text-sm font-medium">Войти</span>
                       <span className="text-sm">→</span>
                     </div>
