@@ -18,14 +18,37 @@ type User = {
   educationDocs?: string[];
 };
 
+// Кэшируем данные в памяти для мгновенной загрузки
+let cachedUsers: User[] | null = null;
+let cachedChats: Chat[] | null = null;
+let cachedGroupTopics: GroupTopics | null = null;
+
+const loadChatsFromCache = (): Chat[] => {
+  if (cachedChats) return cachedChats;
+  const stored = localStorage.getItem('chats');
+  cachedChats = stored ? JSON.parse(stored) : [];
+  return cachedChats;
+};
+
+const loadGroupTopicsFromCache = (): GroupTopics => {
+  if (cachedGroupTopics) return cachedGroupTopics;
+  const stored = localStorage.getItem('groupTopics');
+  cachedGroupTopics = stored ? JSON.parse(stored) : initialGroupTopics;
+  return cachedGroupTopics;
+};
+
 const loadUsersFromStorage = (): User[] => {
+  // Если есть кэш в памяти - возвращаем мгновенно
+  if (cachedUsers) return cachedUsers;
+  
   const VERSION = 'v4-fix-dynamic-teachers';
   const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
   
   if (stored && storedVersion === VERSION) {
     try {
-      return JSON.parse(stored);
+      cachedUsers = JSON.parse(stored);
+      return cachedUsers;
     } catch (e) {
       console.error('Failed to parse stored users', e);
     }
@@ -51,15 +74,15 @@ const loadUsersFromStorage = (): User[] => {
     avatar: account.avatar,
   }));
   
-  const allUsers = [...teachers, ...testUsers];
-  localStorage.setItem('allUsers', JSON.stringify(allUsers));
+  cachedUsers = [...teachers, ...testUsers];
+  localStorage.setItem('allUsers', JSON.stringify(cachedUsers));
   localStorage.setItem('usersVersion', VERSION);
   
   // ВАЖНО: При смене версии пользователей очищаем чаты
   localStorage.removeItem('chats');
   localStorage.removeItem('chatsMigration');
   
-  return allUsers;
+  return cachedUsers;
 };
 
 // Удалены дублирующие функции - используем inline в useState
@@ -84,14 +107,8 @@ export const useChatLogic = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
-  const [chats, setChats] = useState<Chat[]>(() => {
-    const stored = localStorage.getItem('chats');
-    return stored ? JSON.parse(stored) : [];
-  });
-  const [groupTopics, setGroupTopics] = useState<GroupTopics>(() => {
-    const stored = localStorage.getItem('groupTopics');
-    return stored ? JSON.parse(stored) : initialGroupTopics;
-  });
+  const [chats, setChats] = useState<Chat[]>(loadChatsFromCache);
+  const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromCache);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
   // Список пользователей, которые сейчас печатают (кроме текущего)

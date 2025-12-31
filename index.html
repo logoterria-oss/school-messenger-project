@@ -20,26 +20,47 @@
     <link rel="dns-prefetch" href="https://cdn.poehali.dev">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.cdnfonts.com">
+    
+    <!-- Preload critical resources -->
+    <link rel="modulepreload" href="/src/main.tsx">
+    <link rel="modulepreload" href="/src/App.tsx">
 
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS COMMENT! -->
 
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS COMMENT! -->
-    <script src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
-    <script src="https://cdn.poehali.dev/intertnal/js/route-min.js"></script>
-    <script src="https://cdn.poehali.dev/intertnal/js/telemetry-min.js"></script>
+    <script defer src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
+    <script defer src="https://cdn.poehali.dev/intertnal/js/route-min.js"></script>
+    <script defer src="https://cdn.poehali.dev/intertnal/js/telemetry-min.js"></script>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS COMMENT! -->
 
     <meta name="pp-name" value="school-messenger-project">
+      <script defer src="https://cdn.poehali.dev/intertnal/js/inspector-min.js"></script>
+      <script src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
+      <script src="https://cdn.poehali.dev/intertnal/js/route-min.js"></script>
       <script src="https://cdn.poehali.dev/intertnal/js/inspector-min.js"></script>
+      <script src="https://cdn.poehali.dev/intertnal/js/telemetry-min.js"></script>
   </head>
 
 <body>
-<div id="root"></div>
+<div id="root">
+  <!-- Splash screen пока грузится React -->
+  <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #0A0A0A; color: white; font-family: system-ui, -apple-system, sans-serif;">
+    <div style="text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 20px; animation: pulse 1.5s ease-in-out infinite;">🚀</div>
+      <div style="font-size: 20px; font-weight: 500;">Загружаем мессенджер...</div>
+    </div>
+  </div>
+  <style>
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.1); }
+    }
+  </style>
+</div>
 <script type="module" src="/src/main.tsx"></script>
 
-<!-- Yandex.Metrika counter -->
-<script type="text/javascript">
+<!-- Yandex.Metrika counter (delayed) -->
+<script type="text/javascript" defer>
     (function (m, e, t, r, i, k, a) {
         m[i] = m[i] || function () {
             (m[i].a = m[i].a || []).push(arguments)
