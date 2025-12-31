@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { UserRole, AttachedFile, Message, Chat, GroupTopics } from '@/types/chat.types';
 import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
@@ -100,52 +100,54 @@ export const useChatLogic = () => {
   // TODO: Интеграция с WebSocket/сервером для получения данных о печатающих пользователях
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
-  const messages = selectedTopic 
-    ? (chatMessages[selectedTopic] || []) 
-    : selectedChat 
-    ? (chatMessages[selectedChat] || []) 
-    : [];
+  const messages = useMemo(() => {
+    return selectedTopic 
+      ? (chatMessages[selectedTopic] || []) 
+      : selectedChat 
+      ? (chatMessages[selectedChat] || []) 
+      : [];
+  }, [selectedTopic, selectedChat, chatMessages]);
 
   // Автоматически выбираем чат для родителей и учеников при загрузке
   useEffect(() => {
-    if (isAuthenticated && (userRole === 'parent' || userRole === 'student')) {
-      const existingChats = loadChatsFromStorage();
-      const testGroup = existingChats.find(chat => chat.id === 'test-group-1');
+    if (isAuthenticated && (userRole === 'parent' || userRole === 'student') && !selectedChat) {
+      const testGroup = chats.find(chat => chat.id === 'test-group-1');
       
-      if (testGroup && !selectedChat) {
+      if (testGroup) {
         setSelectedChat('test-group-1');
         setSelectedGroup('test-group-1');
-        const topics = loadGroupTopicsFromStorage()['test-group-1'];
+        const topics = groupTopics['test-group-1'];
         if (topics && topics.length > 0) {
           setSelectedTopic(topics[0].id);
         }
       }
     }
-  }, [isAuthenticated, userRole, selectedChat]);
-
-  useEffect(() => {
-    localStorage.setItem('allUsers', JSON.stringify(allUsers));
-  }, [allUsers]);
+  }, [isAuthenticated, userRole]);
 
   // Подключение WebSocket и загрузка данных из API
   useEffect(() => {
     if (!isAuthenticated || !userId) return;
 
-    // Подключаем WebSocket
-    wsService.connect(userId);
+    // Временно отключаем WebSocket для ускорения загрузки
+    // wsService.connect(userId);
 
-    // Загружаем все данные параллельно только один раз
+    // Загружаем данные из API только если их нет в localStorage
     const loadData = async () => {
+      const hasLocalData = allUsers.length > 0 && chats.length > 0;
+      
+      if (hasLocalData) {
+        console.log('✅ Using cached data from localStorage');
+        return;
+      }
+      
+      console.log('📡 Loading data from API...');
       try {
         const [users, chatsData] = await Promise.all([
           getUsers().catch(() => []),
           getChats(userId).catch(() => ({ chats: [], topics: {} }))
         ]);
         
-        if (users.length > 0) {
-          setAllUsers(users as any);
-        }
-        
+        if (users.length > 0) setAllUsers(users as any);
         if (chatsData.chats.length > 0) {
           setChats(chatsData.chats as any);
           setGroupTopics(chatsData.topics as any);
@@ -186,37 +188,23 @@ export const useChatLogic = () => {
     wsService.on('message_new', handleNewMessage);
 
     return () => {
-      wsService.off('user_update', handleUserUpdate);
-      wsService.off('message_new', handleNewMessage);
-      wsService.disconnect();
+      // Временно отключено
+      // wsService.off('user_update', handleUserUpdate);
+      // wsService.off('message_new', handleNewMessage);
+      // wsService.disconnect();
     };
   }, [isAuthenticated, userId]);
 
-  // Слушаем изменения localStorage из других вкладок
+  // Сохраняем данные в localStorage с debounce
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'allUsers' && e.newValue) {
-        console.log('🔔 Storage changed, updating users from another tab');
-        try {
-          const updatedUsers = JSON.parse(e.newValue);
-          setAllUsers(updatedUsers);
-        } catch (error) {
-          console.error('Failed to parse updated users:', error);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('chats', JSON.stringify(chats));
-  }, [chats]);
-
-  useEffect(() => {
-    localStorage.setItem('groupTopics', JSON.stringify(groupTopics));
-  }, [groupTopics]);
+    const timer = setTimeout(() => {
+      localStorage.setItem('allUsers', JSON.stringify(allUsers));
+      localStorage.setItem('chats', JSON.stringify(chats));
+      localStorage.setItem('groupTopics', JSON.stringify(groupTopics));
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [allUsers, chats, groupTopics]);
 
   useEffect(() => {
     setChats(prevChats =>
