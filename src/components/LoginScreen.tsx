@@ -192,12 +192,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             <span className="text-sm font-medium">Назад</span>
           </button>
 
-          <div className="flex max-sm:flex-col items-start gap-6 max-sm:gap-4 mt-6 max-sm:mt-4">
-            <div className="w-28 h-28 max-sm:w-20 max-sm:h-20 max-sm:mx-auto rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700">
+          <div className="flex flex-col items-center gap-6 max-sm:gap-4 mt-6 max-sm:mt-4">
+            <div className="w-28 h-28 max-sm:w-20 max-sm:h-20 rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700">
               <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" loading="eager" />
             </div>
 
-            <div className="flex-1 space-y-3 max-sm:space-y-2.5 animate-in fade-in slide-in-from-right duration-700">
+            <div className="w-full max-w-sm space-y-3 max-sm:space-y-2.5 animate-in fade-in slide-in-from-right duration-700">
               <div>
               <label className="block text-sm font-medium mb-2">
                 Логин (телефон или email)
