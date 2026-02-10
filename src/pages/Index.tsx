@@ -12,7 +12,7 @@ const AllUsersView = lazy(() => import('@/components/AllUsersView').then(m => ({
 const AddStudentDialog = lazy(() => import('@/components/AddStudentDialog').then(m => ({ default: m.AddStudentDialog })));
 const AddParentDialog = lazy(() => import('@/components/AddParentDialog').then(m => ({ default: m.AddParentDialog })));
 const AddTeacherDialog = lazy(() => import('@/components/AddTeacherDialog').then(m => ({ default: m.AddTeacherDialog })));
-const CreateGroupDialog = lazy(() => import('@/components/CreateGroupDialog').then(m => ({ default: m.CreateGroupDialog })));
+const CreateGroupDialog = lazy(() => import('@/components/CreateGroupDialog'));
 const ChatInfoSidebar = lazy(() => import('@/components/ChatInfoSidebar').then(m => ({ default: m.ChatInfoSidebar })));
 const TeacherAdminChatInfo = lazy(() => import('@/components/TeacherAdminChatInfo').then(m => ({ default: m.TeacherAdminChatInfo })));
 
