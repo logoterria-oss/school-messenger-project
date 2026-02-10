@@ -34,7 +34,7 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
   const isAdmin = userRole === 'admin';
 
   return (
-    <div className="w-[380px] bg-card border-l border-border flex flex-col">
+    <div className="fixed right-0 top-0 h-screen w-[380px] bg-card border-l border-border flex flex-col z-50 shadow-lg">
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-lg">Информация о чате</h3>
