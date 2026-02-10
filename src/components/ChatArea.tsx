@@ -41,9 +41,10 @@ type ChatAreaProps = {
   userRole?: UserRole;
   onOpenChatInfo?: () => void;
   chatId?: string;
+  participantsCount?: number;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount }: ChatAreaProps) => {
   const shouldShowTopics = isGroup && topics && topics.length > 0 && (userRole === 'admin' || userRole === 'teacher');
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
   const isTeachersGroup = chatId === 'teachers-group';
@@ -62,7 +63,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
               <div>
                 <h2 className="font-medium text-base">{chatName}</h2>
                 <p className="text-xs text-muted-foreground">
-                  {isGroup ? '5 участников' : 'Личный чат'}
+                  {isGroup ? `${participantsCount || 0} участников` : 'Личный чат'}
                 </p>
               </div>
             </div>

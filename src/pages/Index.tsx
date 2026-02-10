@@ -166,6 +166,7 @@ const Index = () => {
                 userRole={userRole}
                 onOpenChatInfo={() => setShowChatInfo(true)}
                 chatId={selectedChat}
+                participantsCount={chats.find(c => c.id === selectedChat)?.participants?.length || 0}
               />
               <MessageInput 
                 messageText={messageText}
