@@ -30,7 +30,7 @@ const roleLabels = {
   student: 'Ученик',
 };
 
-export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDialogProps) => {
+const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDialogProps) => {
   const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [schedule, setSchedule] = useState('');
@@ -223,3 +223,5 @@ export const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateG
     </Dialog>
   );
 };
+
+export default CreateGroupDialog;
