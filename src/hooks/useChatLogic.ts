@@ -107,7 +107,48 @@ export const useChatLogic = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
-  const [chats, setChats] = useState<Chat[]>(loadChatsFromCache);
+  
+  // МИГРАЦИЯ V6: убираем закрепления педагог↔педагог СРАЗУ при инициализации
+  const [chats, setChats] = useState<Chat[]>(() => {
+    const migrationKey = 'chats_migration_v6_final';
+    const migrated = localStorage.getItem(migrationKey);
+    
+    if (!migrated) {
+      console.log('🔧 МИГРАЦИЯ V6: Убираю закрепления педагог↔педагог...');
+      const stored = localStorage.getItem('chats');
+      let chats: Chat[] = stored ? JSON.parse(stored) : [];
+      
+      chats = chats.map(chat => {
+        if (!chat.isPinned) return chat;
+        
+        // Оставляем только:
+        // 1. Группу "Педагоги"
+        if (chat.id === 'teachers-group') {
+          console.log(`  ✅ "${chat.name}" — группа педагогов`);
+          return chat;
+        }
+        
+        // 2. Приватные чаты с админом
+        if (chat.type === 'private' && chat.participants?.includes('admin')) {
+          console.log(`  ✅ "${chat.name}" — чат с админом`);
+          return chat;
+        }
+        
+        // Все остальные — открепляем
+        console.log(`  ❌ "${chat.name}" — УБИРАЮ ЗАКРЕПЛЕНИЕ`);
+        return { ...chat, isPinned: false };
+      });
+      
+      localStorage.setItem('chats', JSON.stringify(chats));
+      localStorage.setItem(migrationKey, 'true');
+      console.log('✅ МИГРАЦИЯ V6 ЗАВЕРШЕНА! Закрепления убраны.');
+      
+      return chats;
+    }
+    
+    return loadChatsFromCache();
+  });
+  
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromCache);
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
@@ -162,10 +203,10 @@ export const useChatLogic = () => {
           getChats(userId).catch(() => ({ chats: [], topics: {} }))
         ]);
         
-        if (users.length > 0) setAllUsers(users as any);
+        if (users.length > 0) setAllUsers(users);
         if (chatsData.chats.length > 0) {
-          setChats(chatsData.chats as any);
-          setGroupTopics(chatsData.topics as any);
+          setChats(chatsData.chats);
+          setGroupTopics(chatsData.topics);
         }
       } catch (err) {
         console.error('Failed to load data:', err);
@@ -179,7 +220,7 @@ export const useChatLogic = () => {
       console.log('🔄 User updated:', data.userId);
       try {
         const users = await getUsers();
-        setAllUsers(users as any);
+        setAllUsers(users);
       } catch (err) {
         console.error('Failed to reload users:', err);
       }
@@ -192,7 +233,7 @@ export const useChatLogic = () => {
         const targetId = data.topicId || data.chatId;
         setChatMessages(prev => ({
           ...prev,
-          [targetId]: messages as any
+          [targetId]: messages
         }));
       } catch (err) {
         console.error('Failed to reload messages:', err);
@@ -941,7 +982,7 @@ export const useChatLogic = () => {
     try {
       // Отправляем обновление в API
       const { updateUser } = await import('@/services/api');
-      await updateUser(teacherId, updates as any);
+      await updateUser(teacherId, updates);
       
       // Обновляем локальное состояние
       setAllUsers(prev => 
