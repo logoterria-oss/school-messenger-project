@@ -149,7 +149,29 @@ export const useChatLogic = () => {
     return loadChatsFromCache();
   });
   
-  const [groupTopics, setGroupTopics] = useState<GroupTopics>(loadGroupTopicsFromCache);
+  const [groupTopics, setGroupTopics] = useState<GroupTopics>(() => {
+    const topics = loadGroupTopicsFromCache();
+    const migrationKey = 'topics_migration_admin_contact_v1';
+    if (localStorage.getItem(migrationKey)) return topics;
+
+    let changed = false;
+    const updated = { ...topics };
+    for (const groupId of Object.keys(updated)) {
+      const hasAdminContact = updated[groupId].some(t => t.id.endsWith('-admin-contact'));
+      if (!hasAdminContact) {
+        updated[groupId] = [
+          ...updated[groupId],
+          { id: `${groupId}-admin-contact`, name: 'Связь с админом', icon: 'Headphones', lastMessage: '', timestamp: '', unread: 0 },
+        ];
+        changed = true;
+      }
+    }
+    if (changed) {
+      localStorage.setItem('groupTopics', JSON.stringify(updated));
+    }
+    localStorage.setItem(migrationKey, 'true');
+    return updated;
+  });
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
   // Список пользователей, которые сейчас печатают (кроме текущего)
@@ -174,7 +196,13 @@ export const useChatLogic = () => {
         setSelectedGroup('test-group-1');
         const topics = groupTopics['test-group-1'];
         if (topics && topics.length > 0) {
-          setSelectedTopic(topics[0].id);
+          if (userRole === 'parent') {
+            const adminTopic = topics.find(t => t.id.endsWith('-admin-contact'));
+            setSelectedTopic(adminTopic ? adminTopic.id : topics[0].id);
+          } else {
+            const firstNonAdmin = topics.find(t => !t.id.endsWith('-admin-contact'));
+            setSelectedTopic(firstNonAdmin ? firstNonAdmin.id : topics[0].id);
+          }
         }
       }
     }
@@ -285,7 +313,15 @@ export const useChatLogic = () => {
       setSelectedGroup(chatId);
       const topics = groupTopics[chatId];
       if (topics && topics.length > 0) {
-        setSelectedTopic(topics[0].id);
+        if (userRole === 'parent') {
+          const adminTopic = topics.find(t => t.id.endsWith('-admin-contact'));
+          setSelectedTopic(adminTopic ? adminTopic.id : topics[0].id);
+        } else if (userRole === 'teacher' || userRole === 'student') {
+          const firstNonAdmin = topics.find(t => !t.id.endsWith('-admin-contact'));
+          setSelectedTopic(firstNonAdmin ? firstNonAdmin.id : topics[0].id);
+        } else {
+          setSelectedTopic(topics[0].id);
+        }
       }
     } else {
       setSelectedGroup(null);
@@ -712,10 +748,13 @@ export const useChatLogic = () => {
           'test-topic-1': welcomeMessages
         }));
         
-        // Автоматически выбираем группу для родителей и учеников
         setSelectedChat('test-group-1');
         setSelectedGroup('test-group-1');
-        setSelectedTopic('test-topic-1');
+        if (role === 'parent') {
+          setSelectedTopic('test-topic-admin-contact');
+        } else {
+          setSelectedTopic('test-topic-1');
+        }
       } else {
         // Если группа уже есть, обновляем participants для текущего пользователя
         const currentUserId = allUsers.find(u => u.name === name && u.role === role)?.id;
@@ -750,7 +789,13 @@ export const useChatLogic = () => {
         setSelectedGroup('test-group-1');
         const existingTopics = loadGroupTopicsFromStorage()['test-group-1'];
         if (existingTopics && existingTopics.length > 0) {
-          setSelectedTopic(existingTopics[0].id);
+          if (role === 'parent') {
+            const adminTopic = existingTopics.find(t => t.id.endsWith('-admin-contact'));
+            setSelectedTopic(adminTopic ? adminTopic.id : existingTopics[0].id);
+          } else {
+            const firstNonAdmin = existingTopics.find(t => !t.id.endsWith('-admin-contact'));
+            setSelectedTopic(firstNonAdmin ? firstNonAdmin.id : existingTopics[0].id);
+          }
         }
       }
     }

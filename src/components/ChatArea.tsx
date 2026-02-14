@@ -45,9 +45,18 @@ type ChatAreaProps = {
 };
 
 export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount }: ChatAreaProps) => {
-  const shouldShowTopics = isGroup && topics && topics.length > 0 && (userRole === 'admin' || userRole === 'teacher');
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
   const isTeachersGroup = chatId === 'teachers-group';
+
+  const filteredTopics = (() => {
+    if (!isGroup || !topics || topics.length === 0) return [];
+    if (userRole === 'admin') return topics;
+    if (userRole === 'teacher') return topics.filter(t => !t.id.endsWith('-admin-contact'));
+    if (userRole === 'parent') return topics.filter(t => t.id.endsWith('-admin-contact'));
+    return [];
+  })();
+
+  const shouldShowTopics = filteredTopics.length > 0;
   
   return (
     <>
@@ -90,7 +99,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
         {shouldShowTopics && (
           <div className="px-4 pb-3 border-t border-border/50">
             <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
-              {topics.map((topic) => (
+              {filteredTopics.map((topic) => (
                 <button
                   key={topic.id}
                   onClick={() => onTopicSelect?.(topic.id)}
