@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Icon from '@/components/ui/icon';
 import {
   Popover,
@@ -19,6 +20,8 @@ type Message = {
   id: string;
   text?: string;
   sender: string;
+  senderId?: string;
+  senderAvatar?: string;
   timestamp: string;
   isOwn: boolean;
   attachments?: AttachedFile[];
@@ -105,10 +108,20 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
     return 'aspect-square';
   };
 
+  const senderInitial = message.sender ? message.sender.charAt(0).toUpperCase() : '?';
+
   return (
     <div
       className={`flex group ${message.isOwn ? 'justify-end' : 'justify-start'}`}
     >
+      {!message.isOwn && (
+        <Avatar className="w-8 h-8 mr-2 mt-1 flex-shrink-0">
+          {message.senderAvatar && <AvatarImage src={message.senderAvatar} />}
+          <AvatarFallback className="bg-primary/20 text-primary text-xs font-medium">
+            {senderInitial}
+          </AvatarFallback>
+        </Avatar>
+      )}
       <div className="relative">
         <div
           className={`max-w-md rounded-lg shadow-sm ${

@@ -172,19 +172,29 @@ export const useChatLogic = () => {
     localStorage.setItem(migrationKey, 'true');
     return updated;
   });
-  const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(initialChatMessages);
+  const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(() => {
+    const stored = localStorage.getItem('chatMessages');
+    if (stored) {
+      try { return JSON.parse(stored); } catch { /* ignore */ }
+    }
+    return initialChatMessages;
+  });
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
   // Список пользователей, которые сейчас печатают (кроме текущего)
   // TODO: Интеграция с WebSocket/сервером для получения данных о печатающих пользователях
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   const messages = useMemo(() => {
-    return selectedTopic 
+    const raw = selectedTopic 
       ? (chatMessages[selectedTopic] || []) 
       : selectedChat 
       ? (chatMessages[selectedChat] || []) 
       : [];
-  }, [selectedTopic, selectedChat, chatMessages]);
+    return raw.map(msg => ({
+      ...msg,
+      isOwn: msg.senderId ? msg.senderId === userId : msg.isOwn,
+    }));
+  }, [selectedTopic, selectedChat, chatMessages, userId]);
 
   useEffect(() => {
     if (isAuthenticated && (userRole === 'parent' || userRole === 'student') && !selectedChat) {
@@ -283,10 +293,11 @@ export const useChatLogic = () => {
       localStorage.setItem('allUsers', JSON.stringify(allUsers));
       localStorage.setItem('chats', JSON.stringify(chats));
       localStorage.setItem('groupTopics', JSON.stringify(groupTopics));
+      localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
     }, 500);
     
     return () => clearTimeout(timer);
-  }, [allUsers, chats, groupTopics]);
+  }, [allUsers, chats, groupTopics, chatMessages]);
 
   useEffect(() => {
     setChats(prevChats =>
@@ -349,10 +360,16 @@ export const useChatLogic = () => {
     const targetId = selectedTopic || selectedChat;
     const messageId = Date.now().toString();
     
+    const senderName = userRole === 'admin' ? 'Виктория Абраменко' : userName;
+    const senderAvatar = userRole === 'admin'
+      ? 'https://cdn.poehali.dev/files/Админ.jpg'
+      : allUsers.find(u => u.id === userId)?.avatar;
     const newMessage: Message = {
       id: messageId,
       text: messageText || undefined,
-      sender: 'Вы',
+      sender: senderName,
+      senderId: userId,
+      senderAvatar: senderAvatar,
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
       isOwn: true,
       attachments: attachments.length > 0 ? attachments : undefined,
@@ -725,7 +742,9 @@ export const useChatLogic = () => {
           {
             id: 'welcome-1',
             text: 'Добро пожаловать в тестовую группу! Здесь собраны педагог, админ, родители и ученики.',
-            sender: 'Виктория Абрамова',
+            sender: 'Виктория Абраменко',
+            senderId: 'admin',
+            senderAvatar: 'https://cdn.poehali.dev/files/Админ.jpg',
             timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             isOwn: false,
           },
@@ -733,6 +752,8 @@ export const useChatLogic = () => {
             id: 'welcome-2',
             text: 'Здесь мы можем обсуждать учебные вопросы и делиться новостями.',
             sender: 'Анна Ковалева',
+            senderId: 'teacher-0',
+            senderAvatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
             timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             isOwn: false,
           }

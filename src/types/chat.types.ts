@@ -18,6 +18,8 @@ export type Message = {
   id: string;
   text?: string;
   sender: string;
+  senderId?: string;
+  senderAvatar?: string;
   timestamp: string;
   isOwn: boolean;
   attachments?: AttachedFile[];
