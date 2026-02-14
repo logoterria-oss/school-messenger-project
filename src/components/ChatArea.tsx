@@ -50,12 +50,13 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
   const isTeachersGroup = chatId === 'teachers-group';
 
+  const studentAllowedSuffixes = ['-important', '-zoom', '-homework', '-reports', '-cancellation'];
   const filteredTopics = (() => {
     if (!isGroup || !topics || topics.length === 0) return [];
     if (userRole === 'admin') return topics;
     if (userRole === 'parent') return topics;
     if (userRole === 'teacher') return topics.filter(t => !t.id.endsWith('-admin-contact'));
-    if (userRole === 'student') return topics.filter(t => !t.id.endsWith('-admin-contact'));
+    if (userRole === 'student') return topics.filter(t => studentAllowedSuffixes.some(s => t.id.endsWith(s)));
     return topics;
   })();
 

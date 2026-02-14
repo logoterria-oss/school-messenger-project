@@ -122,8 +122,9 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
 
   const parentGroup = isParentOrStudent ? chats.find(c => c.type === 'group') : null;
   const parentTopics = parentGroup && groupTopics ? (groupTopics[parentGroup.id] || []) : [];
+  const studentAllowedSuffixes = ['-important', '-zoom', '-homework', '-reports', '-cancellation'];
   const filteredParentTopics = userRole === 'student'
-    ? parentTopics.filter(t => !t.id.endsWith('-admin-contact'))
+    ? parentTopics.filter(t => studentAllowedSuffixes.some(s => t.id.endsWith(s)))
     : parentTopics;
 
   return (

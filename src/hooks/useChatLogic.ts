@@ -275,14 +275,43 @@ export const useChatLogic = () => {
     };
 
     const handleNewMessage = async (data: { chatId: string; topicId?: string }) => {
-      console.log('💬 New message:', data);
+      console.log('New message:', data);
       try {
-        const messages = await getMessages(data.chatId, data.topicId);
+        const msgs = await getMessages(data.chatId, data.topicId);
         const targetId = data.topicId || data.chatId;
         setChatMessages(prev => ({
           ...prev,
-          [targetId]: messages
+          [targetId]: msgs
         }));
+
+        const isCurrentChat = data.chatId === selectedChat && (!data.topicId || data.topicId === selectedTopic);
+        if (!isCurrentChat) {
+          if (data.topicId) {
+            setGroupTopics(prev => {
+              const groupTopicsList = prev[data.chatId];
+              if (!groupTopicsList) return prev;
+              return {
+                ...prev,
+                [data.chatId]: groupTopicsList.map(t =>
+                  t.id === data.topicId ? { ...t, unread: t.unread + 1 } : t
+                )
+              };
+            });
+          } else {
+            setChats(prev => {
+              const updated = prev.map(c =>
+                c.id === data.chatId ? { ...c, unread: c.unread + 1 } : c
+              );
+              const idx = updated.findIndex(c => c.id === data.chatId);
+              if (idx > 0) {
+                const [moved] = updated.splice(idx, 1);
+                const pinnedCount = updated.filter(c => c.isPinned || c.id === 'teachers-group').length;
+                updated.splice(pinnedCount, 0, moved);
+              }
+              return updated;
+            });
+          }
+        }
       } catch (err) {
         console.error('Failed to reload messages:', err);
       }
@@ -392,6 +421,36 @@ export const useChatLogic = () => {
       ...prev,
       [targetId]: [...(prev[targetId] || []), newMessage]
     }));
+
+    const msgPreview = messageText ? (messageText.length > 40 ? messageText.slice(0, 40) + '...' : messageText) : 'Вложение';
+    const now = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+    setChats(prev => {
+      const updated = prev.map(chat =>
+        chat.id === selectedChat
+          ? { ...chat, lastMessage: `${senderName}: ${msgPreview}`, timestamp: now }
+          : chat
+      );
+      const idx = updated.findIndex(c => c.id === selectedChat);
+      if (idx > 0) {
+        const [moved] = updated.splice(idx, 1);
+        const pinnedCount = updated.filter(c => c.isPinned || c.id === 'teachers-group').length;
+        updated.splice(pinnedCount, 0, moved);
+      }
+      return updated;
+    });
+
+    if (selectedTopic && selectedGroup) {
+      setGroupTopics(prev => ({
+        ...prev,
+        [selectedGroup]: prev[selectedGroup]?.map(topic =>
+          topic.id === selectedTopic
+            ? { ...topic, lastMessage: msgPreview, timestamp: now }
+            : topic
+        ) || []
+      }));
+    }
+
     setMessageText('');
     setAttachments([]);
 
