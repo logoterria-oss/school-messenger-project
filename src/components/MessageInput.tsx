@@ -2,6 +2,13 @@ import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+
+const EMOJI_LIST = ['😊', '😂', '❤️', '👍', '👎', '🙏', '🎉', '😮', '😢', '😡', '🤔', '👋', '✅', '❌', '🔥', '⭐', '💪', '🙌', '😍', '🤗'];
 
 type AttachedFile = {
   type: 'image' | 'file';
@@ -104,9 +111,26 @@ export const MessageInput = ({
       )}
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <Icon name="Smile" size={20} />
-        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-muted-foreground">
+              <Icon name="Smile" size={20} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2" side="top" align="start">
+            <div className="grid grid-cols-5 gap-1">
+              {EMOJI_LIST.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => onMessageChange(messageText + emoji)}
+                  className="text-2xl hover:scale-125 transition-transform p-1 cursor-pointer"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
         
         <input
           ref={imageInputRef}

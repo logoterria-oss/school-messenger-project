@@ -122,7 +122,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
           </AvatarFallback>
         </Avatar>
       )}
-      <div className="relative">
+      <div className="relative" style={{ overflow: 'visible' }}>
         <div
           className={`max-w-md rounded-lg shadow-sm ${
             message.isOwn
@@ -230,18 +230,18 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
             <Button 
               variant="ghost" 
               size="icon"
-              className={`absolute top-1 ${message.isOwn ? 'left-[-40px]' : 'right-[-40px]'} opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8`}
+              className={`absolute top-1 ${message.isOwn ? 'left-[-40px]' : 'right-[-40px]'} opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 z-10`}
             >
               <Icon name="SmilePlus" size={16} />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-2">
+          <PopoverContent className="w-auto p-2 z-50" side="top">
             <div className="flex gap-1">
               {REACTIONS.map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => onReaction(message.id, emoji)}
-                  className="text-2xl hover:scale-125 transition-transform p-1"
+                  className="text-2xl hover:scale-125 transition-transform p-1 cursor-pointer"
                 >
                   {emoji}
                 </button>

@@ -133,7 +133,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
           backgroundColor: 'var(--background)'
         }}
       >
-        <div className="space-y-3 max-w-5xl mx-auto">
+        <div className="space-y-3 max-w-5xl mx-auto px-10">
           {messages.map((message) => (
             <MessageBubble 
               key={message.id}
