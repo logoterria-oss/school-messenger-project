@@ -136,9 +136,9 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       {isLoggingIn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
           <img 
-            src={currentRole.image} 
-            alt={currentRole.name} 
-            className="rounded-full object-cover"
+            src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
+            alt="LineaSchool" 
+            className="rounded-3xl object-cover"
             loading="eager"
             style={{
               animation: 'expand 1.5s ease-in-out forwards'

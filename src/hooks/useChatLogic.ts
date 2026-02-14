@@ -402,9 +402,15 @@ export const useChatLogic = () => {
     const messageId = Date.now().toString();
     
     const senderName = userRole === 'admin' ? 'Виктория Абраменко' : userName;
+    const defaultAvatars: Record<string, string> = {
+      admin: 'https://cdn.poehali.dev/files/Админ.jpg',
+      teacher: 'https://cdn.poehali.dev/files/Педагог.jpg',
+      parent: 'https://cdn.poehali.dev/files/Родитель.jpg',
+      student: 'https://cdn.poehali.dev/files/Ученик.jpg',
+    };
     const senderAvatar = userRole === 'admin'
-      ? 'https://cdn.poehali.dev/files/Админ.jpg'
-      : allUsers.find(u => u.id === userId)?.avatar;
+      ? defaultAvatars.admin
+      : allUsers.find(u => u.id === userId)?.avatar || defaultAvatars[userRole || ''];
     const newMessage: Message = {
       id: messageId,
       text: messageText || undefined,
@@ -900,10 +906,11 @@ export const useChatLogic = () => {
 
   const handleReaction = (messageId: string, emoji: string) => {
     if (!selectedChat) return;
+    const targetId = selectedTopic || selectedChat;
     
     setChatMessages(prev => ({
       ...prev,
-      [selectedChat]: (prev[selectedChat] || []).map(msg => {
+      [targetId]: (prev[targetId] || []).map(msg => {
         if (msg.id === messageId) {
           const reactions = msg.reactions || [];
           const existingReaction = reactions.find(r => r.emoji === emoji);
@@ -948,6 +955,7 @@ export const useChatLogic = () => {
       phone,
       password,
       role: 'student',
+      avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
     };
     setAllUsers(prev => [...prev, newUser]);
     try {
@@ -966,6 +974,7 @@ export const useChatLogic = () => {
       email,
       password,
       role: 'parent',
+      avatar: 'https://cdn.poehali.dev/files/Родитель.jpg',
     };
     setAllUsers(prev => [...prev, newUser]);
     try {
