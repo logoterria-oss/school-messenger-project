@@ -673,6 +673,12 @@ export const useChatLogic = () => {
             name: 'Домашние задания',
             icon: 'BookOpen',
             unread: 0,
+          },
+          {
+            id: 'test-topic-admin-contact',
+            name: 'Связь с админом',
+            icon: 'Headphones',
+            unread: 0,
           }
         ];
         
@@ -932,6 +938,7 @@ export const useChatLogic = () => {
         { id: `${newGroup.id}-reports`, name: 'Отчеты', icon: 'FileText', lastMessage: '', timestamp: '', unread: 0 },
         { id: `${newGroup.id}-payment`, name: 'Оплата', icon: 'CreditCard', lastMessage: '', timestamp: '', unread: 0 },
         { id: `${newGroup.id}-cancellation`, name: 'Отмена занятий', icon: 'XCircle', lastMessage: '', timestamp: '', unread: 0 },
+        { id: `${newGroup.id}-admin-contact`, name: 'Связь с админом', icon: 'Headphones', lastMessage: '', timestamp: '', unread: 0 },
       ]
     }));
     console.log('Создана группа с участниками:', allParticipants);
