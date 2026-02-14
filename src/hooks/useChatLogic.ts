@@ -1049,6 +1049,28 @@ export const useChatLogic = () => {
     }
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    setAllUsers(prev => prev.filter(u => u.id !== userId));
+    setChats(prev => prev
+      .map(chat => ({
+        ...chat,
+        participants: chat.participants?.filter(id => id !== userId),
+      }))
+      .filter(chat => {
+        if (chat.type === 'private' && chat.participants) {
+          return chat.participants.length >= 2;
+        }
+        return true;
+      })
+    );
+    try {
+      const { deleteUser } = await import('@/services/api');
+      await deleteUser(userId);
+    } catch (e) {
+      console.error('Failed to delete user from DB:', e);
+    }
+  };
+
   const handleUpdateTeacher = async (teacherId: string, updates: Partial<User>) => {
     try {
       // Отправляем обновление в API
@@ -1106,6 +1128,7 @@ export const useChatLogic = () => {
     handleAddTeacher,
     handleCreateGroup,
     handleDeleteGroup,
+    handleDeleteUser,
     handleUpdateTeacher,
   };
 };

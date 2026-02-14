@@ -8,6 +8,16 @@
         "users": "array"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test delete without userId",
+      "method": "DELETE",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

@@ -17,6 +17,7 @@ type User = {
 type AllUsersViewProps = {
   users: User[];
   onBack: () => void;
+  onDeleteUser?: (userId: string) => void;
 };
 
 const roleLabels = {
@@ -31,41 +32,78 @@ const roleColors = {
   student: 'bg-orange-500',
 };
 
-const UserCard = ({ user }: { user: User }) => (
-  <div className="bg-card border border-border rounded-lg p-4 space-y-3">
-    <div className="flex items-start justify-between">
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-base">{user.name}</h3>
-          <Badge className={`${roleColors[user.role]} text-white text-xs`}>
-            {roleLabels[user.role]}
-          </Badge>
-        </div>
-      </div>
-    </div>
+const UserCard = ({ user, onDelete }: { user: User; onDelete?: (userId: string) => void }) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-    <div className="space-y-2 text-sm">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Icon name="Phone" size={16} className="flex-shrink-0" />
-        <span>{user.phone}</span>
+  return (
+    <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-base">{user.name}</h3>
+            <Badge className={`${roleColors[user.role]} text-white text-xs`}>
+              {roleLabels[user.role]}
+            </Badge>
+          </div>
+        </div>
+        {onDelete && (
+          <div className="flex items-center gap-1">
+            {confirmDelete ? (
+              <>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => { onDelete(user.id); setConfirmDelete(false); }}
+                  className="h-8 text-xs"
+                >
+                  Удалить
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setConfirmDelete(false)}
+                  className="h-8 text-xs"
+                >
+                  Отмена
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setConfirmDelete(true)}
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              >
+                <Icon name="Trash2" size={16} />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
-      
-      {user.email && (
+
+      <div className="space-y-2 text-sm">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Icon name="Mail" size={16} className="flex-shrink-0" />
-          <span>{user.email}</span>
+          <Icon name="Phone" size={16} className="flex-shrink-0" />
+          <span>{user.phone}</span>
         </div>
-      )}
+        
+        {user.email && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Icon name="Mail" size={16} className="flex-shrink-0" />
+            <span>{user.email}</span>
+          </div>
+        )}
 
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Icon name="Lock" size={16} className="flex-shrink-0" />
-        <span className="font-mono">{user.password}</span>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Icon name="Lock" size={16} className="flex-shrink-0" />
+          <span className="font-mono">{user.password}</span>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-export const AllUsersView = ({ users, onBack }: AllUsersViewProps) => {
+export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const teachers = users.filter(u => u.role === 'teacher');
@@ -140,7 +178,7 @@ export const AllUsersView = ({ users, onBack }: AllUsersViewProps) => {
                   </h2>
                   <div className="space-y-3">
                     {filteredTeachers.map(user => (
-                      <UserCard key={user.id} user={user} />
+                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} />
                     ))}
                   </div>
                 </div>
@@ -153,7 +191,7 @@ export const AllUsersView = ({ users, onBack }: AllUsersViewProps) => {
                   </h2>
                   <div className="space-y-3">
                     {filteredParents.map(user => (
-                      <UserCard key={user.id} user={user} />
+                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} />
                     ))}
                   </div>
                 </div>
@@ -166,7 +204,7 @@ export const AllUsersView = ({ users, onBack }: AllUsersViewProps) => {
                   </h2>
                   <div className="space-y-3">
                     {filteredStudents.map(user => (
-                      <UserCard key={user.id} user={user} />
+                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} />
                     ))}
                   </div>
                 </div>

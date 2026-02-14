@@ -59,6 +59,7 @@ const Index = () => {
     handleAddTeacher,
     handleCreateGroup,
     handleDeleteGroup,
+    handleDeleteUser,
     handleUpdateTeacher,
   } = useChatLogic();
 
@@ -95,7 +96,7 @@ const Index = () => {
     return (
       <div className="flex h-screen bg-background">
         <Suspense fallback={<div className="flex items-center justify-center h-screen"><Icon name="Loader2" className="animate-spin" size={32} /></div>}>
-          <AllUsersView users={allUsers} onBack={handleBackToChat} />
+          <AllUsersView users={allUsers} onBack={handleBackToChat} onDeleteUser={handleDeleteUser} />
         </Suspense>
       </div>
     );
