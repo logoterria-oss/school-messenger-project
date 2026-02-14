@@ -528,16 +528,19 @@ export const useChatLogic = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      const newAttachments: AttachedFile[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        newAttachments.push({
-          type: 'file',
-          fileName: file.name,
-          fileSize: `${(file.size / 1024).toFixed(0)} KB`,
-        });
-      }
-      setAttachments(prev => [...prev, ...newAttachments]);
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const newAttachment: AttachedFile = {
+            type: 'file',
+            fileUrl: e.target?.result as string,
+            fileName: file.name,
+            fileSize: `${(file.size / 1024).toFixed(0)} KB`,
+          };
+          setAttachments(prev => [...prev, newAttachment]);
+        };
+        reader.readAsDataURL(file);
+      });
     }
     if (event.target) event.target.value = '';
   };

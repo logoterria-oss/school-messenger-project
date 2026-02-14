@@ -173,7 +173,21 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
                     <p className="text-sm font-medium truncate">{file.fileName}</p>
                     <p className="text-xs text-muted-foreground">{file.fileSize}</p>
                   </div>
-                  <Button variant="ghost" size="icon" className="flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="flex-shrink-0"
+                    onClick={() => {
+                      if (file.fileUrl) {
+                        const a = document.createElement('a');
+                        a.href = file.fileUrl;
+                        a.download = file.fileName || 'file';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                      }
+                    }}
+                  >
                     <Icon name="Download" size={18} />
                   </Button>
                 </div>
