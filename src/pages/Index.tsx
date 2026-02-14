@@ -120,7 +120,10 @@ const Index = () => {
           chats={chats}
           allUsers={allUsers}
           selectedChat={selectedChat}
+          selectedTopic={selectedTopic}
+          groupTopics={groupTopics}
           onSelectChat={handleSelectChat}
+          onTopicSelect={handleSelectTopic}
         />
       </Suspense>
 

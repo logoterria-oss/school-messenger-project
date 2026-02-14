@@ -51,9 +51,10 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
   const filteredTopics = (() => {
     if (!isGroup || !topics || topics.length === 0) return [];
     if (userRole === 'admin') return topics;
+    if (userRole === 'parent') return topics;
     if (userRole === 'teacher') return topics.filter(t => !t.id.endsWith('-admin-contact'));
-    if (userRole === 'parent') return topics.filter(t => t.id.endsWith('-admin-contact'));
-    return [];
+    if (userRole === 'student') return topics.filter(t => !t.id.endsWith('-admin-contact'));
+    return topics;
   })();
 
   const shouldShowTopics = filteredTopics.length > 0;
@@ -96,7 +97,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
           </div>
         </div>
         
-        {shouldShowTopics && (
+        {shouldShowTopics && !isParentOrStudent && (
           <div className="px-4 pb-3 border-t border-border/50">
             <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
               {filteredTopics.map((topic) => (

@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,6 +24,13 @@ type Chat = {
   type: 'group' | 'private';
 };
 
+type Topic = {
+  id: string;
+  name: string;
+  icon: string;
+  unread: number;
+};
+
 type ChatSidebarProps = {
   userRole: UserRole;
   userName?: string;
@@ -31,7 +38,10 @@ type ChatSidebarProps = {
   chats: Chat[];
   allUsers?: Array<{id: string, name: string, role: string, avatar?: string}>;
   selectedChat: string | null;
+  selectedTopic?: string | null;
+  groupTopics?: Record<string, Topic[]>;
   onSelectChat: (chatId: string) => void;
+  onTopicSelect?: (topicId: string) => void;
   onLogout?: () => void;
   onOpenProfile?: () => void;
   onOpenSettings?: () => void;
@@ -90,7 +100,7 @@ const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: 
 ));
 ChatItem.displayName = 'ChatItem';
 
-export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, onSelectChat, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup }: ChatSidebarProps) => {
   
   const getDisplayChat = (chat: Chat) => {
     if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
@@ -107,28 +117,14 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
     }
     return chat;
   };
-  const [selectedTag, setSelectedTag] = useState<string | null>('all');
-
-  const parentTags = [
-    { id: 'all', label: 'Все', icon: 'Inbox' },
-    { id: 'important', label: 'Важное', icon: 'CircleAlert' },
-    { id: 'zoom', label: 'Zoom', icon: 'Video' },
-    { id: 'homework', label: 'ДЗ', icon: 'BookOpen' },
-    { id: 'reports', label: 'Отчеты', icon: 'FileText' },
-    { id: 'payment', label: 'Оплата', icon: 'CreditCard' },
-    { id: 'cancellation', label: 'Отмена занятий', icon: 'Ban' },
-  ];
-
-  const studentTags = [
-    { id: 'all', label: 'Все', icon: 'Inbox' },
-    { id: 'important', label: 'Важное', icon: 'CircleAlert' },
-    { id: 'zoom', label: 'Zoom', icon: 'Video' },
-    { id: 'homework', label: 'ДЗ', icon: 'BookOpen' },
-    { id: 'cancellation', label: 'Отмена занятий', icon: 'Ban' },
-  ];
 
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
-  const tags = userRole === 'parent' ? parentTags : userRole === 'student' ? studentTags : [];
+
+  const parentGroup = isParentOrStudent ? chats.find(c => c.type === 'group') : null;
+  const parentTopics = parentGroup && groupTopics ? (groupTopics[parentGroup.id] || []) : [];
+  const filteredParentTopics = userRole === 'student'
+    ? parentTopics.filter(t => !t.id.endsWith('-admin-contact'))
+    : parentTopics;
 
   return (
     <div className="w-[420px] bg-card border-r border-border flex flex-col">
@@ -209,20 +205,30 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           />
         </div>
 
-        {isParentOrStudent && (
+        {isParentOrStudent && filteredParentTopics.length > 0 && (
           <div className="mt-4 space-y-1">
-            {tags.map((tag) => (
+            {filteredParentTopics.map((topic) => (
               <button
-                key={tag.id}
-                onClick={() => setSelectedTag(tag.id)}
+                key={topic.id}
+                onClick={() => {
+                  if (parentGroup) {
+                    onSelectChat(parentGroup.id);
+                  }
+                  onTopicSelect?.(topic.id);
+                }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  selectedTag === tag.id
+                  selectedTopic === topic.id
                     ? 'bg-primary text-white'
                     : 'text-foreground hover:bg-accent'
                 }`}
               >
-                <Icon name={tag.icon as any} size={18} />
-                <span className="font-medium">{tag.label}</span>
+                <Icon name={topic.icon} size={18} />
+                <span className="font-medium flex-1 text-left">{topic.name}</span>
+                {topic.unread > 0 && selectedTopic !== topic.id && (
+                  <Badge className="bg-primary text-white text-xs px-1.5 py-0 h-5 min-w-5 rounded-full">
+                    {topic.unread}
+                  </Badge>
+                )}
               </button>
             ))}
           </div>

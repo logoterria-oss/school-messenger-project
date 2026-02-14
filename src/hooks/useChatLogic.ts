@@ -186,22 +186,20 @@ export const useChatLogic = () => {
       : [];
   }, [selectedTopic, selectedChat, chatMessages]);
 
-  // Автоматически выбираем чат для родителей и учеников при загрузке
   useEffect(() => {
     if (isAuthenticated && (userRole === 'parent' || userRole === 'student') && !selectedChat) {
-      const testGroup = chats.find(chat => chat.id === 'test-group-1');
+      const group = chats.find(chat => chat.type === 'group');
       
-      if (testGroup) {
-        setSelectedChat('test-group-1');
-        setSelectedGroup('test-group-1');
-        const topics = groupTopics['test-group-1'];
+      if (group) {
+        setSelectedChat(group.id);
+        setSelectedGroup(group.id);
+        const topics = groupTopics[group.id];
         if (topics && topics.length > 0) {
-          if (userRole === 'parent') {
-            const adminTopic = topics.find(t => t.id.endsWith('-admin-contact'));
-            setSelectedTopic(adminTopic ? adminTopic.id : topics[0].id);
-          } else {
+          if (userRole === 'student') {
             const firstNonAdmin = topics.find(t => !t.id.endsWith('-admin-contact'));
             setSelectedTopic(firstNonAdmin ? firstNonAdmin.id : topics[0].id);
+          } else {
+            setSelectedTopic(topics[0].id);
           }
         }
       }
@@ -313,10 +311,7 @@ export const useChatLogic = () => {
       setSelectedGroup(chatId);
       const topics = groupTopics[chatId];
       if (topics && topics.length > 0) {
-        if (userRole === 'parent') {
-          const adminTopic = topics.find(t => t.id.endsWith('-admin-contact'));
-          setSelectedTopic(adminTopic ? adminTopic.id : topics[0].id);
-        } else if (userRole === 'teacher' || userRole === 'student') {
+        if (userRole === 'teacher' || userRole === 'student') {
           const firstNonAdmin = topics.find(t => !t.id.endsWith('-admin-contact'));
           setSelectedTopic(firstNonAdmin ? firstNonAdmin.id : topics[0].id);
         } else {
@@ -646,7 +641,7 @@ export const useChatLogic = () => {
     
     // Инициализация тестовых групп для родителя и ученика
     if (role === 'parent' || role === 'student') {
-      const existingChats = loadChatsFromStorage();
+      const existingChats = loadChatsFromCache();
       const hasTestGroup = existingChats.some(chat => chat.id === 'test-group-1');
       
       if (!hasTestGroup) {
@@ -750,8 +745,8 @@ export const useChatLogic = () => {
         
         setSelectedChat('test-group-1');
         setSelectedGroup('test-group-1');
-        if (role === 'parent') {
-          setSelectedTopic('test-topic-admin-contact');
+        if (role === 'student') {
+          setSelectedTopic('test-topic-1');
         } else {
           setSelectedTopic('test-topic-1');
         }
@@ -787,14 +782,13 @@ export const useChatLogic = () => {
         
         setSelectedChat('test-group-1');
         setSelectedGroup('test-group-1');
-        const existingTopics = loadGroupTopicsFromStorage()['test-group-1'];
+        const existingTopics = loadGroupTopicsFromCache()['test-group-1'];
         if (existingTopics && existingTopics.length > 0) {
-          if (role === 'parent') {
-            const adminTopic = existingTopics.find(t => t.id.endsWith('-admin-contact'));
-            setSelectedTopic(adminTopic ? adminTopic.id : existingTopics[0].id);
-          } else {
+          if (role === 'student') {
             const firstNonAdmin = existingTopics.find(t => !t.id.endsWith('-admin-contact'));
             setSelectedTopic(firstNonAdmin ? firstNonAdmin.id : existingTopics[0].id);
+          } else {
+            setSelectedTopic(existingTopics[0].id);
           }
         }
       }
