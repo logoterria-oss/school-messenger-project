@@ -213,20 +213,24 @@ export const useChatLogic = () => {
   }, [selectedTopic, selectedChat, chatMessages, userId]);
 
   useEffect(() => {
-    if (isAuthenticated && (userRole === 'parent' || userRole === 'student') && !selectedChat) {
-      const group = chats.find(chat => chat.type === 'group');
+    if (isAuthenticated && (userRole === 'parent' || userRole === 'student') && !selectedChat && userId) {
+      const myGroup = chats.find(chat =>
+        chat.type === 'group' &&
+        chat.id !== 'teachers-group' &&
+        chat.participants?.includes(userId)
+      );
       
-      if (group) {
-        setSelectedChat(group.id);
-        setSelectedGroup(group.id);
-        const topics = groupTopics[group.id];
+      if (myGroup) {
+        setSelectedChat(myGroup.id);
+        setSelectedGroup(myGroup.id);
+        const topics = groupTopics[myGroup.id];
         if (topics && topics.length > 0) {
           const importantTopic = topics.find(t => t.id.endsWith('-important'));
           setSelectedTopic(importantTopic ? importantTopic.id : topics[0].id);
         }
       }
     }
-  }, [isAuthenticated, userRole]);
+  }, [isAuthenticated, userRole, userId]);
 
   // Подключение WebSocket и загрузка данных из API
   useEffect(() => {
@@ -736,139 +740,20 @@ export const useChatLogic = () => {
       localStorage.setItem('chats', JSON.stringify(existingChats));
     }
     
-    // Инициализация тестовых групп для родителя и ученика
     if (role === 'parent' || role === 'student') {
-      const existingChats = loadChatsFromCache();
-      const hasTestGroup = existingChats.some(chat => chat.id === 'test-group-1');
-      
-      if (!hasTestGroup) {
-        // Название чата зависит от роли
-        const chatName = role === 'student' 
-          ? `${name || 'Ученик'}` 
-          : role === 'parent'
-          ? `Группа: ${name || 'Родитель'}`
-          : 'Тестовая группа';
-        
-        // Находим ID текущего пользователя по имени и роли
-        const currentUserId = allUsers.find(u => u.name === name && u.role === role)?.id;
-        
-        // Для родителя находим связанного ученика, для ученика — родителя
-        const linkedUser = allUsers.find(u => {
-          if (role === 'parent' && u.role === 'student') {
-            // Ищем ученика, связанного с этим родителем
-            return testAccounts.find(acc => acc.id === currentUserId)?.linkedTo?.includes(u.id);
-          } else if (role === 'student' && u.role === 'parent') {
-            // Ищем родителя, связанного с этим учеником
-            return testAccounts.find(acc => acc.id === currentUserId)?.linkedTo?.includes(u.id);
-          }
-          return false;
-        });
-        
-        // Собираем участников: текущий пользователь + связанный + все учителя + админ
-        const teachers = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
-        const participantIds = [
-          currentUserId,
-          linkedUser?.id,
-          ...teachers,
-          'admin'
-        ].filter(Boolean) as string[];
-        
-        const testGroupChat: Chat = {
-          id: 'test-group-1',
-          name: chatName,
-          type: 'group',
-          lastMessage: 'Добро пожаловать в тестовую группу!',
-          lastTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-          unread: 0,
-          avatar: 'https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg',
-          participants: participantIds,
-        };
-        
-        const newChats = [...existingChats, testGroupChat];
-        setChats(newChats);
-        localStorage.setItem('chats', JSON.stringify(newChats));
-        
-        // Создаем топики для группы
-        const testTopics = [
-          { id: 'test-group-1-important', name: 'Важное', icon: 'AlertCircle', unread: 0 },
-          { id: 'test-group-1-zoom', name: 'Zoom', icon: 'Video', unread: 0 },
-          { id: 'test-group-1-homework', name: 'ДЗ', icon: 'BookOpen', unread: 0 },
-          { id: 'test-group-1-reports', name: 'Отчеты', icon: 'FileText', unread: 0 },
-          { id: 'test-group-1-payment', name: 'Оплата', icon: 'CreditCard', unread: 0 },
-          { id: 'test-group-1-cancellation', name: 'Отмена занятий', icon: 'XCircle', unread: 0 },
-          { id: 'test-group-1-admin-contact', name: 'Связь с админом', icon: 'Headphones', unread: 0 },
-        ];
-        
-        const newGroupTopics = {
-          ...groupTopics,
-          'test-group-1': testTopics
-        };
-        setGroupTopics(newGroupTopics);
-        localStorage.setItem('groupTopics', JSON.stringify(newGroupTopics));
-        
-        const welcomeText = `Добро пожаловать в ЛинеяСкул!
+      const myGroup = chats.find(chat =>
+        chat.type === 'group' &&
+        chat.id !== 'teachers-group' &&
+        chat.participants?.includes(currentUserId)
+      );
 
-Чтобы мы все получили максимум пользы от нашего взаимодействия, а негативный опыт свели к нулю, ознакомьтесь с нашими правилами и рекомендациями:
-📖 Чтобы снизить уровень стресса и увеличить эффективность нашей работы, рекомендуем "вписать" домашние задания в ежедневную рутину (например, каждый день 10 мин перед завтраком). Если встречаем сопротивление ребенка, подключаем таймер и снижаем время активного выполнения до 5 мин, увеличивая его каждую неделю на минуту. Регулярное выполнение ДЗ - база для создания устойчивых компенсаторных нейронных связей. 
-📷 Фотографии домашних и "классных" заданий обязательно отправлять в чат "Отчеты". Это поможет педагогам оценивать успехи и более точечно работать над нарушенными функциями.
-‼️ Об отмене/переносе  занятия нужно предупредить не позднее, чем за 4 часа до его начала. В противном случае урок будет списан. Если пропуск без предупреждения связан с болезнью, вы можете предоставить справку от педиатра, и тогда мы перенесем занятие на конец абонемента.`;
-
-        const welcomeMessages: Message[] = [
-          {
-            id: 'welcome-important-1',
-            text: welcomeText,
-            sender: 'Виктория Абраменко',
-            senderId: 'admin',
-            senderAvatar: 'https://cdn.poehali.dev/files/Админ.jpg',
-            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            isOwn: false,
-          }
-        ];
-        
-        setChatMessages(prev => ({
-          ...prev,
-          'test-group-1-important': welcomeMessages
-        }));
-        
-        setSelectedChat('test-group-1');
-        setSelectedGroup('test-group-1');
-        setSelectedTopic('test-group-1-important');
-      } else {
-        // Если группа уже есть, обновляем participants для текущего пользователя
-        const currentUserId = allUsers.find(u => u.name === name && u.role === role)?.id;
-        
-        const linkedUser = allUsers.find(u => {
-          if (role === 'parent' && u.role === 'student') {
-            return testAccounts.find(acc => acc.id === currentUserId)?.linkedTo?.includes(u.id);
-          } else if (role === 'student' && u.role === 'parent') {
-            return testAccounts.find(acc => acc.id === currentUserId)?.linkedTo?.includes(u.id);
-          }
-          return false;
-        });
-        
-        const teachers = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
-        const participantIds = [
-          currentUserId,
-          linkedUser?.id,
-          ...teachers,
-          'admin'
-        ].filter(Boolean) as string[];
-        
-        // Обновляем существующий чат с новыми participants
-        const updatedChats = existingChats.map(chat => 
-          chat.id === 'test-group-1' 
-            ? { ...chat, participants: participantIds }
-            : chat
-        );
-        setChats(updatedChats);
-        localStorage.setItem('chats', JSON.stringify(updatedChats));
-        
-        setSelectedChat('test-group-1');
-        setSelectedGroup('test-group-1');
-        const existingTopics = loadGroupTopicsFromCache()['test-group-1'];
-        if (existingTopics && existingTopics.length > 0) {
-          const importantTopic = existingTopics.find(t => t.id.endsWith('-important'));
-          setSelectedTopic(importantTopic ? importantTopic.id : existingTopics[0].id);
+      if (myGroup) {
+        setSelectedChat(myGroup.id);
+        setSelectedGroup(myGroup.id);
+        const topics = groupTopics[myGroup.id];
+        if (topics && topics.length > 0) {
+          const importantTopic = topics.find(t => t.id.endsWith('-important'));
+          setSelectedTopic(importantTopic ? importantTopic.id : topics[0].id);
         }
       }
     }
@@ -1081,7 +966,25 @@ export const useChatLogic = () => {
         { id: `${newGroup.id}-admin-contact`, name: 'Связь с админом', icon: 'Headphones', lastMessage: '', timestamp: '', unread: 0 },
       ]
     }));
-    console.log('Создана группа с участниками:', allParticipants);
+    const welcomeText = `Добро пожаловать в ЛинеяСкул!
+
+Чтобы мы все получили максимум пользы от нашего взаимодействия, а негативный опыт свели к нулю, ознакомьтесь с нашими правилами и рекомендациями:
+📖 Чтобы снизить уровень стресса и увеличить эффективность нашей работы, рекомендуем "вписать" домашние задания в ежедневную рутину (например, каждый день 10 мин перед завтраком). Если встречаем сопротивление ребенка, подключаем таймер и снижаем время активного выполнения до 5 мин, увеличивая его каждую неделю на минуту. Регулярное выполнение ДЗ - база для создания устойчивых компенсаторных нейронных связей. 
+📷 Фотографии домашних и "классных" заданий обязательно отправлять в чат "Отчеты". Это поможет педагогам оценивать успехи и более точечно работать над нарушенными функциями.
+‼️ Об отмене/переносе  занятия нужно предупредить не позднее, чем за 4 часа до его начала. В противном случае урок будет списан. Если пропуск без предупреждения связан с болезнью, вы можете предоставить справку от педиатра, и тогда мы перенесем занятие на конец абонемента.`;
+
+    setChatMessages(prev => ({
+      ...prev,
+      [`${newGroup.id}-important`]: [{
+        id: `welcome-${newGroup.id}`,
+        text: welcomeText,
+        sender: 'Виктория Абраменко',
+        senderId: 'admin',
+        senderAvatar: 'https://cdn.poehali.dev/files/Админ.jpg',
+        timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+        isOwn: true,
+      }]
+    }));
   };
 
   const handleTyping = (text: string) => {

@@ -120,7 +120,11 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
 
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
 
-  const parentGroup = isParentOrStudent ? chats.find(c => c.type === 'group') : null;
+  const parentGroup = isParentOrStudent ? chats.find(c =>
+    c.type === 'group' &&
+    c.id !== 'teachers-group' &&
+    c.participants?.includes(userId || '')
+  ) : null;
   const parentTopics = parentGroup && groupTopics ? (groupTopics[parentGroup.id] || []) : [];
   const studentAllowedSuffixes = ['-important', '-zoom', '-homework', '-reports', '-cancellation'];
   const filteredParentTopics = userRole === 'student'
