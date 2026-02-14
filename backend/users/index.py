@@ -3,6 +3,12 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+def normalize_phone(phone_str):
+    normalized = ''.join(c for c in str(phone_str) if c.isdigit())
+    if normalized.startswith('8'):
+        normalized = '7' + normalized[1:]
+    return normalized
+
 def handler(event: dict, context) -> dict:
     '''API для управления пользователями и группами'''
     method = event.get('httpMethod', 'GET')
@@ -72,14 +78,17 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Missing required fields'})
                 }
 
+            phone_normalized = normalize_phone(data['phone'])
+
             cur.execute("""
                 INSERT INTO users (id, name, phone, email, password, role, avatar, available_slots, education_docs)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO NOTHING
                 RETURNING id, name, phone, email, role
             """, (
                 data['id'],
                 data['name'],
-                data['phone'],
+                phone_normalized,
                 data.get('email'),
                 data['password'],
                 data['role'],

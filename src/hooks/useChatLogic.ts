@@ -877,7 +877,7 @@ export const useChatLogic = () => {
     }));
   };
 
-  const handleAddStudent = (name: string, phone: string, password: string) => {
+  const handleAddStudent = async (name: string, phone: string, password: string) => {
     const newUser: User = {
       id: Date.now().toString(),
       name,
@@ -886,9 +886,15 @@ export const useChatLogic = () => {
       role: 'student',
     };
     setAllUsers(prev => [...prev, newUser]);
+    try {
+      const { createUser } = await import('@/services/api');
+      await createUser({ id: newUser.id, name, phone, email: '', role: 'student', password });
+    } catch (e) {
+      console.error('Failed to save student to DB:', e);
+    }
   };
 
-  const handleAddParent = (name: string, phone: string, email: string, password: string) => {
+  const handleAddParent = async (name: string, phone: string, email: string, password: string) => {
     const newUser: User = {
       id: Date.now().toString(),
       name,
@@ -898,9 +904,15 @@ export const useChatLogic = () => {
       role: 'parent',
     };
     setAllUsers(prev => [...prev, newUser]);
+    try {
+      const { createUser } = await import('@/services/api');
+      await createUser({ id: newUser.id, name, phone, email, role: 'parent', password });
+    } catch (e) {
+      console.error('Failed to save parent to DB:', e);
+    }
   };
 
-  const handleAddTeacher = (name: string, phone: string, email: string, password: string) => {
+  const handleAddTeacher = async (name: string, phone: string, email: string, password: string) => {
     const newUser: User = {
       id: Date.now().toString(),
       name,
@@ -911,6 +923,13 @@ export const useChatLogic = () => {
       avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
     };
     setAllUsers(prev => [...prev, newUser]);
+
+    try {
+      const { createUser } = await import('@/services/api');
+      await createUser({ id: newUser.id, name, phone, email, role: 'teacher', password, avatar: newUser.avatar });
+    } catch (e) {
+      console.error('Failed to save teacher to DB:', e);
+    }
     
     // Автоматически добавляем нового педагога во все существующие группы
     setChats(prevChats => {

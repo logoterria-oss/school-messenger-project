@@ -107,7 +107,7 @@ export async function updateUser(userId: string, updates: Partial<User>): Promis
   return data.user;
 }
 
-export async function createUser(user: User): Promise<User> {
+export async function createUser(user: User & { password: string }): Promise<User> {
   const response = await fetch(API_URLS.users, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -123,7 +123,7 @@ export async function createUser(user: User): Promise<User> {
 }
 
 // Чаты
-export async function getChats(userId: string): Promise<{ chats: Chat[]; topics: Record<string, any[]> }> {
+export async function getChats(userId: string): Promise<{ chats: Chat[]; topics: Record<string, unknown[]> }> {
   const response = await fetch(API_URLS.chats, {
     headers: { 'X-User-Id': userId },
   });
