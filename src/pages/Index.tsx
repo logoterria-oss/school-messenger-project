@@ -180,6 +180,8 @@ const Index = () => {
                 onFileUpload={handleFileUpload}
                 onImageUpload={handleImageUpload}
                 onRemoveAttachment={removeAttachment}
+                disabled={selectedTopic?.endsWith('-important') && userRole !== 'admin'}
+                disabledMessage="Только админ может писать в раздел «Важное»"
               />
             </Suspense>
           ) : (

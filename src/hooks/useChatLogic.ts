@@ -151,18 +151,34 @@ export const useChatLogic = () => {
   
   const [groupTopics, setGroupTopics] = useState<GroupTopics>(() => {
     const topics = loadGroupTopicsFromCache();
-    const migrationKey = 'topics_migration_admin_contact_v1';
+    const migrationKey = 'topics_migration_standard_v2';
     if (localStorage.getItem(migrationKey)) return topics;
 
     let changed = false;
     const updated = { ...topics };
     for (const groupId of Object.keys(updated)) {
-      const hasAdminContact = updated[groupId].some(t => t.id.endsWith('-admin-contact'));
-      if (!hasAdminContact) {
-        updated[groupId] = [
-          ...updated[groupId],
-          { id: `${groupId}-admin-contact`, name: 'Связь с админом', icon: 'Headphones', lastMessage: '', timestamp: '', unread: 0 },
-        ];
+      const standardTopics = [
+        { suffix: '-important', name: 'Важное', icon: 'AlertCircle' },
+        { suffix: '-zoom', name: 'Zoom', icon: 'Video' },
+        { suffix: '-homework', name: 'ДЗ', icon: 'BookOpen' },
+        { suffix: '-reports', name: 'Отчеты', icon: 'FileText' },
+        { suffix: '-payment', name: 'Оплата', icon: 'CreditCard' },
+        { suffix: '-cancellation', name: 'Отмена занятий', icon: 'XCircle' },
+        { suffix: '-admin-contact', name: 'Связь с админом', icon: 'Headphones' },
+      ];
+      for (const st of standardTopics) {
+        const has = updated[groupId].some(t => t.id.endsWith(st.suffix));
+        if (!has) {
+          updated[groupId] = [
+            ...updated[groupId].filter(t => !t.id.endsWith(st.suffix)),
+            { id: `${groupId}${st.suffix}`, name: st.name, icon: st.icon, lastMessage: '', timestamp: '', unread: 0 },
+          ];
+          changed = true;
+        }
+      }
+      const oldTestTopics = updated[groupId].filter(t => t.id === 'test-topic-1' || t.id === 'test-topic-2' || t.id === 'test-topic-admin-contact');
+      if (oldTestTopics.length > 0) {
+        updated[groupId] = updated[groupId].filter(t => t.id !== 'test-topic-1' && t.id !== 'test-topic-2' && t.id !== 'test-topic-admin-contact');
         changed = true;
       }
     }
@@ -205,12 +221,8 @@ export const useChatLogic = () => {
         setSelectedGroup(group.id);
         const topics = groupTopics[group.id];
         if (topics && topics.length > 0) {
-          if (userRole === 'student') {
-            const firstNonAdmin = topics.find(t => !t.id.endsWith('-admin-contact'));
-            setSelectedTopic(firstNonAdmin ? firstNonAdmin.id : topics[0].id);
-          } else {
-            setSelectedTopic(topics[0].id);
-          }
+          const importantTopic = topics.find(t => t.id.endsWith('-important'));
+          setSelectedTopic(importantTopic ? importantTopic.id : topics[0].id);
         }
       }
     }
@@ -710,24 +722,13 @@ export const useChatLogic = () => {
         
         // Создаем топики для группы
         const testTopics = [
-          {
-            id: 'test-topic-1',
-            name: 'Общие вопросы',
-            icon: 'MessageCircle',
-            unread: 0,
-          },
-          {
-            id: 'test-topic-2',
-            name: 'Домашние задания',
-            icon: 'BookOpen',
-            unread: 0,
-          },
-          {
-            id: 'test-topic-admin-contact',
-            name: 'Связь с админом',
-            icon: 'Headphones',
-            unread: 0,
-          }
+          { id: 'test-group-1-important', name: 'Важное', icon: 'AlertCircle', unread: 0 },
+          { id: 'test-group-1-zoom', name: 'Zoom', icon: 'Video', unread: 0 },
+          { id: 'test-group-1-homework', name: 'ДЗ', icon: 'BookOpen', unread: 0 },
+          { id: 'test-group-1-reports', name: 'Отчеты', icon: 'FileText', unread: 0 },
+          { id: 'test-group-1-payment', name: 'Оплата', icon: 'CreditCard', unread: 0 },
+          { id: 'test-group-1-cancellation', name: 'Отмена занятий', icon: 'XCircle', unread: 0 },
+          { id: 'test-group-1-admin-contact', name: 'Связь с админом', icon: 'Headphones', unread: 0 },
         ];
         
         const newGroupTopics = {
@@ -737,23 +738,20 @@ export const useChatLogic = () => {
         setGroupTopics(newGroupTopics);
         localStorage.setItem('groupTopics', JSON.stringify(newGroupTopics));
         
-        // Создаем приветственные сообщения
+        const welcomeText = `Добро пожаловать в ЛинеяСкул!
+
+Чтобы мы все получили максимум пользы от нашего взаимодействия, а негативный опыт свели к нулю, ознакомьтесь с нашими правилами и рекомендациями:
+📖 Чтобы снизить уровень стресса и увеличить эффективность нашей работы, рекомендуем "вписать" домашние задания в ежедневную рутину (например, каждый день 10 мин перед завтраком). Если встречаем сопротивление ребенка, подключаем таймер и снижаем время активного выполнения до 5 мин, увеличивая его каждую неделю на минуту. Регулярное выполнение ДЗ - база для создания устойчивых компенсаторных нейронных связей. 
+📷 Фотографии домашних и "классных" заданий обязательно отправлять в чат "Отчеты". Это поможет педагогам оценивать успехи и более точечно работать над нарушенными функциями.
+‼️ Об отмене/переносе  занятия нужно предупредить не позднее, чем за 4 часа до его начала. В противном случае урок будет списан. Если пропуск без предупреждения связан с болезнью, вы можете предоставить справку от педиатра, и тогда мы перенесем занятие на конец абонемента.`;
+
         const welcomeMessages: Message[] = [
           {
-            id: 'welcome-1',
-            text: 'Добро пожаловать в тестовую группу! Здесь собраны педагог, админ, родители и ученики.',
+            id: 'welcome-important-1',
+            text: welcomeText,
             sender: 'Виктория Абраменко',
             senderId: 'admin',
             senderAvatar: 'https://cdn.poehali.dev/files/Админ.jpg',
-            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            isOwn: false,
-          },
-          {
-            id: 'welcome-2',
-            text: 'Здесь мы можем обсуждать учебные вопросы и делиться новостями.',
-            sender: 'Анна Ковалева',
-            senderId: 'teacher-0',
-            senderAvatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
             timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             isOwn: false,
           }
@@ -761,16 +759,12 @@ export const useChatLogic = () => {
         
         setChatMessages(prev => ({
           ...prev,
-          'test-topic-1': welcomeMessages
+          'test-group-1-important': welcomeMessages
         }));
         
         setSelectedChat('test-group-1');
         setSelectedGroup('test-group-1');
-        if (role === 'student') {
-          setSelectedTopic('test-topic-1');
-        } else {
-          setSelectedTopic('test-topic-1');
-        }
+        setSelectedTopic('test-group-1-important');
       } else {
         // Если группа уже есть, обновляем participants для текущего пользователя
         const currentUserId = allUsers.find(u => u.name === name && u.role === role)?.id;
@@ -805,12 +799,8 @@ export const useChatLogic = () => {
         setSelectedGroup('test-group-1');
         const existingTopics = loadGroupTopicsFromCache()['test-group-1'];
         if (existingTopics && existingTopics.length > 0) {
-          if (role === 'student') {
-            const firstNonAdmin = existingTopics.find(t => !t.id.endsWith('-admin-contact'));
-            setSelectedTopic(firstNonAdmin ? firstNonAdmin.id : existingTopics[0].id);
-          } else {
-            setSelectedTopic(existingTopics[0].id);
-          }
+          const importantTopic = existingTopics.find(t => t.id.endsWith('-important'));
+          setSelectedTopic(importantTopic ? importantTopic.id : existingTopics[0].id);
         }
       }
     }

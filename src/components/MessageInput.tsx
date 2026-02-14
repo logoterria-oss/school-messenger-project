@@ -18,6 +18,8 @@ type MessageInputProps = {
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAttachment: (index: number) => void;
+  disabled?: boolean;
+  disabledMessage?: string;
 };
 
 export const MessageInput = ({
@@ -28,6 +30,8 @@ export const MessageInput = ({
   onFileUpload,
   onImageUpload,
   onRemoveAttachment,
+  disabled,
+  disabledMessage,
 }: MessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -40,6 +44,17 @@ export const MessageInput = ({
       textareaRef.current.style.height = Math.min(scrollHeight, 120) + 'px';
     }
   }, [messageText]);
+
+  if (disabled) {
+    return (
+      <div className="bg-card border-t border-border px-4 py-3">
+        <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm py-2">
+          <Icon name="Lock" size={16} />
+          <span>{disabledMessage || 'Отправка сообщений недоступна'}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card border-t border-border px-4 py-3">
