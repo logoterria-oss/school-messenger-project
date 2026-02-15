@@ -12,10 +12,10 @@ type LoginScreenProps = {
 };
 
 const ROLES = [
-  { id: 'student' as UserRole, name: 'ученик', image: 'https://cdn.poehali.dev/files/Ученик.jpg', hoverImage: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/823206a8-0351-4118-831c-a2e0d14c9e3c.jpg', hoverAnim: 'croc-wink', color: 'from-[#52B788] to-[#40916C]' },
-  { id: 'parent' as UserRole, name: 'родитель', image: 'https://cdn.poehali.dev/files/Родитель.jpg', hoverImage: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/b6c12c95-4b27-4227-9b8b-ef7460f20d94.jpg', hoverAnim: 'croc-wave', color: 'from-[#74C69D] to-[#52B788]' },
-  { id: 'teacher' as UserRole, name: 'педагог', image: 'https://cdn.poehali.dev/files/Педагог.jpg', hoverImage: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/83176b94-903b-4ce5-8c79-3e367776b8a8.jpg', hoverAnim: 'croc-point', color: 'from-[#40916C] to-[#2D6A4F]' },
-  { id: 'admin' as UserRole, name: 'админ', image: 'https://cdn.poehali.dev/files/Админ.jpg', hoverImage: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/de1a5e46-ea11-448e-9c75-d555944245ac.jpg', hoverAnim: 'croc-smile', color: 'from-[#2D6A4F] to-[#1B4332]' },
+  { id: 'student' as UserRole, name: 'ученик', image: 'https://cdn.poehali.dev/files/Ученик.jpg', color: 'from-[#52B788] to-[#40916C]' },
+  { id: 'parent' as UserRole, name: 'родитель', image: 'https://cdn.poehali.dev/files/Родитель.jpg', color: 'from-[#74C69D] to-[#52B788]' },
+  { id: 'teacher' as UserRole, name: 'педагог', image: 'https://cdn.poehali.dev/files/Педагог.jpg', color: 'from-[#40916C] to-[#2D6A4F]' },
+  { id: 'admin' as UserRole, name: 'админ', image: 'https://cdn.poehali.dev/files/Админ.jpg', color: 'from-[#2D6A4F] to-[#1B4332]' },
 ];
 
 export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
@@ -25,7 +25,6 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [hoveredRole, setHoveredRole] = useState<UserRole | null>(null);
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
@@ -83,53 +82,32 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 max-lg:gap-2.5">
-            {ROLES.map((role) => {
-              const isHovered = hoveredRole === role.id;
-              return (
-                <button
-                  key={role.id}
-                  onClick={() => handleRoleSelect(role.id)}
-                  onMouseEnter={() => setHoveredRole(role.id)}
-                  onMouseLeave={() => setHoveredRole(null)}
-                  className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 border-2 border-border hover:border-primary/50 overflow-hidden max-lg:px-2.5 max-lg:py-3 max-lg:rounded-lg"
-                >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
+            {ROLES.map((role) => (
+              <button
+                key={role.id}
+                onClick={() => handleRoleSelect(role.id)}
+                className="group relative bg-card hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 border-2 border-border hover:border-primary/50 overflow-hidden max-lg:px-2.5 max-lg:py-3 max-lg:rounded-lg"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
+                
+                <div className="relative flex items-center gap-6 max-lg:flex-col max-lg:gap-2 max-lg:justify-center">
+                  <div className="w-32 h-32 rounded-full shadow-lg flex-shrink-0 overflow-hidden max-lg:w-16 max-lg:h-16">
+                    <img src={role.image} alt={role.name} className="w-full h-full object-cover" loading="lazy" />
+                  </div>
                   
-                  <div className="relative flex items-center gap-6 max-lg:flex-col max-lg:gap-2 max-lg:justify-center">
-                    <div className="w-32 h-32 rounded-full shadow-lg flex-shrink-0 overflow-hidden max-lg:w-16 max-lg:h-16 relative">
-                      <img
-                        src={role.image}
-                        alt={role.name}
-                        className="w-full h-full object-cover absolute inset-0 transition-opacity duration-500"
-                        style={{ opacity: isHovered ? 0 : 1 }}
-                        loading="lazy"
-                      />
-                      <img
-                        src={role.hoverImage}
-                        alt={`${role.name} animated`}
-                        className="w-full h-full object-cover absolute inset-0 transition-opacity duration-500"
-                        style={{
-                          opacity: isHovered ? 1 : 0,
-                          animation: isHovered ? `${role.hoverAnim} 0.8s ease-in-out` : 'none',
-                        }}
-                        loading="lazy"
-                      />
-                    </div>
-                    
-                    <div className="flex-1 text-left max-lg:text-center">
-                      <h3 className="font-bold mb-2 max-lg:mb-0" style={{ color: '#5B7C99' }}>
-                        <div className="text-4xl max-lg:text-base max-lg:leading-tight">Я -</div>
-                        <div className="text-2xl max-lg:text-sm max-lg:leading-tight">{role.name}</div>
-                      </h3>
-                      <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 max-lg:hidden">
-                        <span className="text-base font-medium">Войти</span>
-                        <span className="text-base">→</span>
-                      </div>
+                  <div className="flex-1 text-left max-lg:text-center">
+                    <h3 className="font-bold mb-2 max-lg:mb-0" style={{ color: '#5B7C99' }}>
+                      <div className="text-4xl max-lg:text-base max-lg:leading-tight">Я -</div>
+                      <div className="text-2xl max-lg:text-sm max-lg:leading-tight">{role.name}</div>
+                    </h3>
+                    <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 max-lg:hidden">
+                      <span className="text-base font-medium">Войти</span>
+                      <span className="text-base">→</span>
                     </div>
                   </div>
-                </button>
-              );
-            })}
+                </div>
+              </button>
+            ))}
           </div>
           
           <div className="mt-6 text-center max-lg:mt-6">
@@ -147,40 +125,6 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             </Button>
           </div>
         </div>
-
-        <style>{`
-          @keyframes croc-wink {
-            0% { transform: scale(1) rotate(0deg); }
-            20% { transform: scale(1.08) rotate(-2deg); }
-            40% { transform: scale(1.05) rotate(1deg); }
-            60% { transform: scale(1.08) rotate(-1deg); }
-            80% { transform: scale(1.03) rotate(0.5deg); }
-            100% { transform: scale(1) rotate(0deg); }
-          }
-          @keyframes croc-wave {
-            0% { transform: scale(1) rotate(0deg); }
-            15% { transform: scale(1.05) rotate(-5deg); }
-            30% { transform: scale(1.05) rotate(5deg); }
-            45% { transform: scale(1.05) rotate(-5deg); }
-            60% { transform: scale(1.05) rotate(5deg); }
-            75% { transform: scale(1.03) rotate(-2deg); }
-            100% { transform: scale(1) rotate(0deg); }
-          }
-          @keyframes croc-point {
-            0% { transform: scale(1) translateY(0); }
-            25% { transform: scale(1.06) translateY(-4px); }
-            50% { transform: scale(1.06) translateY(-6px); }
-            75% { transform: scale(1.03) translateY(-2px); }
-            100% { transform: scale(1) translateY(0); }
-          }
-          @keyframes croc-smile {
-            0% { transform: scale(1); }
-            30% { transform: scale(1.12); }
-            50% { transform: scale(1.1); }
-            70% { transform: scale(1.12); }
-            100% { transform: scale(1); }
-          }
-        `}</style>
       </div>
     );
   }
