@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { login as apiLogin } from '@/services/api';
-import { initializeDatabase } from '@/utils/initDatabase';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -109,21 +108,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               </button>
             ))}
           </div>
-          
-          <div className="mt-6 text-center max-lg:mt-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                console.log('Initializing database...');
-                await initializeDatabase();
-              }}
-              className="text-xs max-lg:text-[9px] max-lg:h-7 max-lg:px-2"
-            >
-              <Icon name="Database" size={14} className="mr-2 max-lg:mr-1 max-lg:w-3 max-lg:h-3" />
-              Инициализировать БД
-            </Button>
-          </div>
+
         </div>
       </div>
     );
