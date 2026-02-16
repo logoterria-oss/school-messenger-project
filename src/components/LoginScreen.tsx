@@ -17,81 +17,86 @@ const ROLES = [
   { id: 'admin' as UserRole, name: 'админ', image: 'https://cdn.poehali.dev/files/Админ.jpg', color: 'from-[#2D6A4F] to-[#1B4332]' },
 ];
 
-type SpiralDef = {
-  top?: string; bottom?: string; left?: string; right?: string;
-  size: number; color: string; opacity: number; anim: string; strokeW: number;
-};
-
-const SPIRALS: SpiralDef[] = [
-  { top: '-5%', left: '-3%', size: 280, color: '#52B788', opacity: 0.13, anim: 'spinDrift1 24s linear infinite', strokeW: 2.5 },
-  { top: '5%', right: '-4%', size: 220, color: '#74C69D', opacity: 0.1, anim: 'spinDrift2 30s linear infinite reverse', strokeW: 2 },
-  { bottom: '-6%', left: '8%', size: 250, color: '#40916C', opacity: 0.1, anim: 'spinDrift3 20s linear infinite', strokeW: 2.5 },
-  { bottom: '5%', right: '0%', size: 180, color: '#95D5B2', opacity: 0.09, anim: 'spinDrift1 28s linear infinite reverse', strokeW: 2 },
-  { top: '35%', left: '1%', size: 120, color: '#74C69D', opacity: 0.07, anim: 'spinDrift2 22s linear infinite', strokeW: 1.5 },
-  { top: '55%', right: '5%', size: 100, color: '#52B788', opacity: 0.08, anim: 'spinDrift3 18s linear infinite reverse', strokeW: 1.5 },
-  { top: '20%', left: '40%', size: 70, color: '#95D5B2', opacity: 0.06, anim: 'spinDrift1 15s linear infinite', strokeW: 1 },
-];
-
-const spiralPath = (cx: number, cy: number, turns: number, maxR: number) => {
-  const pts: string[] = [];
-  const steps = turns * 60;
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const angle = t * turns * Math.PI * 2;
-    const r = t * maxR;
-    const x = cx + r * Math.cos(angle);
-    const y = cy + r * Math.sin(angle);
-    pts.push(i === 0 ? `M${x},${y}` : `L${x},${y}`);
-  }
-  return pts.join(' ');
-};
-
 const FloatingDecor = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    {SPIRALS.map((s, i) => (
-      <svg
+    <svg className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] opacity-[0.12]" viewBox="0 0 400 400" fill="none" style={{ animation: 'floatA 18s ease-in-out infinite' }}>
+      <path d="M50 200 Q100 50 200 100 Q300 150 250 250 Q200 350 100 300 Q0 250 50 200Z" fill="#52B788" />
+      <path d="M120 180 Q160 80 220 130 Q280 180 240 260 Q200 340 140 290 Q80 240 120 180Z" fill="#74C69D" />
+    </svg>
+
+    <svg className="absolute top-[10%] right-[-3%] w-[25%] h-[25%] opacity-[0.1]" viewBox="0 0 300 300" fill="none" style={{ animation: 'floatB 22s ease-in-out infinite' }}>
+      <path d="M150 20 Q250 60 230 150 Q210 240 120 260 Q30 280 50 180 Q70 80 150 20Z" fill="#40916C" />
+    </svg>
+
+    <svg className="absolute bottom-[-5%] left-[5%] w-[30%] h-[30%] opacity-[0.1]" viewBox="0 0 350 350" fill="none" style={{ animation: 'floatC 20s ease-in-out infinite' }}>
+      <path d="M175 30 Q300 80 280 175 Q260 280 160 300 Q60 310 40 210 Q20 110 175 30Z" fill="#74C69D" />
+      <circle cx="80" cy="250" r="40" fill="#95D5B2" opacity="0.5" />
+    </svg>
+
+    <svg className="absolute bottom-[10%] right-[2%] w-[20%] h-[20%] opacity-[0.08]" viewBox="0 0 200 200" fill="none" style={{ animation: 'floatD 16s ease-in-out infinite' }}>
+      <path d="M30 100 Q60 20 120 40 Q180 60 170 130 Q160 190 90 180 Q20 170 30 100Z" fill="#52B788" />
+    </svg>
+
+    <svg className="absolute top-[40%] left-[2%] w-[15%] h-[15%] opacity-[0.07]" viewBox="0 0 200 200" fill="none" style={{ animation: 'floatE 25s ease-in-out infinite' }}>
+      <circle cx="100" cy="100" r="80" fill="#95D5B2" />
+    </svg>
+
+    <svg className="absolute top-[60%] right-[10%] w-[12%] h-[12%] opacity-[0.09]" viewBox="0 0 150 150" fill="none" style={{ animation: 'floatA 19s ease-in-out infinite reverse' }}>
+      <path d="M75 10 Q140 40 130 90 Q120 140 65 140 Q10 140 15 85 Q20 30 75 10Z" fill="#52B788" />
+    </svg>
+
+    {/* Маленькие точки-листочки */}
+    {[
+      { top: '15%', left: '20%', size: 6, delay: '0s', dur: '14s' },
+      { top: '25%', left: '75%', size: 8, delay: '2s', dur: '18s' },
+      { top: '70%', left: '15%', size: 5, delay: '4s', dur: '16s' },
+      { top: '80%', left: '60%', size: 7, delay: '1s', dur: '20s' },
+      { top: '45%', left: '85%', size: 4, delay: '3s', dur: '15s' },
+      { top: '55%', left: '40%', size: 5, delay: '5s', dur: '17s' },
+    ].map((dot, i) => (
+      <div
         key={i}
-        className="absolute"
+        className="absolute rounded-full bg-[#74C69D]"
         style={{
-          top: s.top, bottom: s.bottom, left: s.left, right: s.right,
-          width: s.size, height: s.size,
-          opacity: s.opacity,
-          animation: s.anim,
+          top: dot.top,
+          left: dot.left,
+          width: dot.size,
+          height: dot.size,
+          opacity: 0.15,
+          animation: `floatDot ${dot.dur} ease-in-out ${dot.delay} infinite`,
         }}
-        viewBox={`0 0 ${s.size} ${s.size}`}
-        fill="none"
-      >
-        <path
-          d={spiralPath(s.size / 2, s.size / 2, 3.5, s.size * 0.42)}
-          stroke={s.color}
-          strokeWidth={s.strokeW}
-          strokeLinecap="round"
-          fill="none"
-        />
-      </svg>
+      />
     ))}
 
     <style>{`
-      @keyframes spinDrift1 {
-        0%   { transform: translate(0, 0) rotate(0deg); }
-        25%  { transform: translate(12px, -8px) rotate(90deg); }
-        50%  { transform: translate(-6px, 10px) rotate(180deg); }
-        75%  { transform: translate(8px, 5px) rotate(270deg); }
-        100% { transform: translate(0, 0) rotate(360deg); }
+      @keyframes floatA {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        25% { transform: translate(15px, -20px) rotate(3deg); }
+        50% { transform: translate(-10px, 15px) rotate(-2deg); }
+        75% { transform: translate(20px, 10px) rotate(4deg); }
       }
-      @keyframes spinDrift2 {
-        0%   { transform: translate(0, 0) rotate(0deg); }
-        33%  { transform: translate(-10px, 12px) rotate(120deg); }
-        66%  { transform: translate(14px, -6px) rotate(240deg); }
-        100% { transform: translate(0, 0) rotate(360deg); }
+      @keyframes floatB {
+        0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        33% { transform: translate(-20px, 15px) rotate(-5deg) scale(1.05); }
+        66% { transform: translate(15px, -10px) rotate(3deg) scale(0.95); }
       }
-      @keyframes spinDrift3 {
-        0%   { transform: translate(0, 0) rotate(0deg); }
-        20%  { transform: translate(8px, -14px) rotate(72deg); }
-        40%  { transform: translate(-12px, 4px) rotate(144deg); }
-        60%  { transform: translate(6px, 12px) rotate(216deg); }
-        80%  { transform: translate(-8px, -6px) rotate(288deg); }
-        100% { transform: translate(0, 0) rotate(360deg); }
+      @keyframes floatC {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        30% { transform: translate(20px, -15px) rotate(4deg); }
+        60% { transform: translate(-15px, -25px) rotate(-3deg); }
+      }
+      @keyframes floatD {
+        0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        50% { transform: translate(-12px, -18px) rotate(6deg) scale(1.1); }
+      }
+      @keyframes floatE {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        40% { transform: translate(10px, -12px) scale(1.15); }
+        70% { transform: translate(-8px, 8px) scale(0.9); }
+      }
+      @keyframes floatDot {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.15; }
+        50% { transform: translate(8px, -10px) scale(1.5); opacity: 0.25; }
       }
     `}</style>
   </div>
