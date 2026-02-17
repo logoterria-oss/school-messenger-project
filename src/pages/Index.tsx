@@ -15,11 +15,13 @@ const AddTeacherDialog = lazy(() => import('@/components/AddTeacherDialog').then
 const CreateGroupDialog = lazy(() => import('@/components/CreateGroupDialog'));
 const ChatInfoSidebar = lazy(() => import('@/components/ChatInfoSidebar').then(m => ({ default: m.ChatInfoSidebar })));
 const TeacherAdminChatInfo = lazy(() => import('@/components/TeacherAdminChatInfo').then(m => ({ default: m.TeacherAdminChatInfo })));
+const AddAdminDialog = lazy(() => import('@/components/AddAdminDialog').then(m => ({ default: m.AddAdminDialog })));
 
 const Index = () => {
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showAddParent, setShowAddParent] = useState(false);
   const [showAddTeacher, setShowAddTeacher] = useState(false);
+  const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showChatInfo, setShowChatInfo] = useState(false);
 
@@ -61,6 +63,7 @@ const Index = () => {
     handleDeleteGroup,
     handleDeleteUser,
     handleUpdateTeacher,
+    handleAddAdmin,
   } = useChatLogic();
 
   const selectedChatData = chats.find(c => c.id === selectedChat);
@@ -114,6 +117,7 @@ const Index = () => {
           onAddParent={() => setShowAddParent(true)}
           onAddTeacher={() => setShowAddTeacher(true)}
           onCreateGroup={() => setShowCreateGroup(true)}
+          onAddAdmin={() => setShowAddAdmin(true)}
           userRole={userRole}
           userName={userName}
           userId={userId}
@@ -151,6 +155,12 @@ const Index = () => {
           onClose={() => setShowCreateGroup(false)}
           onCreate={handleCreateGroup}
           allUsers={allUsers}
+        />
+
+        <AddAdminDialog
+          open={showAddAdmin}
+          onClose={() => setShowAddAdmin(false)}
+          onAdd={handleAddAdmin}
         />
       </Suspense>
 

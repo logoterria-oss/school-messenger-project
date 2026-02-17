@@ -50,6 +50,7 @@ type ChatSidebarProps = {
   onAddParent?: () => void;
   onAddTeacher?: () => void;
   onCreateGroup?: () => void;
+  onAddAdmin?: () => void;
 };
 
 const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: string; isPinned?: boolean }, isSelected: boolean, onClick: () => void }) => (
@@ -100,7 +101,7 @@ const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: 
 ));
 ChatItem.displayName = 'ChatItem';
 
-export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin }: ChatSidebarProps) => {
   
   const getDisplayChat = (chat: Chat) => {
     if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
@@ -182,6 +183,12 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
                     <Icon name="Users" size={16} className="mr-2" />
                     Создать группу
                   </DropdownMenuItem>
+                  {userId === 'admin' && (
+                    <DropdownMenuItem onClick={onAddAdmin}>
+                      <Icon name="Shield" size={16} className="mr-2" />
+                      Добавить админа
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                 </>
               )}

@@ -957,6 +957,37 @@ export const useChatLogic = () => {
     });
   };
 
+  const handleAddAdmin = async (name: string, phone: string, email: string, password: string) => {
+    const newAdminId = `admin-${Date.now()}`;
+    const newUser: User = {
+      id: newAdminId,
+      name,
+      phone,
+      email,
+      password,
+      role: 'teacher',
+      avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
+    };
+    setAllUsers(prev => [...prev, { ...newUser, role: 'teacher' as const }]);
+
+    try {
+      const { createUser } = await import('@/services/api');
+      await createUser({ id: newAdminId, name, phone, email, role: 'admin', password, avatar: newUser.avatar });
+    } catch (e) {
+      console.error('Failed to save admin to DB:', e);
+    }
+
+    setChats(prevChats => {
+      const updatedChats = prevChats.map(chat => {
+        if (chat.type === 'group' && chat.participants) {
+          return { ...chat, participants: [...chat.participants, newAdminId] };
+        }
+        return chat;
+      });
+      return updatedChats;
+    });
+  };
+
   const handleCreateGroup = (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string) => {
     // Автоматически добавляем всех педагогов и админа
     const teachersAndAdmins = allUsers
@@ -1137,5 +1168,6 @@ export const useChatLogic = () => {
     handleDeleteGroup,
     handleDeleteUser,
     handleUpdateTeacher,
+    handleAddAdmin,
   };
 };
