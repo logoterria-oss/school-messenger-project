@@ -182,6 +182,18 @@ const Index = () => {
                 onRemoveAttachment={removeAttachment}
                 disabled={selectedTopic?.endsWith('-important') && userRole !== 'admin'}
                 disabledMessage="Только админ может писать в раздел «Важное»"
+                mentionableUsers={
+                  selectedChatData?.type === 'group'
+                    ? (selectedChatData.participants || [])
+                        .filter(pid => pid !== userId)
+                        .map(pid => {
+                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
+                          const u = allUsers.find(u => u.id === pid);
+                          return u ? { id: u.id, name: u.name, avatar: u.avatar } : null;
+                        })
+                        .filter(Boolean) as { id: string; name: string; avatar?: string }[]
+                    : undefined
+                }
               />
             </Suspense>
           ) : (

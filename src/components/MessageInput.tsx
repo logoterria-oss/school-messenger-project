@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
@@ -17,6 +17,12 @@ type AttachedFile = {
   fileSize?: string;
 };
 
+export type MentionableUser = {
+  id: string;
+  name: string;
+  avatar?: string;
+};
+
 type MessageInputProps = {
   messageText: string;
   attachments: AttachedFile[];
@@ -27,6 +33,7 @@ type MessageInputProps = {
   onRemoveAttachment: (index: number) => void;
   disabled?: boolean;
   disabledMessage?: string;
+  mentionableUsers?: MentionableUser[];
 };
 
 export const MessageInput = ({
@@ -39,10 +46,21 @@ export const MessageInput = ({
   onRemoveAttachment,
   disabled,
   disabledMessage,
+  mentionableUsers,
 }: MessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mentionListRef = useRef<HTMLDivElement>(null);
+
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionStartPos, setMentionStartPos] = useState(-1);
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+
+  const filteredUsers = (mentionableUsers || []).filter(u =>
+    u.name.toLowerCase().includes(mentionQuery.toLowerCase())
+  );
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -51,6 +69,89 @@ export const MessageInput = ({
       textareaRef.current.style.height = Math.min(scrollHeight, 120) + 'px';
     }
   }, [messageText]);
+
+  useEffect(() => {
+    setSelectedMentionIndex(0);
+  }, [mentionQuery]);
+
+  useEffect(() => {
+    if (showMentions && mentionListRef.current) {
+      const item = mentionListRef.current.children[selectedMentionIndex] as HTMLElement;
+      item?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [selectedMentionIndex, showMentions]);
+
+  const handleTextChange = useCallback((value: string) => {
+    onMessageChange(value);
+
+    if (!mentionableUsers || mentionableUsers.length === 0) return;
+
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const cursorPos = textarea.selectionStart;
+    const textBefore = value.slice(0, cursorPos);
+
+    const atMatch = textBefore.match(/@([^\s@]*)$/);
+    if (atMatch) {
+      setShowMentions(true);
+      setMentionQuery(atMatch[1]);
+      setMentionStartPos(cursorPos - atMatch[0].length);
+    } else {
+      setShowMentions(false);
+      setMentionQuery('');
+      setMentionStartPos(-1);
+    }
+  }, [onMessageChange, mentionableUsers]);
+
+  const insertMention = useCallback((user: MentionableUser) => {
+    const before = messageText.slice(0, mentionStartPos);
+    const after = messageText.slice(textareaRef.current?.selectionStart || messageText.length);
+    const newText = `${before}@${user.name} ${after}`;
+    onMessageChange(newText);
+    setShowMentions(false);
+    setMentionQuery('');
+    setMentionStartPos(-1);
+
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const pos = before.length + user.name.length + 2;
+        textareaRef.current.selectionStart = pos;
+        textareaRef.current.selectionEnd = pos;
+        textareaRef.current.focus();
+      }
+    }, 0);
+  }, [messageText, mentionStartPos, onMessageChange]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (showMentions && filteredUsers.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => Math.min(prev + 1, filteredUsers.length - 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => Math.max(prev - 1, 0));
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        insertMention(filteredUsers[selectedMentionIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowMentions(false);
+        return;
+      }
+    }
+
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onSendMessage();
+    }
+  }, [showMentions, filteredUsers, selectedMentionIndex, insertMention, onSendMessage]);
 
   if (disabled) {
     return (
@@ -110,7 +211,37 @@ export const MessageInput = ({
         </div>
       )}
 
-      <div className="flex items-center gap-2">
+      <div className="relative flex items-center gap-2">
+        {showMentions && filteredUsers.length > 0 && (
+          <div
+            ref={mentionListRef}
+            className="absolute bottom-full left-0 right-0 mb-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50"
+          >
+            {filteredUsers.map((user, idx) => (
+              <button
+                key={user.id}
+                className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors ${
+                  idx === selectedMentionIndex ? 'bg-primary/10' : 'hover:bg-accent'
+                }`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  insertMention(user);
+                }}
+                onMouseEnter={() => setSelectedMentionIndex(idx)}
+              >
+                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-medium text-primary">{user.name.charAt(0)}</span>
+                  )}
+                </div>
+                <span className="font-medium truncate">{user.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="text-muted-foreground">
@@ -167,15 +298,10 @@ export const MessageInput = ({
 
         <Textarea
           ref={textareaRef}
-          placeholder="Введите сообщение"
+          placeholder={mentionableUsers && mentionableUsers.length > 0 ? "Сообщение... (@  — упомянуть)" : "Введите сообщение"}
           value={messageText}
-          onChange={(e) => onMessageChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              onSendMessage();
-            }
-          }}
+          onChange={(e) => handleTextChange(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="flex-1 bg-card border-border min-h-[40px] max-h-[120px] resize-none py-2 overflow-y-auto"
           rows={1}
         />
@@ -191,3 +317,5 @@ export const MessageInput = ({
     </div>
   );
 };
+
+export default MessageInput;
