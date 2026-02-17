@@ -1,21 +1,20 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { LoginScreen } from '@/components/LoginScreen';
 import { useChatLogic } from '@/hooks/useChatLogic';
-
-const ChatSidebar = lazy(() => import('@/components/ChatSidebar').then(m => ({ default: m.ChatSidebar })));
-const ChatArea = lazy(() => import('@/components/ChatArea').then(m => ({ default: m.ChatArea })));
-const MessageInput = lazy(() => import('@/components/MessageInput').then(m => ({ default: m.MessageInput })));
-const ProfileSettings = lazy(() => import('@/components/ProfileSettings').then(m => ({ default: m.ProfileSettings })));
-const AppSettings = lazy(() => import('@/components/AppSettings').then(m => ({ default: m.AppSettings })));
-const AllUsersView = lazy(() => import('@/components/AllUsersView').then(m => ({ default: m.AllUsersView })));
-const AddStudentDialog = lazy(() => import('@/components/AddStudentDialog').then(m => ({ default: m.AddStudentDialog })));
-const AddParentDialog = lazy(() => import('@/components/AddParentDialog').then(m => ({ default: m.AddParentDialog })));
-const AddTeacherDialog = lazy(() => import('@/components/AddTeacherDialog').then(m => ({ default: m.AddTeacherDialog })));
-const CreateGroupDialog = lazy(() => import('@/components/CreateGroupDialog'));
-const ChatInfoSidebar = lazy(() => import('@/components/ChatInfoSidebar').then(m => ({ default: m.ChatInfoSidebar })));
-const TeacherAdminChatInfo = lazy(() => import('@/components/TeacherAdminChatInfo').then(m => ({ default: m.TeacherAdminChatInfo })));
-const AddAdminDialog = lazy(() => import('@/components/AddAdminDialog').then(m => ({ default: m.AddAdminDialog })));
+import { ChatSidebar } from '@/components/ChatSidebar';
+import { ChatArea } from '@/components/ChatArea';
+import { MessageInput } from '@/components/MessageInput';
+import { ProfileSettings } from '@/components/ProfileSettings';
+import { AppSettings } from '@/components/AppSettings';
+import { AllUsersView } from '@/components/AllUsersView';
+import { AddStudentDialog } from '@/components/AddStudentDialog';
+import { AddParentDialog } from '@/components/AddParentDialog';
+import { AddTeacherDialog } from '@/components/AddTeacherDialog';
+import CreateGroupDialog from '@/components/CreateGroupDialog';
+import { ChatInfoSidebar } from '@/components/ChatInfoSidebar';
+import { TeacherAdminChatInfo } from '@/components/TeacherAdminChatInfo';
+import { AddAdminDialog } from '@/components/AddAdminDialog';
 
 const Index = () => {
   const [showAddStudent, setShowAddStudent] = useState(false);
@@ -78,9 +77,7 @@ const Index = () => {
   if (currentView === 'profile') {
     return (
       <div className="flex h-screen bg-background">
-        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Icon name="Loader2" className="animate-spin" size={32} /></div>}>
-          <ProfileSettings userRole={userRole} onBack={handleBackToChat} />
-        </Suspense>
+        <ProfileSettings userRole={userRole} onBack={handleBackToChat} />
       </div>
     );
   }
@@ -88,9 +85,7 @@ const Index = () => {
   if (currentView === 'settings') {
     return (
       <div className="flex h-screen bg-background">
-        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Icon name="Loader2" className="animate-spin" size={32} /></div>}>
-          <AppSettings onBack={handleBackToChat} />
-        </Suspense>
+        <AppSettings onBack={handleBackToChat} />
       </div>
     );
   }
@@ -98,76 +93,70 @@ const Index = () => {
   if (currentView === 'users') {
     return (
       <div className="flex h-screen bg-background">
-        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Icon name="Loader2" className="animate-spin" size={32} /></div>}>
-          <AllUsersView users={allUsers} onBack={handleBackToChat} onDeleteUser={handleDeleteUser} />
-        </Suspense>
+        <AllUsersView users={allUsers} onBack={handleBackToChat} onDeleteUser={handleDeleteUser} />
       </div>
     );
   }
 
   return (
     <div className="flex h-screen bg-background">
-      <Suspense fallback={<div className="w-[420px] bg-card border-r border-border" />}>
-        <ChatSidebar
-          onLogout={handleLogout}
-          onOpenProfile={handleOpenProfile}
-          onOpenSettings={handleOpenSettings}
-          onOpenUsers={handleOpenUsers}
-          onAddStudent={() => setShowAddStudent(true)}
-          onAddParent={() => setShowAddParent(true)}
-          onAddTeacher={() => setShowAddTeacher(true)}
-          onCreateGroup={() => setShowCreateGroup(true)}
-          onAddAdmin={() => setShowAddAdmin(true)}
-          userRole={userRole}
-          userName={userName}
-          userId={userId}
-          chats={chats}
-          allUsers={allUsers}
-          selectedChat={selectedChat}
-          selectedTopic={selectedTopic}
-          groupTopics={groupTopics}
-          onSelectChat={handleSelectChat}
-          onTopicSelect={handleSelectTopic}
-        />
-      </Suspense>
+      <ChatSidebar
+        onLogout={handleLogout}
+        onOpenProfile={handleOpenProfile}
+        onOpenSettings={handleOpenSettings}
+        onOpenUsers={handleOpenUsers}
+        onAddStudent={() => setShowAddStudent(true)}
+        onAddParent={() => setShowAddParent(true)}
+        onAddTeacher={() => setShowAddTeacher(true)}
+        onCreateGroup={() => setShowCreateGroup(true)}
+        onAddAdmin={() => setShowAddAdmin(true)}
+        userRole={userRole}
+        userName={userName}
+        userId={userId}
+        chats={chats}
+        allUsers={allUsers}
+        selectedChat={selectedChat}
+        selectedTopic={selectedTopic}
+        groupTopics={groupTopics}
+        onSelectChat={handleSelectChat}
+        onTopicSelect={handleSelectTopic}
+      />
 
-      <Suspense fallback={null}>
-        <AddStudentDialog
-          open={showAddStudent}
-          onClose={() => setShowAddStudent(false)}
-          onAdd={handleAddStudent}
-        />
+      <AddStudentDialog
+        open={showAddStudent}
+        onClose={() => setShowAddStudent(false)}
+        onAdd={handleAddStudent}
+      />
 
-        <AddParentDialog
-          open={showAddParent}
-          onClose={() => setShowAddParent(false)}
-          onAdd={handleAddParent}
-        />
+      <AddParentDialog
+        open={showAddParent}
+        onClose={() => setShowAddParent(false)}
+        onAdd={handleAddParent}
+      />
 
-        <AddTeacherDialog
-          open={showAddTeacher}
-          onClose={() => setShowAddTeacher(false)}
-          onAdd={handleAddTeacher}
-        />
+      <AddTeacherDialog
+        open={showAddTeacher}
+        onClose={() => setShowAddTeacher(false)}
+        onAdd={handleAddTeacher}
+      />
 
-        <CreateGroupDialog
-          open={showCreateGroup}
-          onClose={() => setShowCreateGroup(false)}
-          onCreate={handleCreateGroup}
-          allUsers={allUsers}
-        />
+      <CreateGroupDialog
+        open={showCreateGroup}
+        onClose={() => setShowCreateGroup(false)}
+        onCreate={handleCreateGroup}
+        allUsers={allUsers}
+      />
 
-        <AddAdminDialog
-          open={showAddAdmin}
-          onClose={() => setShowAddAdmin(false)}
-          onAdd={handleAddAdmin}
-        />
-      </Suspense>
+      <AddAdminDialog
+        open={showAddAdmin}
+        onClose={() => setShowAddAdmin(false)}
+        onAdd={handleAddAdmin}
+      />
 
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col">
           {selectedChat && selectedChatData ? (
-            <Suspense fallback={<div className="flex-1 bg-background" />}>
+            <>
               <ChatArea 
                 messages={messages}
                 onReaction={handleReaction}
@@ -205,7 +194,7 @@ const Index = () => {
                     : undefined
                 }
               />
-            </Suspense>
+            </>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-accent/20">
               <div className="text-center space-y-3">
