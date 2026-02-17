@@ -85,7 +85,14 @@ export async function initializeDatabase() {
         avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg',
         isPinned: true,
         participants: ['teacher-0', 'admin'],
-        topics: [],
+        topics: [
+          { id: 'teachers-group-important', name: 'Важное', icon: 'AlertCircle' },
+          { id: 'teachers-group-general', name: 'Общее', icon: 'MessageSquare' },
+          { id: 'teachers-group-flood', name: 'Флудилка', icon: 'Coffee' },
+          { id: 'teachers-group-new-students', name: 'Новые ученики', icon: 'UserPlus' },
+          { id: 'teachers-group-parent-reviews', name: 'Отзывы родителей', icon: 'Star' },
+          { id: 'teachers-group-support', name: 'Техподдержка', icon: 'Headphones' },
+        ],
       },
       {
         id: 'private-teacher-0-admin',

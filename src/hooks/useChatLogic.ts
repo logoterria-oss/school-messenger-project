@@ -644,6 +644,20 @@ export const useChatLogic = () => {
         };
         existingChats.unshift(teachersGroupChat);
       }
+
+      if (!groupTopics['teachers-group'] || groupTopics['teachers-group'].length === 0) {
+        setGroupTopics(prev => ({
+          ...prev,
+          'teachers-group': [
+            { id: 'teachers-group-important', name: 'Важное', icon: 'AlertCircle', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-general', name: 'Общее', icon: 'MessageSquare', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-flood', name: 'Флудилка', icon: 'Coffee', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-new-students', name: 'Новые ученики', icon: 'UserPlus', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-parent-reviews', name: 'Отзывы родителей', icon: 'Star', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-support', name: 'Техподдержка', icon: 'Headphones', lastMessage: '', timestamp: '', unread: 0 },
+          ]
+        }));
+      }
       
       // 2. Личный чат с админом (у педагога чат называется "Виктория Абраменко")
       const adminChatId = `private-${currentUserId}-admin`;
@@ -712,6 +726,20 @@ export const useChatLogic = () => {
           avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg',
         };
         existingChats.unshift(teachersGroupChat);
+      }
+
+      if (!groupTopics['teachers-group'] || groupTopics['teachers-group'].length === 0) {
+        setGroupTopics(prev => ({
+          ...prev,
+          'teachers-group': [
+            { id: 'teachers-group-important', name: 'Важное', icon: 'AlertCircle', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-general', name: 'Общее', icon: 'MessageSquare', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-flood', name: 'Флудилка', icon: 'Coffee', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-new-students', name: 'Новые ученики', icon: 'UserPlus', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-parent-reviews', name: 'Отзывы родителей', icon: 'Star', lastMessage: '', timestamp: '', unread: 0 },
+            { id: 'teachers-group-support', name: 'Техподдержка', icon: 'Headphones', lastMessage: '', timestamp: '', unread: 0 },
+          ]
+        }));
       }
       
       // 2. Личные чаты с каждым педагогом (для админа чат называется по имени педагога)
