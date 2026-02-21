@@ -988,16 +988,13 @@ export const useChatLogic = () => {
     });
   };
 
-  const handleCreateGroup = (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string) => {
-    // Автоматически добавляем всех педагогов и админа
+  const handleCreateGroup = (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = []) => {
     const teachersAndAdmins = allUsers
       .filter(user => user.role === 'teacher')
       .map(user => user.id);
     
-    // Добавляем ID админа (Виктория Абраменко всегда с ID 'admin')
     const adminId = 'admin';
     
-    // Объединяем выбранных пользователей с педагогами и админом
     const allParticipants = [...new Set([...selectedUserIds, ...teachersAndAdmins, adminId])];
     
     const newGroup: Chat = {
@@ -1008,6 +1005,7 @@ export const useChatLogic = () => {
       unread: 0,
       type: 'group',
       participants: allParticipants,
+      leadTeachers: leadTeachers.length > 0 ? leadTeachers : undefined,
       schedule: schedule || undefined,
       conclusionLink: conclusionLink || undefined,
       avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',

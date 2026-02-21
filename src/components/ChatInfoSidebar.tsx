@@ -156,11 +156,10 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
             </div>
           )}
 
-          {/* Педагоги (только для админа) */}
           {isAdmin && (
             <div>
               <h4 className="font-medium text-sm text-muted-foreground mb-3">
-                Педагоги в группе
+                Ведущие педагоги
               </h4>
               {chatInfo.teachers.length > 0 ? (
                 <div className="p-3 rounded-lg bg-accent/50">

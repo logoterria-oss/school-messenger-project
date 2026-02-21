@@ -169,7 +169,15 @@ const Index = () => {
                 userRole={userRole}
                 onOpenChatInfo={() => setShowChatInfo(true)}
                 chatId={selectedChat}
-                participantsCount={chats.find(c => c.id === selectedChat)?.participants?.length || 0}
+                participantsCount={(() => {
+                  const c = chats.find(c => c.id === selectedChat);
+                  if (!c?.participants) return 0;
+                  if (c.leadTeachers && c.leadTeachers.length > 0) {
+                    const nonLeadTeachers = allUsers.filter(u => u.role === 'teacher' && !c.leadTeachers!.includes(u.id)).map(u => u.id);
+                    return c.participants.filter(id => !nonLeadTeachers.includes(id)).length;
+                  }
+                  return c.participants.length;
+                })()}
               />
               <MessageInput 
                 messageText={messageText}
@@ -262,7 +270,9 @@ const Index = () => {
                 chatInfo={{
                   students: allUsers.filter(u => u.role === 'student' && chatParticipants.includes(u.id)),
                   parents: allUsers.filter(u => u.role === 'parent' && chatParticipants.includes(u.id)),
-                  teachers: allUsers.filter(u => u.role === 'teacher' && chatParticipants.includes(u.id)),
+                  teachers: currentChat?.leadTeachers && currentChat.leadTeachers.length > 0
+                    ? allUsers.filter(u => u.role === 'teacher' && currentChat.leadTeachers!.includes(u.id))
+                    : allUsers.filter(u => u.role === 'teacher' && chatParticipants.includes(u.id)),
                   schedule: currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
                   conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
                 }}

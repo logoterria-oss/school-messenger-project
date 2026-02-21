@@ -20,29 +20,22 @@ type User = {
 type CreateGroupDialogProps = {
   open: boolean;
   onClose: () => void;
-  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string) => void;
+  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[]) => void;
   allUsers: User[];
-};
-
-const roleLabels = {
-  teacher: 'Педагог',
-  parent: 'Родитель',
-  student: 'Ученик',
 };
 
 const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDialogProps) => {
   const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [leadTeachers, setLeadTeachers] = useState<string[]>([]);
   const [schedule, setSchedule] = useState('');
   const [conclusionLink, setConclusionLink] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Автоматически добавляем всех педагогов
   const teachers = allUsers.filter(u => u.role === 'teacher');
   const parents = allUsers.filter(u => u.role === 'parent');
   const students = allUsers.filter(u => u.role === 'student');
 
-  // Фильтруем родителей и учеников по поиску
   const filteredParents = parents.filter(u => 
     u.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -54,13 +47,13 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
     if (!groupName.trim()) {
       return;
     }
-    // Добавляем всех педагогов автоматически
     const allTeacherIds = teachers.map(t => t.id);
     const finalUsers = [...new Set([...allTeacherIds, ...selectedUsers])];
     
-    onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim());
+    onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim(), leadTeachers);
     setGroupName('');
     setSelectedUsers([]);
+    setLeadTeachers([]);
     setSchedule('');
     setConclusionLink('');
     setSearchQuery('');
@@ -70,6 +63,7 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
   const handleClose = () => {
     setGroupName('');
     setSelectedUsers([]);
+    setLeadTeachers([]);
     setSchedule('');
     setConclusionLink('');
     setSearchQuery('');
@@ -81,6 +75,14 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
       prev.includes(userId) 
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
+    );
+  };
+
+  const toggleLeadTeacher = (teacherId: string) => {
+    setLeadTeachers(prev =>
+      prev.includes(teacherId)
+        ? prev.filter(id => id !== teacherId)
+        : [...prev, teacherId]
     );
   };
 
@@ -101,9 +103,41 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
             />
           </div>
 
+          {teachers.length > 0 && (
+            <div className="space-y-2">
+              <Label>Ведущие педагоги</Label>
+              <p className="text-xs text-muted-foreground">Все педагоги добавляются в группу, но отметьте ведущих — они будут видны в участниках</p>
+              <div className="border rounded-md p-3 space-y-2">
+                {teachers.map((teacher) => (
+                  <div
+                    key={teacher.id}
+                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent"
+                  >
+                    <Checkbox
+                      id={`lead-${teacher.id}`}
+                      checked={leadTeachers.includes(teacher.id)}
+                      onCheckedChange={() => toggleLeadTeacher(teacher.id)}
+                    />
+                    <label
+                      htmlFor={`lead-${teacher.id}`}
+                      className="flex-1 min-w-0 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm truncate">{teacher.name}</p>
+                        {leadTeachers.includes(teacher.id) && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Ведущий</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{teacher.phone}</p>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label>Участники группы ({selectedUsers.length + teachers.length} выбрано)</Label>
-            <p className="text-xs text-muted-foreground">Все педагоги добавляются автоматически</p>
+            <Label>Ученики и родители ({selectedUsers.length} выбрано)</Label>
             
             <Input
               placeholder="Поиск по имени и фамилии..."

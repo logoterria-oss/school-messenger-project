@@ -36,6 +36,7 @@ export type Chat = {
   type: 'group' | 'private';
   isPinned?: boolean;
   participants?: string[];
+  leadTeachers?: string[];
   schedule?: string;
   conclusionLink?: string;
   avatar?: string;
