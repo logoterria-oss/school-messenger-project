@@ -179,7 +179,7 @@ const isNonLeadGroup = (chat: Chat, userId?: string) => {
   return !chat.leadTeachers.includes(userId || '');
 };
 
-const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectChat, getDisplayChat }: {
+const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectChat, getDisplayChat, searchQuery = '' }: {
   chats: Chat[];
   allUsers: Array<{id: string, name: string, role: string, avatar?: string}>;
   userRole: UserRole;
@@ -187,9 +187,12 @@ const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectCha
   selectedChat: string | null;
   onSelectChat: (chatId: string) => void;
   getDisplayChat: (chat: Chat) => Chat;
+  searchQuery?: string;
 }) => {
   const [teacherFolderOpen, setTeacherFolderOpen] = useState(false);
   const [nonLeadFolderOpen, setNonLeadFolderOpen] = useState(false);
+
+  const query = searchQuery.toLowerCase().trim();
 
   const filtered = [...chats].filter((chat) => {
     if (chat.type === 'private' && chat.participants) {
@@ -197,6 +200,10 @@ const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectCha
       if (otherUserId === userId || (otherUserId === 'admin' && userId === 'admin')) {
         return false;
       }
+    }
+    if (query) {
+      const display = getDisplayChat(chat);
+      return display.name.toLowerCase().includes(query);
     }
     return true;
   });
@@ -338,7 +345,8 @@ const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectCha
 };
 
 export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin }: ChatSidebarProps) => {
-  
+  const [searchQuery, setSearchQuery] = useState('');
+
   const getDisplayChat = (chat: Chat) => {
     if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
       const otherUserId = chat.participants.find(id => id !== userId && id !== 'current');
@@ -449,6 +457,8 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Поиск чатов..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-9 bg-accent border-0 text-sm"
           />
         </div>
@@ -492,6 +502,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           selectedChat={selectedChat}
           onSelectChat={onSelectChat}
           getDisplayChat={getDisplayChat}
+          searchQuery={searchQuery}
         />
       )}
     </div>
