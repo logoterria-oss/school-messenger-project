@@ -9,7 +9,7 @@ import { getUsers, getChats, getMessages } from '@/services/api';
 type User = {
   id: string;
   name: string;
-  role: 'teacher' | 'parent' | 'student';
+  role: 'teacher' | 'parent' | 'student' | 'admin';
   phone: string;
   email?: string;
   password: string;
@@ -965,10 +965,10 @@ export const useChatLogic = () => {
       phone,
       email,
       password,
-      role: 'teacher',
+      role: 'admin',
       avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
     };
-    setAllUsers(prev => [...prev, { ...newUser, role: 'teacher' as const }]);
+    setAllUsers(prev => [...prev, newUser]);
 
     try {
       const { createUser } = await import('@/services/api');
@@ -990,7 +990,7 @@ export const useChatLogic = () => {
 
   const handleCreateGroup = (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = []) => {
     const teachersAndAdmins = allUsers
-      .filter(user => user.role === 'teacher')
+      .filter(user => user.role === 'teacher' || user.role === 'admin')
       .map(user => user.id);
     
     const adminId = 'admin';

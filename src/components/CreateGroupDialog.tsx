@@ -11,7 +11,7 @@ import Icon from '@/components/ui/icon';
 type User = {
   id: string;
   name: string;
-  role: 'teacher' | 'parent' | 'student';
+  role: 'teacher' | 'parent' | 'student' | 'admin';
   phone: string;
   email?: string;
   password: string;
