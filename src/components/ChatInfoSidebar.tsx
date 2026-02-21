@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -30,11 +32,17 @@ type ChatInfoSidebarProps = {
   allTeachers?: Array<{ id: string; name: string; avatar?: string }>;
   leadTeacherIds?: string[];
   onUpdateLeadTeachers?: (leadTeachers: string[]) => void;
+  onUpdateSchedule?: (schedule: string) => void;
+  onUpdateConclusionLink?: (link: string) => void;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], leadTeacherIds = [], onUpdateLeadTeachers }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], leadTeacherIds = [], onUpdateLeadTeachers, onUpdateSchedule, onUpdateConclusionLink }: ChatInfoSidebarProps) => {
   const [isEditingLeads, setIsEditingLeads] = useState(false);
   const [editLeads, setEditLeads] = useState<string[]>([]);
+  const [isEditingSchedule, setIsEditingSchedule] = useState(false);
+  const [editSchedule, setEditSchedule] = useState('');
+  const [isEditingConclusion, setIsEditingConclusion] = useState(false);
+  const [editConclusion, setEditConclusion] = useState('');
 
   if (!isOpen) return null;
 
@@ -62,6 +70,26 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
         ? prev.filter(id => id !== teacherId)
         : [...prev, teacherId]
     );
+  };
+
+  const startEditSchedule = () => {
+    setEditSchedule(chatInfo.schedule || '');
+    setIsEditingSchedule(true);
+  };
+
+  const saveSchedule = () => {
+    onUpdateSchedule?.(editSchedule.trim());
+    setIsEditingSchedule(false);
+  };
+
+  const startEditConclusion = () => {
+    setEditConclusion(chatInfo.conclusionLink || '');
+    setIsEditingConclusion(true);
+  };
+
+  const saveConclusion = () => {
+    onUpdateConclusionLink?.(editConclusion.trim());
+    setIsEditingConclusion(false);
   };
 
   return (
@@ -136,14 +164,32 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
                   <Icon name="Calendar" size={16} />
                   Расписание
                 </h4>
-                {isAdminOrTeacher && (
-                  <Button variant="ghost" size="sm" className="h-7 text-xs">
+                {isAdminOrTeacher && !isEditingSchedule && onUpdateSchedule && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditSchedule}>
                     <Icon name="Pencil" size={14} className="mr-1" />
                     Изменить
                   </Button>
                 )}
               </div>
-              {chatInfo.schedule ? (
+              {isEditingSchedule ? (
+                <div className="space-y-3">
+                  <Textarea
+                    value={editSchedule}
+                    onChange={(e) => setEditSchedule(e.target.value)}
+                    placeholder="ПН в 18:00, ЧТ в 15:00..."
+                    rows={4}
+                    className="resize-none text-sm"
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={saveSchedule} className="flex-1">
+                      Сохранить
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsEditingSchedule(false)} className="flex-1">
+                      Отмена
+                    </Button>
+                  </div>
+                </div>
+              ) : chatInfo.schedule ? (
                 <div className="p-3 rounded-lg bg-accent/50 text-sm whitespace-pre-line">
                   {chatInfo.schedule}
                 </div>
@@ -160,14 +206,32 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
                   <Icon name="FileText" size={16} />
                   Заключение
                 </h4>
-                {isAdminOrTeacher && (
-                  <Button variant="ghost" size="sm" className="h-7 text-xs">
+                {isAdminOrTeacher && !isEditingConclusion && onUpdateConclusionLink && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditConclusion}>
                     <Icon name="Pencil" size={14} className="mr-1" />
                     Изменить
                   </Button>
                 )}
               </div>
-              {chatInfo.conclusionLink ? (
+              {isEditingConclusion ? (
+                <div className="space-y-3">
+                  <Input
+                    value={editConclusion}
+                    onChange={(e) => setEditConclusion(e.target.value)}
+                    placeholder="https://example.com/conclusion.pdf"
+                    type="url"
+                    className="text-sm"
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={saveConclusion} className="flex-1">
+                      Сохранить
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsEditingConclusion(false)} className="flex-1">
+                      Отмена
+                    </Button>
+                  </div>
+                </div>
+              ) : chatInfo.conclusionLink ? (
                 <a 
                   href={chatInfo.conclusionLink} 
                   target="_blank" 

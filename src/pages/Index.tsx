@@ -63,6 +63,7 @@ const Index = () => {
     handleDeleteUser,
     handleUpdateTeacher,
     handleUpdateLeadTeachers,
+    handleUpdateGroupInfo,
     handleAddAdmin,
   } = useChatLogic();
 
@@ -280,6 +281,8 @@ const Index = () => {
                 allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
                 leadTeacherIds={currentChat?.leadTeachers || []}
                 onUpdateLeadTeachers={(leads) => selectedChat && handleUpdateLeadTeachers(selectedChat, leads)}
+                onUpdateSchedule={(schedule) => selectedChat && handleUpdateGroupInfo(selectedChat, { schedule })}
+                onUpdateConclusionLink={(link) => selectedChat && handleUpdateGroupInfo(selectedChat, { conclusionLink: link })}
                 onDeleteGroup={() => {
                   if (selectedChat && confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
                     handleDeleteGroup(selectedChat);
