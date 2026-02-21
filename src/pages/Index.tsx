@@ -281,6 +281,8 @@ const Index = () => {
                 allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
                 leadTeacherIds={currentChat?.leadTeachers || []}
                 onUpdateLeadTeachers={(leads) => selectedChat && handleUpdateLeadTeachers(selectedChat, leads)}
+                chatName={currentChat?.name}
+                onUpdateName={(name) => selectedChat && handleUpdateGroupInfo(selectedChat, { name })}
                 onUpdateSchedule={(schedule) => selectedChat && handleUpdateGroupInfo(selectedChat, { schedule })}
                 onUpdateConclusionLink={(link) => selectedChat && handleUpdateGroupInfo(selectedChat, { conclusionLink: link })}
                 onDeleteGroup={() => {

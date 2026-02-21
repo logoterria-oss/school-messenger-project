@@ -1140,7 +1140,7 @@ export const useChatLogic = () => {
     });
   };
 
-  const handleUpdateGroupInfo = (chatId: string, updates: { schedule?: string; conclusionLink?: string }) => {
+  const handleUpdateGroupInfo = (chatId: string, updates: { schedule?: string; conclusionLink?: string; name?: string }) => {
     setChats(prev => {
       const updated = prev.map(chat =>
         chat.id === chatId

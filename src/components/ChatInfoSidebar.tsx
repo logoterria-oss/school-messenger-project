@@ -34,13 +34,17 @@ type ChatInfoSidebarProps = {
   onUpdateLeadTeachers?: (leadTeachers: string[]) => void;
   onUpdateSchedule?: (schedule: string) => void;
   onUpdateConclusionLink?: (link: string) => void;
+  chatName?: string;
+  onUpdateName?: (name: string) => void;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], leadTeacherIds = [], onUpdateLeadTeachers, onUpdateSchedule, onUpdateConclusionLink }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], leadTeacherIds = [], onUpdateLeadTeachers, onUpdateSchedule, onUpdateConclusionLink, chatName, onUpdateName }: ChatInfoSidebarProps) => {
   const [isEditingLeads, setIsEditingLeads] = useState(false);
   const [editLeads, setEditLeads] = useState<string[]>([]);
   const [isEditingSchedule, setIsEditingSchedule] = useState(false);
   const [editSchedule, setEditSchedule] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editName, setEditName] = useState('');
   const [isEditingConclusion, setIsEditingConclusion] = useState(false);
   const [editConclusion, setEditConclusion] = useState('');
 
@@ -105,6 +109,45 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6">
+          {chatName && !isTeachersGroup && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
+                  <Icon name="MessageSquare" size={16} />
+                  Название группы
+                </h4>
+                {isAdmin && !isEditingName && onUpdateName && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setEditName(chatName); setIsEditingName(true); }}>
+                    <Icon name="Pencil" size={14} className="mr-1" />
+                    Изменить
+                  </Button>
+                )}
+              </div>
+              {isEditingName ? (
+                <div className="space-y-3">
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Название группы"
+                    className="text-sm"
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => { if (editName.trim()) { onUpdateName?.(editName.trim()); setIsEditingName(false); } }} className="flex-1">
+                      Сохранить
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsEditingName(false)} className="flex-1">
+                      Отмена
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg bg-accent/50 text-sm font-medium">
+                  {chatName}
+                </div>
+              )}
+            </div>
+          )}
+
           <div>
             <h4 className="font-medium text-sm text-muted-foreground mb-3 flex items-center gap-2">
               <Icon name="GraduationCap" size={16} />
