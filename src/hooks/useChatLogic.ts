@@ -1128,6 +1128,18 @@ export const useChatLogic = () => {
     }
   };
 
+  const handleUpdateLeadTeachers = (chatId: string, leadTeachers: string[]) => {
+    setChats(prev => {
+      const updated = prev.map(chat =>
+        chat.id === chatId
+          ? { ...chat, leadTeachers: leadTeachers.length > 0 ? leadTeachers : undefined }
+          : chat
+      );
+      localStorage.setItem('chats', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   return {
     isAuthenticated,
     userRole,
@@ -1166,6 +1178,7 @@ export const useChatLogic = () => {
     handleDeleteGroup,
     handleDeleteUser,
     handleUpdateTeacher,
+    handleUpdateLeadTeachers,
     handleAddAdmin,
   };
 };

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 
 type User = {
@@ -25,13 +27,42 @@ type ChatInfoSidebarProps = {
   userRole: 'admin' | 'teacher' | 'parent' | 'student';
   onDeleteGroup?: () => void;
   isTeachersGroup?: boolean;
+  allTeachers?: Array<{ id: string; name: string; avatar?: string }>;
+  leadTeacherIds?: string[];
+  onUpdateLeadTeachers?: (leadTeachers: string[]) => void;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], leadTeacherIds = [], onUpdateLeadTeachers }: ChatInfoSidebarProps) => {
+  const [isEditingLeads, setIsEditingLeads] = useState(false);
+  const [editLeads, setEditLeads] = useState<string[]>([]);
+
   if (!isOpen) return null;
 
   const isAdminOrTeacher = userRole === 'admin' || userRole === 'teacher';
   const isAdmin = userRole === 'admin';
+
+  const startEditLeads = () => {
+    setEditLeads([...leadTeacherIds]);
+    setIsEditingLeads(true);
+  };
+
+  const saveLeads = () => {
+    onUpdateLeadTeachers?.(editLeads);
+    setIsEditingLeads(false);
+  };
+
+  const cancelEditLeads = () => {
+    setIsEditingLeads(false);
+    setEditLeads([]);
+  };
+
+  const toggleLead = (teacherId: string) => {
+    setEditLeads(prev =>
+      prev.includes(teacherId)
+        ? prev.filter(id => id !== teacherId)
+        : [...prev, teacherId]
+    );
+  };
 
   return (
     <div className="fixed right-0 top-0 h-screen w-[380px] bg-card border-l border-border flex flex-col z-50 shadow-lg">
@@ -46,7 +77,6 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6">
-          {/* Ученики */}
           <div>
             <h4 className="font-medium text-sm text-muted-foreground mb-3 flex items-center gap-2">
               <Icon name="GraduationCap" size={16} />
@@ -73,7 +103,6 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
             </div>
           </div>
 
-          {/* Родители */}
           <div>
             <h4 className="font-medium text-sm text-muted-foreground mb-3 flex items-center gap-2">
               <Icon name="Users" size={16} />
@@ -100,7 +129,6 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
             </div>
           </div>
 
-          {/* Расписание - только для учебных групп */}
           {!isTeachersGroup && (
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -125,7 +153,6 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
             </div>
           )}
 
-          {/* Заключение - только для учебных групп */}
           {!isTeachersGroup && (
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -156,24 +183,75 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
             </div>
           )}
 
-          {isAdmin && (
+          {isAdmin && !isTeachersGroup && (
             <div>
-              <h4 className="font-medium text-sm text-muted-foreground mb-3">
-                Ведущие педагоги
-              </h4>
-              {chatInfo.teachers.length > 0 ? (
-                <div className="p-3 rounded-lg bg-accent/50">
-                  <p className="text-sm leading-relaxed">
-                    {chatInfo.teachers.map(t => t.name).join(', ')}
-                  </p>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-sm text-muted-foreground">
+                  Ведущие педагоги
+                </h4>
+                {!isEditingLeads && onUpdateLeadTeachers && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditLeads}>
+                    <Icon name="Pencil" size={14} className="mr-1" />
+                    Изменить
+                  </Button>
+                )}
+              </div>
+
+              {isEditingLeads ? (
+                <div className="space-y-3">
+                  <div className="border rounded-md p-3 space-y-2">
+                    {allTeachers.map((teacher) => (
+                      <div key={teacher.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent">
+                        <Checkbox
+                          id={`edit-lead-${teacher.id}`}
+                          checked={editLeads.includes(teacher.id)}
+                          onCheckedChange={() => toggleLead(teacher.id)}
+                        />
+                        <label htmlFor={`edit-lead-${teacher.id}`} className="flex items-center gap-2 flex-1 cursor-pointer">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={teacher.avatar} />
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                              <Icon name="User" size={14} />
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">{teacher.name}</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={saveLeads} className="flex-1">
+                      Сохранить
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={cancelEditLeads} className="flex-1">
+                      Отмена
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">Нет педагогов в группе</p>
+                <>
+                  {chatInfo.teachers.length > 0 ? (
+                    <div className="space-y-2">
+                      {chatInfo.teachers.map((teacher) => (
+                        <div key={teacher.id} className="flex items-center gap-3 p-2 rounded-lg bg-accent/50">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={teacher.avatar} />
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                              <Icon name="User" size={14} />
+                            </AvatarFallback>
+                          </Avatar>
+                          <p className="text-sm font-medium">{teacher.name}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Ведущие педагоги не назначены</p>
+                  )}
+                </>
               )}
             </div>
           )}
 
-          {/* Удалить группу (только для админа) */}
           {isAdmin && onDeleteGroup && (
             <div className="pt-4 border-t border-border">
               <Button 
