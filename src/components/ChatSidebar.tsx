@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -100,6 +100,133 @@ const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: 
   </button>
 ));
 ChatItem.displayName = 'ChatItem';
+
+const isTeacherChat = (chat: Chat, allUsers: Array<{id: string, name: string, role: string, avatar?: string}>) => {
+  if (chat.type !== 'private' || !chat.participants) return false;
+  return chat.participants.some(id => {
+    const user = allUsers.find(u => u.id === id);
+    return user?.role === 'teacher';
+  });
+};
+
+const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectChat, getDisplayChat }: {
+  chats: Chat[];
+  allUsers: Array<{id: string, name: string, role: string, avatar?: string}>;
+  userRole: UserRole;
+  userId?: string;
+  selectedChat: string | null;
+  onSelectChat: (chatId: string) => void;
+  getDisplayChat: (chat: Chat) => Chat;
+}) => {
+  const [teacherFolderOpen, setTeacherFolderOpen] = useState(false);
+
+  const filtered = [...chats].filter((chat) => {
+    if (chat.type === 'private' && chat.participants) {
+      const otherUserId = chat.participants.find(id => id !== userId);
+      if (otherUserId === userId || (otherUserId === 'admin' && userId === 'admin')) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const isAdmin = userRole === 'admin';
+  const teacherChats = isAdmin ? filtered.filter(c => isTeacherChat(c, allUsers)) : [];
+  const teacherUnread = teacherChats.reduce((sum, c) => sum + (c.unread || 0), 0);
+  const otherChats = isAdmin ? filtered.filter(c => !isTeacherChat(c, allUsers)) : filtered;
+
+  const hasSelectedTeacherChat = isAdmin && teacherChats.some(c => c.id === selectedChat);
+
+  const sorted = otherChats.sort((a, b) => {
+    if (a.id === 'teachers-group') return -1;
+    if (b.id === 'teachers-group') return 1;
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return 0;
+  });
+
+  const teachersGroupIndex = sorted.findIndex(c => c.id === 'teachers-group');
+
+  const beforeFolder = teachersGroupIndex >= 0 ? sorted.slice(0, teachersGroupIndex + 1) : sorted;
+  const afterFolder = teachersGroupIndex >= 0 ? sorted.slice(teachersGroupIndex + 1) : [];
+
+  return (
+    <ScrollArea className="flex-1">
+      {beforeFolder.map((chat) => {
+        const displayChat = getDisplayChat(chat);
+        return (
+          <ChatItem
+            key={chat.id}
+            chat={displayChat}
+            isSelected={selectedChat === chat.id}
+            onClick={() => onSelectChat(chat.id)}
+          />
+        );
+      })}
+
+      {isAdmin && teacherChats.length > 0 && (
+        <div>
+          <button
+            onClick={() => setTeacherFolderOpen(!teacherFolderOpen)}
+            className={`w-full px-4 py-2.5 text-left transition-colors hover:bg-accent/50 border-l-4 ${
+              hasSelectedTeacherChat && !teacherFolderOpen ? 'border-primary bg-accent/30' : 'border-transparent'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+                <Icon name="FolderOpen" size={22} className="text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium text-sm text-foreground">ЛС с педагогами</h3>
+                    <Icon name="Pin" size={14} className="text-muted-foreground flex-shrink-0" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {teacherUnread > 0 && !teacherFolderOpen && (
+                      <Badge className="bg-primary text-white text-xs px-2 py-0 h-5 min-w-5 rounded-full flex items-center justify-center">
+                        {teacherUnread}
+                      </Badge>
+                    )}
+                    <Icon name={teacherFolderOpen ? 'ChevronUp' : 'ChevronDown'} size={16} className="text-muted-foreground" />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground truncate">
+                  {teacherChats.length} {teacherChats.length === 1 ? 'чат' : teacherChats.length < 5 ? 'чата' : 'чатов'}
+                </p>
+              </div>
+            </div>
+          </button>
+
+          {teacherFolderOpen && teacherChats.map((chat) => {
+            const displayChat = getDisplayChat(chat);
+            return (
+              <div key={chat.id} className="pl-4">
+                <ChatItem
+                  chat={displayChat}
+                  isSelected={selectedChat === chat.id}
+                  onClick={() => onSelectChat(chat.id)}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {afterFolder.map((chat) => {
+        const displayChat = getDisplayChat(chat);
+        return (
+          <ChatItem
+            key={chat.id}
+            chat={displayChat}
+            isSelected={selectedChat === chat.id}
+            onClick={() => onSelectChat(chat.id)}
+          />
+        );
+      })}
+    </ScrollArea>
+  );
+};
 
 export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin }: ChatSidebarProps) => {
   
@@ -248,38 +375,15 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
       </div>
 
       {!isParentOrStudent && (
-        <ScrollArea className="flex-1">
-          {[...chats]
-            .filter((chat) => {
-              // Убираем чаты с самим собой
-              if (chat.type === 'private' && chat.participants) {
-                const otherUserId = chat.participants.find(id => id !== userId);
-                // Если другой участник это тоже текущий пользователь - пропускаем
-                if (otherUserId === userId || otherUserId === 'admin' && userId === 'admin') {
-                  return false;
-                }
-              }
-              return true;
-            })
-            .sort((a, b) => {
-              if (a.id === 'teachers-group') return -1;
-              if (b.id === 'teachers-group') return 1;
-              if (a.isPinned && !b.isPinned) return -1;
-              if (!a.isPinned && b.isPinned) return 1;
-              return 0;
-            })
-            .map((chat) => {
-              const displayChat = getDisplayChat(chat);
-              return (
-                <ChatItem
-                  key={chat.id}
-                  chat={displayChat}
-                  isSelected={selectedChat === chat.id}
-                  onClick={() => onSelectChat(chat.id)}
-                />
-              );
-            })}
-        </ScrollArea>
+        <ChatList
+          chats={chats}
+          allUsers={allUsers}
+          userRole={userRole}
+          userId={userId}
+          selectedChat={selectedChat}
+          onSelectChat={onSelectChat}
+          getDisplayChat={getDisplayChat}
+        />
       )}
     </div>
   );
