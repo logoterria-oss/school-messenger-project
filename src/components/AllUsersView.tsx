@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 type User = {
   id: string;
   name: string;
-  role: 'teacher' | 'parent' | 'student';
+  role: 'teacher' | 'parent' | 'student' | 'admin';
   phone: string;
   email?: string;
   password: string;
@@ -20,13 +20,15 @@ type AllUsersViewProps = {
   onDeleteUser?: (userId: string) => void;
 };
 
-const roleLabels = {
+const roleLabels: Record<string, string> = {
+  admin: 'Админ',
   teacher: 'Педагог',
   parent: 'Родитель',
   student: 'Ученик',
 };
 
-const roleColors = {
+const roleColors: Record<string, string> = {
+  admin: 'bg-purple-500',
   teacher: 'bg-blue-500',
   parent: 'bg-green-500',
   student: 'bg-orange-500',
@@ -106,6 +108,7 @@ const UserCard = ({ user, onDelete }: { user: User; onDelete?: (userId: string) 
 export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
+  const admins = users.filter(u => u.role === 'admin');
   const teachers = users.filter(u => u.role === 'teacher');
   const parents = users.filter(u => u.role === 'parent');
   const students = users.filter(u => u.role === 'student');
@@ -115,11 +118,12 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
       u.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+  const filteredAdmins = filterUsers(admins);
   const filteredTeachers = filterUsers(teachers);
   const filteredParents = filterUsers(parents);
   const filteredStudents = filterUsers(students);
 
-  const hasResults = filteredTeachers.length > 0 || filteredParents.length > 0 || filteredStudents.length > 0;
+  const hasResults = filteredAdmins.length > 0 || filteredTeachers.length > 0 || filteredParents.length > 0 || filteredStudents.length > 0;
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -171,6 +175,19 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
             </div>
           ) : (
             <>
+              {filteredAdmins.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-semibold mb-3">
+                    Администраторы ({filteredAdmins.length})
+                  </h2>
+                  <div className="space-y-3">
+                    {filteredAdmins.map(user => (
+                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {filteredTeachers.length > 0 && (
                 <div>
                   <h2 className="text-lg font-semibold mb-3">
