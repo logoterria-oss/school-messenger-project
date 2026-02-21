@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Icon from '@/components/ui/icon';
 import { LoginScreen } from '@/components/LoginScreen';
 import { useChatLogic } from '@/hooks/useChatLogic';
