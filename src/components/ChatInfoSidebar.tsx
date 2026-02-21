@@ -269,6 +269,60 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
             )}
           </div>
 
+          {isAdmin && !isTeachersGroup && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-sm text-muted-foreground">Ведущие педагоги</h4>
+                {!isEditingLeads && onUpdateLeadTeachers && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditLeads}>
+                    <Icon name="Pencil" size={14} className="mr-1" />
+                    Изменить
+                  </Button>
+                )}
+              </div>
+              {isEditingLeads ? (
+                <div className="space-y-3">
+                  <div className="border rounded-md p-3 space-y-2">
+                    {allTeachers.map((teacher) => (
+                      <div key={teacher.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent">
+                        <Checkbox id={`edit-lead-${teacher.id}`} checked={editLeads.includes(teacher.id)} onCheckedChange={() => toggleLead(teacher.id)} />
+                        <label htmlFor={`edit-lead-${teacher.id}`} className="flex items-center gap-2 flex-1 cursor-pointer">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={teacher.avatar} />
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs"><Icon name="User" size={14} /></AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">{teacher.name}</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={saveLeads} className="flex-1">Сохранить</Button>
+                    <Button size="sm" variant="outline" onClick={cancelEditLeads} className="flex-1">Отмена</Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {chatInfo.teachers.length > 0 ? (
+                    <div className="space-y-2">
+                      {chatInfo.teachers.map((teacher) => (
+                        <div key={teacher.id} className="flex items-center gap-3 p-2 rounded-lg bg-accent/50">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={teacher.avatar} />
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs"><Icon name="User" size={14} /></AvatarFallback>
+                          </Avatar>
+                          <p className="text-sm font-medium">{teacher.name}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Ведущие педагоги не назначены</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           {!isTeachersGroup && (
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -328,60 +382,6 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
                 </a>
               ) : (
                 <p className="text-sm text-muted-foreground">Заключение не добавлено</p>
-              )}
-            </div>
-          )}
-
-          {isAdmin && !isTeachersGroup && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium text-sm text-muted-foreground">Ведущие педагоги</h4>
-                {!isEditingLeads && onUpdateLeadTeachers && (
-                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditLeads}>
-                    <Icon name="Pencil" size={14} className="mr-1" />
-                    Изменить
-                  </Button>
-                )}
-              </div>
-              {isEditingLeads ? (
-                <div className="space-y-3">
-                  <div className="border rounded-md p-3 space-y-2">
-                    {allTeachers.map((teacher) => (
-                      <div key={teacher.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent">
-                        <Checkbox id={`edit-lead-${teacher.id}`} checked={editLeads.includes(teacher.id)} onCheckedChange={() => toggleLead(teacher.id)} />
-                        <label htmlFor={`edit-lead-${teacher.id}`} className="flex items-center gap-2 flex-1 cursor-pointer">
-                          <Avatar className="w-8 h-8">
-                            <AvatarImage src={teacher.avatar} />
-                            <AvatarFallback className="bg-primary/10 text-primary text-xs"><Icon name="User" size={14} /></AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm font-medium">{teacher.name}</span>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={saveLeads} className="flex-1">Сохранить</Button>
-                    <Button size="sm" variant="outline" onClick={cancelEditLeads} className="flex-1">Отмена</Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {chatInfo.teachers.length > 0 ? (
-                    <div className="space-y-2">
-                      {chatInfo.teachers.map((teacher) => (
-                        <div key={teacher.id} className="flex items-center gap-3 p-2 rounded-lg bg-accent/50">
-                          <Avatar className="w-8 h-8">
-                            <AvatarImage src={teacher.avatar} />
-                            <AvatarFallback className="bg-primary/10 text-primary text-xs"><Icon name="User" size={14} /></AvatarFallback>
-                          </Avatar>
-                          <p className="text-sm font-medium">{teacher.name}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Ведущие педагоги не назначены</p>
-                  )}
-                </>
               )}
             </div>
           )}
