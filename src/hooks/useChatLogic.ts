@@ -1140,6 +1140,22 @@ export const useChatLogic = () => {
     });
   };
 
+  const handleUpdateParticipants = (chatId: string, participantIds: string[]) => {
+    const teacherAndAdminIds = allUsers
+      .filter(u => u.role === 'teacher' || u.role === 'admin')
+      .map(u => u.id);
+    const finalParticipants = [...new Set([...participantIds, ...teacherAndAdminIds, 'admin'])];
+    setChats(prev => {
+      const updated = prev.map(chat =>
+        chat.id === chatId
+          ? { ...chat, participants: finalParticipants }
+          : chat
+      );
+      localStorage.setItem('chats', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const handleUpdateGroupInfo = (chatId: string, updates: { schedule?: string; conclusionLink?: string; name?: string }) => {
     setChats(prev => {
       const updated = prev.map(chat =>
@@ -1191,6 +1207,7 @@ export const useChatLogic = () => {
     handleDeleteUser,
     handleUpdateTeacher,
     handleUpdateLeadTeachers,
+    handleUpdateParticipants,
     handleUpdateGroupInfo,
     handleAddAdmin,
   };

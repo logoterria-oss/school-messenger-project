@@ -63,6 +63,7 @@ const Index = () => {
     handleDeleteUser,
     handleUpdateTeacher,
     handleUpdateLeadTeachers,
+    handleUpdateParticipants,
     handleUpdateGroupInfo,
     handleAddAdmin,
   } = useChatLogic();
@@ -279,8 +280,12 @@ const Index = () => {
                   conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
                 }}
                 allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
+                allStudents={allUsers.filter(u => u.role === 'student').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
+                allParents={allUsers.filter(u => u.role === 'parent').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
+                participantIds={chatParticipants}
                 leadTeacherIds={currentChat?.leadTeachers || []}
                 onUpdateLeadTeachers={(leads) => selectedChat && handleUpdateLeadTeachers(selectedChat, leads)}
+                onUpdateParticipants={(ids) => selectedChat && handleUpdateParticipants(selectedChat, ids)}
                 chatName={currentChat?.name}
                 onUpdateName={(name) => selectedChat && handleUpdateGroupInfo(selectedChat, { name })}
                 onUpdateSchedule={(schedule) => selectedChat && handleUpdateGroupInfo(selectedChat, { schedule })}
