@@ -190,6 +190,17 @@ export async function getMessages(chatId: string, topicId?: string): Promise<Mes
   return data.messages;
 }
 
+export async function markAsRead(userId: string, chatId: string, topicId?: string): Promise<void> {
+  const body: Record<string, string> = { chatId };
+  if (topicId) body.topicId = topicId;
+
+  await fetch(API_URLS.messages, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+    body: JSON.stringify(body),
+  });
+}
+
 export async function sendMessage(message: {
   id: string;
   chatId: string;

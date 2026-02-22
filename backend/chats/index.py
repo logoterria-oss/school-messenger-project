@@ -83,7 +83,7 @@ def handler(event: dict, context) -> dict:
                 cur.execute("""
                     SELECT t.id, t.chat_id, t.name, t.icon,
                            COALESCE(COUNT(DISTINCT m.id) FILTER (
-                               WHERE ms.status IS NULL OR ms.status != 'read'
+                               WHERE (ms.status IS NULL OR ms.status != 'read') AND m.sender_id != %s
                            ), 0) as unread
                     FROM topics t
                     LEFT JOIN messages m ON m.topic_id = t.id
@@ -91,7 +91,7 @@ def handler(event: dict, context) -> dict:
                     WHERE t.chat_id = ANY(%s)
                     GROUP BY t.id, t.chat_id, t.name, t.icon
                     ORDER BY t.created_at
-                """, (user_id, group_ids))
+                """, (user_id, user_id, group_ids))
 
                 for topic in cur.fetchall():
                     cid = topic['chat_id']

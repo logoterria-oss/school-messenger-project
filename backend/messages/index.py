@@ -13,7 +13,7 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id'
             },
             'body': ''
@@ -143,6 +143,51 @@ def handler(event: dict, context) -> dict:
                         'createdAt': str(result['created_at'])
                     }
                 })
+            }
+
+        elif method == 'PUT':
+            headers = event.get('headers', {}) or {}
+            user_id = headers.get('x-user-id') or headers.get('X-User-Id')
+            data = json.loads(event.get('body', '{}'))
+            chat_id = data.get('chatId')
+            topic_id = data.get('topicId')
+
+            if not user_id or not chat_id:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'X-User-Id header and chatId are required'})
+                }
+
+            if topic_id:
+                cur.execute("""
+                    INSERT INTO message_status (message_id, user_id, status, updated_at)
+                    SELECT m.id, %s, 'read', NOW()
+                    FROM messages m
+                    LEFT JOIN message_status ms ON ms.message_id = m.id AND ms.user_id = %s
+                    WHERE m.topic_id = %s AND m.sender_id != %s AND (ms.status IS NULL OR ms.status != 'read')
+                    ON CONFLICT (message_id, user_id) DO UPDATE SET status = 'read', updated_at = NOW()
+                """, (user_id, user_id, topic_id, user_id))
+            else:
+                cur.execute("""
+                    INSERT INTO message_status (message_id, user_id, status, updated_at)
+                    SELECT m.id, %s, 'read', NOW()
+                    FROM messages m
+                    LEFT JOIN message_status ms ON ms.message_id = m.id AND ms.user_id = %s
+                    WHERE m.chat_id = %s AND m.topic_id IS NULL AND m.sender_id != %s AND (ms.status IS NULL OR ms.status != 'read')
+                    ON CONFLICT (message_id, user_id) DO UPDATE SET status = 'read', updated_at = NOW()
+                """, (user_id, user_id, chat_id, user_id))
+
+            conn.commit()
+            cur.close()
+            conn.close()
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'ok': True})
             }
 
     except Exception as e:

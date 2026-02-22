@@ -8,6 +8,17 @@
         "error": "string"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test mark as read without user header",
+      "method": "PUT",
+      "path": "/",
+      "body": {"chatId": "test-chat"},
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

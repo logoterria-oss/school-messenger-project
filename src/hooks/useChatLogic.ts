@@ -4,7 +4,21 @@ import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
-import { getUsers, getChats, getMessages, createChat } from '@/services/api';
+import { getUsers, getChats, getMessages, createChat, markAsRead } from '@/services/api';
+import type { Message as ApiMessage } from '@/services/api';
+
+const mapApiMessages = (msgs: ApiMessage[]): Message[] =>
+  msgs.map(m => ({
+    id: m.id,
+    text: m.text,
+    sender: m.sender_name,
+    senderId: m.sender_id,
+    timestamp: new Date(m.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+    isOwn: false,
+    attachments: m.attachments,
+    reactions: m.reactions,
+    status: 'delivered' as const,
+  }));
 
 type User = {
   id: string;
@@ -226,7 +240,12 @@ export const useChatLogic = () => {
         const topics = groupTopics[myGroup.id];
         if (topics && topics.length > 0) {
           const importantTopic = topics.find(t => t.id.endsWith('-important'));
-          setSelectedTopic(importantTopic ? importantTopic.id : topics[0].id);
+          const autoTopicId = importantTopic ? importantTopic.id : topics[0].id;
+          setSelectedTopic(autoTopicId);
+          markAsRead(userId, myGroup.id, autoTopicId).catch(() => {});
+          getMessages(myGroup.id, autoTopicId).then(msgs => {
+            setChatMessages(prev => ({ ...prev, [autoTopicId]: mapApiMessages(msgs) }));
+          }).catch(() => {});
         }
       }
     }
@@ -239,16 +258,50 @@ export const useChatLogic = () => {
     // Временно отключаем WebSocket для ускорения загрузки
     // wsService.connect(userId);
 
-    // Загружаем данные из API только если их нет в localStorage
+    const mapChatsData = (chatsData: { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> }) => {
+      const mappedChats = chatsData.chats.map((c: Record<string, unknown>) => ({
+        id: c.id as string,
+        name: c.name as string,
+        type: c.type as 'group' | 'private',
+        avatar: c.avatar as string | undefined,
+        lastMessage: (c.last_message || '') as string,
+        timestamp: (c.timestamp || '') as string,
+        unread: (c.unread || 0) as number,
+        participants: c.participants as string[] | undefined,
+        leadTeachers: (c.lead_teachers && (c.lead_teachers as string[]).length > 0) ? c.lead_teachers as string[] : undefined,
+        leadAdmin: (c.lead_admin || undefined) as string | undefined,
+        isPinned: c.is_pinned as boolean | undefined,
+        schedule: c.schedule as string | undefined,
+        conclusionLink: c.conclusion_link as string | undefined,
+      }));
+      const mappedTopics: GroupTopics = {};
+      for (const [chatId, topics] of Object.entries(chatsData.topics)) {
+        mappedTopics[chatId] = (topics as Array<Record<string, unknown>>).map(t => ({
+          id: t.id as string,
+          name: t.name as string,
+          icon: t.icon as string,
+          lastMessage: '',
+          timestamp: '',
+          unread: (t.unread || 0) as number,
+        }));
+      }
+      return { mappedChats, mappedTopics };
+    };
+
     const loadData = async () => {
       const hasLocalData = allUsers.length > 0 && chats.length > 0;
       
       if (hasLocalData) {
-        console.log('✅ Using cached data from localStorage');
+        getChats(userId).then(chatsData => {
+          if (chatsData.chats.length > 0) {
+            const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
+            setChats(mappedChats);
+            setGroupTopics(mappedTopics);
+          }
+        }).catch(() => {});
         return;
       }
       
-      console.log('📡 Loading data from API...');
       try {
         const [users, chatsData] = await Promise.all([
           getUsers().catch(() => []),
@@ -257,33 +310,8 @@ export const useChatLogic = () => {
         
         if (users.length > 0) setAllUsers(users);
         if (chatsData.chats.length > 0) {
-          const mappedChats = chatsData.chats.map((c: Record<string, unknown>) => ({
-            id: c.id as string,
-            name: c.name as string,
-            type: c.type as 'group' | 'private',
-            avatar: c.avatar as string | undefined,
-            lastMessage: (c.last_message || '') as string,
-            timestamp: (c.timestamp || '') as string,
-            unread: (c.unread || 0) as number,
-            participants: c.participants as string[] | undefined,
-            leadTeachers: (c.lead_teachers && (c.lead_teachers as string[]).length > 0) ? c.lead_teachers as string[] : undefined,
-            leadAdmin: (c.lead_admin || undefined) as string | undefined,
-            isPinned: c.is_pinned as boolean | undefined,
-            schedule: c.schedule as string | undefined,
-            conclusionLink: c.conclusion_link as string | undefined,
-          }));
+          const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
           setChats(mappedChats);
-          const mappedTopics: GroupTopics = {};
-          for (const [chatId, topics] of Object.entries(chatsData.topics)) {
-            mappedTopics[chatId] = (topics as Array<Record<string, unknown>>).map(t => ({
-              id: t.id as string,
-              name: t.name as string,
-              icon: t.icon as string,
-              lastMessage: '',
-              timestamp: '',
-              unread: (t.unread || 0) as number,
-            }));
-          }
           setGroupTopics(mappedTopics);
         }
       } catch (err) {
@@ -305,13 +333,12 @@ export const useChatLogic = () => {
     };
 
     const handleNewMessage = async (data: { chatId: string; topicId?: string }) => {
-      console.log('New message:', data);
       try {
         const msgs = await getMessages(data.chatId, data.topicId);
         const targetId = data.topicId || data.chatId;
         setChatMessages(prev => ({
           ...prev,
-          [targetId]: msgs
+          [targetId]: mapApiMessages(msgs)
         }));
 
         const isCurrentChat = data.chatId === selectedChat && (!data.topicId || data.topicId === selectedTopic);
@@ -350,11 +377,18 @@ export const useChatLogic = () => {
     wsService.on('user_update', handleUserUpdate);
     wsService.on('message_new', handleNewMessage);
 
+    const pollInterval = setInterval(() => {
+      getChats(userId).then(chatsData => {
+        if (chatsData.chats.length > 0) {
+          const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
+          setChats(mappedChats);
+          setGroupTopics(mappedTopics);
+        }
+      }).catch(() => {});
+    }, 15000);
+
     return () => {
-      // Временно отключено
-      // wsService.off('user_update', handleUserUpdate);
-      // wsService.off('message_new', handleNewMessage);
-      // wsService.disconnect();
+      clearInterval(pollInterval);
     };
   }, [isAuthenticated, userId]);
 
@@ -389,16 +423,18 @@ export const useChatLogic = () => {
     const chat = chats.find(c => c.id === chatId);
     setSelectedChat(chatId);
     
+    let firstTopicId: string | null = null;
     if (chat && chat.type === 'group') {
       setSelectedGroup(chatId);
       const topics = groupTopics[chatId];
       if (topics && topics.length > 0) {
         if (userRole === 'teacher' || userRole === 'student') {
           const firstNonAdmin = topics.find(t => !t.id.endsWith('-admin-contact'));
-          setSelectedTopic(firstNonAdmin ? firstNonAdmin.id : topics[0].id);
+          firstTopicId = firstNonAdmin ? firstNonAdmin.id : topics[0].id;
         } else {
-          setSelectedTopic(topics[0].id);
+          firstTopicId = topics[0].id;
         }
+        setSelectedTopic(firstTopicId);
       }
     } else {
       setSelectedGroup(null);
@@ -410,6 +446,29 @@ export const useChatLogic = () => {
         chat.id === chatId ? { ...chat, unread: 0 } : chat
       )
     );
+
+    if (userId) {
+      if (firstTopicId) {
+        markAsRead(userId, chatId, firstTopicId).catch(() => {});
+        setGroupTopics(prev => {
+          if (!prev[chatId]) return prev;
+          return {
+            ...prev,
+            [chatId]: prev[chatId].map(t =>
+              t.id === firstTopicId ? { ...t, unread: 0 } : t
+            )
+          };
+        });
+        getMessages(chatId, firstTopicId).then(msgs => {
+          setChatMessages(prev => ({ ...prev, [firstTopicId!]: mapApiMessages(msgs) }));
+        }).catch(() => {});
+      } else {
+        markAsRead(userId, chatId).catch(() => {});
+        getMessages(chatId).then(msgs => {
+          setChatMessages(prev => ({ ...prev, [chatId]: mapApiMessages(msgs) }));
+        }).catch(() => {});
+      }
+    }
   };
 
   const handleSelectTopic = (topicId: string) => {
@@ -422,6 +481,14 @@ export const useChatLogic = () => {
           topic.id === topicId ? { ...topic, unread: 0 } : topic
         )
       }));
+
+      if (userId) {
+        markAsRead(userId, selectedGroup, topicId).catch(() => {});
+      }
+
+      getMessages(selectedGroup, topicId).then(msgs => {
+        setChatMessages(prev => ({ ...prev, [topicId]: mapApiMessages(msgs) }));
+      }).catch(() => {});
     }
   };
 
