@@ -902,7 +902,13 @@ export const useChatLogic = () => {
       otherAdmins.forEach(adm => {
         const ids = [adm.id, currentUserId].sort();
         const privateChatId = `private-admin-${ids[0]}-${ids[1]}`;
-        const hasPrivateChat = existingChats.some(chat => chat.id === privateChatId);
+        const hasPrivateChat = existingChats.some(chat =>
+          chat.id === privateChatId ||
+          (chat.type === 'private' && chat.participants &&
+           chat.participants.length === 2 &&
+           chat.participants.includes(adm.id) &&
+           chat.participants.includes(currentUserId))
+        );
         
         if (!hasPrivateChat) {
           const privateChat: Chat = {
@@ -918,6 +924,16 @@ export const useChatLogic = () => {
           };
           existingChats.push(privateChat);
         }
+      });
+
+      const seen = new Set<string>();
+      existingChats = existingChats.filter(chat => {
+        if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
+          const key = [...chat.participants].sort().join('-');
+          if (seen.has(key)) return false;
+          seen.add(key);
+        }
+        return true;
       });
       
       setChats(existingChats);
