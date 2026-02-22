@@ -133,7 +133,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
 
         {shouldShowTopics && !isParentOrStudent && (
           <div className="px-3 md:px-5 pb-2">
-            <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-1 flex-wrap md:flex-nowrap md:overflow-x-auto scrollbar-hide">
               {filteredTopics.map((topic) => {
                 const topicSettings = getChatSettings(topic.id);
                 const topicMuted = !topicSettings.sound && !topicSettings.push;
