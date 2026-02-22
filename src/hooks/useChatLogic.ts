@@ -41,10 +41,25 @@ let cachedUsers: User[] | null = null;
 let cachedChats: Chat[] | null = null;
 let cachedGroupTopics: GroupTopics | null = null;
 
+const deduplicatePrivateChats = (chats: Chat[]): Chat[] => {
+  const seen = new Set<string>();
+  return chats.filter(chat => {
+    if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
+      const key = [...chat.participants].sort().join('-');
+      if (seen.has(key)) return false;
+      seen.add(key);
+    }
+    return true;
+  });
+};
+
 const loadChatsFromCache = (): Chat[] => {
   if (cachedChats) return cachedChats;
   const stored = localStorage.getItem('chats');
-  cachedChats = stored ? JSON.parse(stored) : [];
+  let chats: Chat[] = stored ? JSON.parse(stored) : [];
+  chats = deduplicatePrivateChats(chats);
+  cachedChats = chats;
+  if (stored) localStorage.setItem('chats', JSON.stringify(chats));
   return cachedChats;
 };
 
@@ -926,15 +941,7 @@ export const useChatLogic = () => {
         }
       });
 
-      const seen = new Set<string>();
-      existingChats = existingChats.filter(chat => {
-        if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
-          const key = [...chat.participants].sort().join('-');
-          if (seen.has(key)) return false;
-          seen.add(key);
-        }
-        return true;
-      });
+      existingChats = deduplicatePrivateChats(existingChats);
       
       setChats(existingChats);
       localStorage.setItem('chats', JSON.stringify(existingChats));
