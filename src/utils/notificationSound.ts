@@ -68,14 +68,15 @@ function showBrowserNotification(chatName: string) {
   } catch { /* ignore */ }
 }
 
-type ChatUnreadInfo = { id: string; name: string; unread: number };
+type UnreadInfo = { id: string; name: string; unread: number };
 
 let lastUnreadMap: Record<string, number> = {};
 let initialized = false;
 
-export function checkAndPlaySound(chats: ChatUnreadInfo[]) {
+export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
+  const allItems = [...chats, ...(topics || [])];
   const currentMap: Record<string, number> = {};
-  for (const c of chats) {
+  for (const c of allItems) {
     currentMap[c.id] = c.unread;
   }
 
@@ -86,11 +87,11 @@ export function checkAndPlaySound(chats: ChatUnreadInfo[]) {
   }
 
   let needSound = false;
-  for (const chat of chats) {
-    const prev = lastUnreadMap[chat.id] || 0;
-    if (chat.unread > prev) {
-      if (shouldPlaySound(chat.id)) needSound = true;
-      if (shouldShowPush(chat.id)) showBrowserNotification(chat.name);
+  for (const item of allItems) {
+    const prev = lastUnreadMap[item.id] || 0;
+    if (item.unread > prev) {
+      if (shouldPlaySound(item.id)) needSound = true;
+      if (shouldShowPush(item.id)) showBrowserNotification(item.name);
     }
   }
 

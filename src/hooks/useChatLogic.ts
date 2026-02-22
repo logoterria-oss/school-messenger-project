@@ -7,6 +7,7 @@ import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, markAsRead } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission } from '@/utils/notificationSound';
+import { applyAdminDefaults } from '@/utils/notificationSettings';
 
 const mapApiMessages = (msgs: ApiMessage[]): Message[] =>
   msgs.map(m => ({
@@ -300,6 +301,10 @@ export const useChatLogic = () => {
             const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
             setChats(mappedChats);
             setGroupTopics(mappedTopics);
+            if (userRole === 'admin') {
+              const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
+              applyAdminDefaults(allTopicIds);
+            }
           }
         }).catch(() => {});
         return;
@@ -316,6 +321,10 @@ export const useChatLogic = () => {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
           setChats(mappedChats);
           setGroupTopics(mappedTopics);
+          if (userRole === 'admin') {
+            const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
+            applyAdminDefaults(allTopicIds);
+          }
         }
       } catch (err) {
         console.error('Failed to load data:', err);
@@ -384,7 +393,8 @@ export const useChatLogic = () => {
       getChats(userId).then(chatsData => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
-          checkAndPlaySound(mappedChats.map(c => ({ id: c.id, name: c.name, unread: c.unread })));
+          const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
+          checkAndPlaySound(mappedChats.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
           setChats(mappedChats);
           setGroupTopics(mappedTopics);
         }

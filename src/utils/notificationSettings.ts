@@ -74,3 +74,17 @@ export function shouldShowPush(chatId: string): boolean {
   if (chatS && !chatS.push) return false;
   return true;
 }
+
+const ADMIN_MUTED_SUFFIXES = ['-zoom', '-homework', '-reports'];
+
+export function applyAdminDefaults(topicIds: string[]) {
+  const s = loadSettings();
+  let changed = false;
+  for (const id of topicIds) {
+    if (ADMIN_MUTED_SUFFIXES.some(suffix => id.endsWith(suffix)) && !s.perChat[id]) {
+      s.perChat[id] = { sound: false, push: false };
+      changed = true;
+    }
+  }
+  if (changed) saveSettings(s);
+}

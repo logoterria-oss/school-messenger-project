@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Icon from '@/components/ui/icon';
 import { MessageBubble } from './MessageBubble';
+import { getChatSettings } from '@/utils/notificationSettings';
 
 type AttachedFile = {
   type: 'image' | 'file';
@@ -103,25 +104,32 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
         {shouldShowTopics && !isParentOrStudent && (
           <div className="px-4 pb-3 border-t border-border/50">
             <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
-              {filteredTopics.map((topic) => (
-                <button
-                  key={topic.id}
-                  onClick={() => onTopicSelect?.(topic.id)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all ${
-                    selectedTopic === topic.id
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                      : 'bg-card border-border hover:border-primary/50 hover:bg-accent'
-                  }`}
-                >
-                  <Icon name={topic.icon} size={14} />
-                  <span className="text-sm font-medium">{topic.name}</span>
-                  {topic.unread > 0 && selectedTopic !== topic.id && (
-                    <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                      {topic.unread}
-                    </span>
-                  )}
-                </button>
-              ))}
+              {filteredTopics.map((topic) => {
+                const topicSettings = getChatSettings(topic.id);
+                const topicMuted = !topicSettings.sound && !topicSettings.push;
+                return (
+                  <button
+                    key={topic.id}
+                    onClick={() => onTopicSelect?.(topic.id)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all ${
+                      selectedTopic === topic.id
+                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                        : 'bg-card border-border hover:border-primary/50 hover:bg-accent'
+                    }`}
+                  >
+                    <Icon name={topic.icon} size={14} />
+                    <span className="text-sm font-medium">{topic.name}</span>
+                    {topicMuted && selectedTopic !== topic.id && (
+                      <Icon name="BellOff" size={12} className="text-muted-foreground" />
+                    )}
+                    {topic.unread > 0 && selectedTopic !== topic.id && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${topicMuted ? 'bg-muted-foreground/40 text-white' : 'bg-primary text-primary-foreground'}`}>
+                        {topic.unread}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
