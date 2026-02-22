@@ -11,10 +11,10 @@ type LoginScreenProps = {
 };
 
 const ROLES = [
-  { id: 'student' as UserRole, name: 'ученик', image: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/7b844c02-3fc8-46a5-a087-b36db9e5e47e.jpg', color: 'from-[#52B788] to-[#40916C]' },
-  { id: 'parent' as UserRole, name: 'родитель', image: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/c478476c-1695-424a-bc34-76109e654dd2.jpg', color: 'from-[#74C69D] to-[#52B788]' },
-  { id: 'teacher' as UserRole, name: 'педагог', image: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/b570bb12-a919-4198-92e6-c93a9445c88c.jpg', color: 'from-[#40916C] to-[#2D6A4F]' },
-  { id: 'admin' as UserRole, name: 'админ', image: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg', color: 'from-[#2D6A4F] to-[#1B4332]' },
+  { id: 'student' as UserRole, name: 'ученик', image: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/19f311c0-23da-416b-bc82-1899dff1a3fb.jpg', color: 'from-[#52B788] to-[#40916C]' },
+  { id: 'parent' as UserRole, name: 'родитель', image: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/ee2cdb6c-9e49-49fb-b188-d42660db79b5.jpg', color: 'from-[#74C69D] to-[#52B788]' },
+  { id: 'teacher' as UserRole, name: 'педагог', image: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/75315476-1a6b-46cb-bf67-5fee29e2cb01.jpg', color: 'from-[#40916C] to-[#2D6A4F]' },
+  { id: 'admin' as UserRole, name: 'админ', image: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/4238514d-3d40-49eb-87ad-a23025b04422.jpg', color: 'from-[#2D6A4F] to-[#1B4332]' },
 ];
 
 const FloatingDecor = () => (

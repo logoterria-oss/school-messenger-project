@@ -42,7 +42,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
     if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
       const otherUserId = chat.participants.find(id => id !== userId && id !== 'current');
       if (otherUserId === 'admin' && userRole !== 'admin') {
-        return { ...chat, name: 'Виктория Абраменко', avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg' };
+        return { ...chat, name: 'Виктория Абраменко', avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/4238514d-3d40-49eb-87ad-a23025b04422.jpg' };
       }
       if (userRole === 'admin' && otherUserId) {
         const otherUser = allUsers.find(u => u.id === otherUserId);

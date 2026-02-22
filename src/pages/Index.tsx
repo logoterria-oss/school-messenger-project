@@ -198,7 +198,7 @@ const Index = () => {
                     ? (selectedChatData.participants || [])
                         .filter(pid => pid !== userId)
                         .map(pid => {
-                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg' };
+                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/4238514d-3d40-49eb-87ad-a23025b04422.jpg' };
                           const u = allUsers.find(u => u.id === pid);
                           return u ? { id: u.id, name: u.name, avatar: u.avatar } : null;
                         })
