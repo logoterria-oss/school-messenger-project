@@ -6,6 +6,7 @@ import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, markAsRead } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
+import { checkAndPlaySound } from '@/utils/notificationSound';
 
 const mapApiMessages = (msgs: ApiMessage[]): Message[] =>
   msgs.map(m => ({
@@ -381,6 +382,8 @@ export const useChatLogic = () => {
       getChats(userId).then(chatsData => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
+          const totalUnread = mappedChats.reduce((sum, c) => sum + c.unread, 0);
+          checkAndPlaySound(totalUnread);
           setChats(mappedChats);
           setGroupTopics(mappedTopics);
         }
