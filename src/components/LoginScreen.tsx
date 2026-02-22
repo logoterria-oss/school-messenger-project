@@ -195,7 +195,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4 max-lg:p-4 relative">
         <FloatingDecor />
-        <div className="w-full max-w-2xl max-lg:max-w-[340px] relative z-10">
+        <div className="w-full max-w-2xl max-lg:max-w-[min(340px,calc(100vw-32px))] relative z-10">
           <div className="flex items-center justify-center gap-6 mb-8 max-lg:gap-2.5 max-lg:mb-8">
             <img 
               src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 

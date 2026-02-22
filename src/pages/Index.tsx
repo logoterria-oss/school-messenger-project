@@ -113,8 +113,8 @@ const Index = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <div className={`${mobileShowChat ? 'hidden' : 'flex'} md:flex`}>
+    <div className="flex h-screen bg-background overflow-hidden max-w-[100vw]">
+      <div className={`${mobileShowChat ? 'hidden' : 'flex'} md:flex flex-shrink-0`}>
         <ChatSidebar
           onLogout={handleLogout}
           onOpenProfile={handleOpenProfile}
@@ -169,8 +169,8 @@ const Index = () => {
         onAdd={handleAddAdmin}
       />
 
-      <div className={`flex-1 flex ${!mobileShowChat ? 'hidden md:flex' : 'flex'}`}>
-        <div className="flex-1 flex flex-col">
+      <div className={`flex-1 flex min-w-0 ${!mobileShowChat ? 'hidden md:flex' : 'flex'}`}>
+        <div className="flex-1 flex flex-col min-w-0">
           {selectedChat && selectedChatData ? (
             <>
               <ChatArea 

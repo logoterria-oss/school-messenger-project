@@ -77,7 +77,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
 
   return (
     <div className="group relative">
-      <div className={`flex items-start gap-3 px-4 py-2.5 rounded-xl transition-colors hover:bg-accent/40 ${message.isOwn ? 'bg-primary/[0.04]' : ''}`}>
+      <div className={`flex items-start gap-2 md:gap-3 px-2 md:px-4 py-2.5 rounded-xl transition-colors hover:bg-accent/40 ${message.isOwn ? 'bg-primary/[0.04]' : ''}`}>
         <div className="w-9 h-9 rounded-lg flex-shrink-0 overflow-hidden mt-0.5">
           {message.senderAvatar ? (
             <img src={message.senderAvatar} alt="" className="w-full h-full object-cover" />
@@ -118,7 +118,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
 
           {images.length > 0 && (
             <div className="mt-2">
-              <div className={`grid gap-1.5 ${getGridLayout(Math.min(images.length, 4))} max-w-sm`}>
+              <div className={`grid gap-1.5 ${getGridLayout(Math.min(images.length, 4))} max-w-[calc(100vw-80px)] md:max-w-sm`}>
                 {images.slice(0, 4).map((img, idx) => (
                   <div
                     key={idx}
@@ -145,7 +145,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
           {files.length > 0 && (
             <div className="mt-2 space-y-1">
               {files.map((file, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-sm">
+                <div key={idx} className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm">
                   <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Icon name="FileText" size={20} className="text-primary" />
                   </div>
@@ -218,9 +218,9 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
 
       {selectedImageIndex !== null && images[selectedImageIndex] && (
         <Dialog open={true} onOpenChange={closeImage}>
-          <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-black/95 border-none">
+          <DialogContent className="max-w-[95vw] md:max-w-4xl max-h-[90vh] p-0 bg-black/95 border-none">
             <DialogTitle className="sr-only">Просмотр изображения</DialogTitle>
-            <div className="relative flex items-center justify-center min-h-[400px]">
+            <div className="relative flex items-center justify-center min-h-[200px] md:min-h-[400px]">
               <img
                 src={images[selectedImageIndex].fileUrl}
                 alt={`Изображение ${selectedImageIndex + 1}`}

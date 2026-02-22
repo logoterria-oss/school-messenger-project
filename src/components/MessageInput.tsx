@@ -190,7 +190,7 @@ export const MessageInput = ({
               )}
 
               {attachment.type === 'file' && (
-                <div className="flex items-center gap-2 p-2 pr-8 min-w-[180px]">
+                <div className="flex items-center gap-2 p-2 pr-8 min-w-0 max-w-full">
                   <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Icon name="FileText" size={16} className="text-primary" />
                   </div>

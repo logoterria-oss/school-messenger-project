@@ -89,8 +89,8 @@ export const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { av
         <>
           <div className="fixed inset-0 z-50" onClick={() => setShowMenu(false)} />
           <div
-            className="fixed z-50 bg-popover border border-border rounded-xl shadow-lg py-1 min-w-[200px]"
-            style={{ left: menuPos.x, top: menuPos.y }}
+            className="fixed z-50 bg-popover border border-border rounded-xl shadow-lg py-1 min-w-[200px] max-w-[calc(100vw-16px)]"
+            style={{ left: Math.min(menuPos.x, window.innerWidth - 220), top: menuPos.y }}
           >
             <button
               className="w-full px-4 py-2.5 text-sm text-left hover:bg-accent flex items-center gap-3"

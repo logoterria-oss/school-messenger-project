@@ -168,8 +168,8 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--background)' }}>
-        <div className="max-w-4xl mx-auto py-4 px-1 md:px-0 space-y-0.5">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
+        <div className="max-w-4xl mx-auto py-4 space-y-0.5">
           {messages.map((message) => (
             <MessageBubble
               key={message.id}
