@@ -105,12 +105,13 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
             />
           </div>
 
-          {admins.length > 0 && (
-            <div className="space-y-2">
-              <Label>Ведущий админ</Label>
-              <p className="text-xs text-muted-foreground">Все админы добавляются автоматически. Виктория Абраменко — супервизор и видит всё. Выберите ведущего админа для этой группы</p>
+          <div className="space-y-2">
+              <Label>Ведущий администратор</Label>
+              <p className="text-xs text-muted-foreground">Все админы добавляются автоматически. Виктория Абраменко — супервизор и видит всё. Выберите ведущего администратора для этой группы</p>
               <div className="border rounded-md p-3 space-y-2">
-                {admins.map((admin) => (
+                {admins.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-2">Нет других администраторов</p>
+                ) : admins.map((admin) => (
                   <div
                     key={admin.id}
                     className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent cursor-pointer"
@@ -134,7 +135,6 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
                 ))}
               </div>
             </div>
-          )}
 
           {teachers.length > 0 && (
             <div className="space-y-2">
