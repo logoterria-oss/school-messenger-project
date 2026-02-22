@@ -127,7 +127,7 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      <div className="p-4 border-b border-border bg-card">
+      <div className="p-3 md:p-4 border-b border-border bg-card">
         <div className="flex items-center gap-3 mb-4">
           <Button variant="ghost" size="icon" onClick={onBack}>
             <Icon name="ArrowLeft" size={20} />
@@ -152,7 +152,7 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-6">
+        <div className="p-3 md:p-4 space-y-6">
           {users.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">

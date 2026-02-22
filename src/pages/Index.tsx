@@ -23,6 +23,7 @@ const Index = () => {
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showChatInfo, setShowChatInfo] = useState(false);
+  const [mobileShowChat, setMobileShowChat] = useState(false);
 
   const {
     isAuthenticated,
@@ -74,6 +75,15 @@ const Index = () => {
     selectedChatData?.participants?.includes('admin') && 
     (userRole === 'admin' || userRole === 'teacher');
 
+  const handleSelectChatMobile = (chatId: string) => {
+    handleSelectChat(chatId);
+    setMobileShowChat(true);
+  };
+
+  const handleMobileBack = () => {
+    setMobileShowChat(false);
+  };
+
   if (!isAuthenticated || !userRole) {
     return <LoginScreen onLogin={handleLogin} />;
   }
@@ -104,27 +114,29 @@ const Index = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <ChatSidebar
-        onLogout={handleLogout}
-        onOpenProfile={handleOpenProfile}
-        onOpenSettings={handleOpenSettings}
-        onOpenUsers={handleOpenUsers}
-        onAddStudent={() => setShowAddStudent(true)}
-        onAddParent={() => setShowAddParent(true)}
-        onAddTeacher={() => setShowAddTeacher(true)}
-        onCreateGroup={() => setShowCreateGroup(true)}
-        onAddAdmin={() => setShowAddAdmin(true)}
-        userRole={userRole}
-        userName={userName}
-        userId={userId}
-        chats={chats}
-        allUsers={allUsers}
-        selectedChat={selectedChat}
-        selectedTopic={selectedTopic}
-        groupTopics={groupTopics}
-        onSelectChat={handleSelectChat}
-        onTopicSelect={handleSelectTopic}
-      />
+      <div className={`${mobileShowChat ? 'hidden' : 'flex'} md:flex`}>
+        <ChatSidebar
+          onLogout={handleLogout}
+          onOpenProfile={handleOpenProfile}
+          onOpenSettings={handleOpenSettings}
+          onOpenUsers={handleOpenUsers}
+          onAddStudent={() => setShowAddStudent(true)}
+          onAddParent={() => setShowAddParent(true)}
+          onAddTeacher={() => setShowAddTeacher(true)}
+          onCreateGroup={() => setShowCreateGroup(true)}
+          onAddAdmin={() => setShowAddAdmin(true)}
+          userRole={userRole}
+          userName={userName}
+          userId={userId}
+          chats={chats}
+          allUsers={allUsers}
+          selectedChat={selectedChat}
+          selectedTopic={selectedTopic}
+          groupTopics={groupTopics}
+          onSelectChat={handleSelectChatMobile}
+          onTopicSelect={handleSelectTopic}
+        />
+      </div>
 
       <AddStudentDialog
         open={showAddStudent}
@@ -157,7 +169,7 @@ const Index = () => {
         onAdd={handleAddAdmin}
       />
 
-      <div className="flex-1 flex">
+      <div className={`flex-1 flex ${!mobileShowChat ? 'hidden md:flex' : 'flex'}`}>
         <div className="flex-1 flex flex-col">
           {selectedChat && selectedChatData ? (
             <>
@@ -173,6 +185,7 @@ const Index = () => {
                 userRole={userRole}
                 onOpenChatInfo={() => setShowChatInfo(true)}
                 chatId={selectedChat}
+                onMobileBack={handleMobileBack}
                 participantsCount={(() => {
                   const c = chats.find(c => c.id === selectedChat);
                   if (!c?.participants) return 0;
@@ -208,7 +221,7 @@ const Index = () => {
               />
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="hidden md:flex flex-1 items-center justify-center">
               <div className="text-center space-y-4">
                 <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mx-auto">
                   <Icon name="MessageSquare" size={24} className="text-muted-foreground/60" />

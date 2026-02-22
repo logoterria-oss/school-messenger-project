@@ -68,7 +68,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
     : parentTopics;
 
   return (
-    <div className="w-[380px] bg-card/50 backdrop-blur-sm border-r border-border/60 flex flex-col">
+    <div className="w-full md:w-[380px] bg-card/50 backdrop-blur-sm border-r border-border/60 flex flex-col">
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">

@@ -45,6 +45,7 @@ type ChatAreaProps = {
   onOpenChatInfo?: () => void;
   chatId?: string;
   participantsCount?: number;
+  onMobileBack?: () => void;
 };
 
 const TopicMuteButton = ({ topicId }: { topicId: string }) => {
@@ -72,7 +73,7 @@ const TopicMuteButton = ({ topicId }: { topicId: string }) => {
   );
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack }: ChatAreaProps) => {
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
   const isTeachersGroup = chatId === 'teachers-group';
 
@@ -91,21 +92,27 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
   return (
     <>
       <div className="bg-card/80 backdrop-blur-sm border-b border-border/60">
-        <div className="flex items-center justify-between px-5 py-2.5">
-          {!isParentOrStudent && (
-            <div className="flex items-center gap-2.5">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isGroup ? 'bg-primary/10' : 'bg-accent'}`}>
-                <Icon name={isGroup ? 'Users' : 'User'} size={15} className={isGroup ? 'text-primary' : 'text-muted-foreground'} />
-              </div>
-              <div>
-                <h2 className="font-semibold text-sm leading-tight">{chatName}</h2>
-                <p className="text-[11px] text-muted-foreground/70">
-                  {isGroup ? `${participantsCount || 0} участников` : 'Личный чат'}
-                </p>
-              </div>
-            </div>
-          )}
-          {isParentOrStudent && <div />}
+        <div className="flex items-center justify-between px-3 md:px-5 py-2.5">
+          <div className="flex items-center gap-2.5">
+            {onMobileBack && (
+              <button onClick={onMobileBack} className="md:hidden mr-1 p-1 rounded-lg hover:bg-accent transition-colors text-muted-foreground">
+                <Icon name="ArrowLeft" size={20} />
+              </button>
+            )}
+            {!isParentOrStudent && (
+              <>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isGroup ? 'bg-primary/10' : 'bg-accent'}`}>
+                  <Icon name={isGroup ? 'Users' : 'User'} size={15} className={isGroup ? 'text-primary' : 'text-muted-foreground'} />
+                </div>
+                <div>
+                  <h2 className="font-semibold text-sm leading-tight">{chatName}</h2>
+                  <p className="text-[11px] text-muted-foreground/70">
+                    {isGroup ? `${participantsCount || 0} участников` : 'Личный чат'}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
               <Icon name="Search" size={16} />
@@ -125,7 +132,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
         </div>
 
         {shouldShowTopics && !isParentOrStudent && (
-          <div className="px-5 pb-2">
+          <div className="px-3 md:px-5 pb-2">
             <div className="flex gap-1 overflow-x-auto scrollbar-hide">
               {filteredTopics.map((topic) => {
                 const topicSettings = getChatSettings(topic.id);
@@ -162,7 +169,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
       </div>
 
       <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--background)' }}>
-        <div className="max-w-4xl mx-auto py-4 space-y-0.5">
+        <div className="max-w-4xl mx-auto py-4 px-1 md:px-0 space-y-0.5">
           {messages.map((message) => (
             <MessageBubble
               key={message.id}

@@ -155,7 +155,7 @@ export const MessageInput = ({
 
   if (disabled) {
     return (
-      <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-5 py-3">
+      <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-3 md:px-5 py-3">
         <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm py-2">
           <Icon name="Lock" size={16} />
           <span>{disabledMessage || 'Отправка сообщений недоступна'}</span>
@@ -165,7 +165,7 @@ export const MessageInput = ({
   }
 
   return (
-    <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-5 py-3">
+    <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-3 md:px-5 py-3">
       {attachments.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
           {attachments.map((attachment, idx) => (
