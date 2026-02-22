@@ -296,6 +296,9 @@ export const useChatLogic = () => {
       const hasLocalData = allUsers.length > 0 && chats.length > 0;
       
       if (hasLocalData) {
+        getUsers().then(users => {
+          if (users.length > 0) setAllUsers(users);
+        }).catch(() => {});
         getChats(userId).then(chatsData => {
           if (chatsData.chats.length > 0) {
             const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
