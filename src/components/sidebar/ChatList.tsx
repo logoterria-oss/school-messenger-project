@@ -6,11 +6,21 @@ import type { Chat, UserRole, SimpleUser } from './types';
 
 const SUPERVISOR_ID = 'admin';
 
-const isTeacherChat = (chat: Chat, allUsers: SimpleUser[]) => {
+const isTeacherChat = (chat: Chat, allUsers: SimpleUser[], userId?: string) => {
   if (chat.type !== 'private' || !chat.participants) return false;
   return chat.participants.some(id => {
+    if (id === userId) return false;
     const user = allUsers.find(u => u.id === id);
     return user?.role === 'teacher';
+  });
+};
+
+const isAdminChat = (chat: Chat, allUsers: SimpleUser[], userId?: string) => {
+  if (chat.type !== 'private' || !chat.participants) return false;
+  return chat.participants.some(id => {
+    if (id === userId || id === SUPERVISOR_ID) return false;
+    const user = allUsers.find(u => u.id === id);
+    return user?.role === 'admin';
   });
 };
 
@@ -40,6 +50,7 @@ type ChatListProps = {
 
 export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectChat, getDisplayChat, searchQuery = '' }: ChatListProps) => {
   const [teacherFolderOpen, setTeacherFolderOpen] = useState(false);
+  const [adminFolderOpen, setAdminFolderOpen] = useState(false);
   const [nonLeadFolderOpen, setNonLeadFolderOpen] = useState(false);
 
   const query = searchQuery.toLowerCase().trim();
@@ -62,8 +73,11 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
   const isTeacher = userRole === 'teacher';
   const isSupervisor = userId === SUPERVISOR_ID;
 
-  const teacherChats = isAdmin ? filtered.filter(c => isTeacherChat(c, allUsers)) : [];
+  const teacherChats = isAdmin ? filtered.filter(c => isTeacherChat(c, allUsers, userId)) : [];
   const teacherUnread = teacherChats.reduce((sum, c) => sum + (c.unread || 0), 0);
+
+  const adminChats = isAdmin ? filtered.filter(c => isAdminChat(c, allUsers, userId)) : [];
+  const adminUnread = adminChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
   const nonLeadChats = isTeacher
     ? filtered.filter(c => isNonLeadGroupForTeacher(c, userId))
@@ -73,7 +87,8 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
   const nonLeadUnread = nonLeadChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
   const otherChats = filtered.filter(c => {
-    if (isAdmin && isTeacherChat(c, allUsers)) return false;
+    if (isAdmin && isTeacherChat(c, allUsers, userId)) return false;
+    if (isAdmin && isAdminChat(c, allUsers, userId)) return false;
     if (isTeacher && isNonLeadGroupForTeacher(c, userId)) return false;
     if (isAdmin && !isSupervisor && isNonLeadGroupForAdmin(c, userId)) return false;
     return true;
@@ -88,9 +103,11 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
   });
 
   if (isAdmin) {
+    const supervisorChat = sorted.find(c => c.type === 'private' && c.participants?.includes(SUPERVISOR_ID) && userId !== SUPERVISOR_ID);
     const teachersGroupIndex = sorted.findIndex(c => c.id === 'teachers-group');
     const beforeFolder = teachersGroupIndex >= 0 ? sorted.slice(0, teachersGroupIndex + 1) : sorted;
-    const afterFolder = teachersGroupIndex >= 0 ? sorted.slice(teachersGroupIndex + 1) : [];
+    const afterFolder = (teachersGroupIndex >= 0 ? sorted.slice(teachersGroupIndex + 1) : [])
+      .filter(c => c !== supervisorChat);
 
     return (
       <ScrollArea className="flex-1">
@@ -106,6 +123,15 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
           );
         })}
 
+        {supervisorChat && (
+          <ChatItem
+            key={supervisorChat.id}
+            chat={getDisplayChat(supervisorChat)}
+            isSelected={selectedChat === supervisorChat.id}
+            onClick={() => onSelectChat(supervisorChat.id)}
+          />
+        )}
+
         {teacherChats.length > 0 && (
           <FolderItem
             name="ЛС с педагогами"
@@ -114,6 +140,20 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             unread={teacherUnread}
             isOpen={teacherFolderOpen}
             onToggle={() => setTeacherFolderOpen(!teacherFolderOpen)}
+            selectedChat={selectedChat}
+            onSelectChat={onSelectChat}
+            getDisplayChat={getDisplayChat}
+          />
+        )}
+
+        {adminChats.length > 0 && (
+          <FolderItem
+            name="ЛС с админами"
+            icon="FolderOpen"
+            chats={adminChats}
+            unread={adminUnread}
+            isOpen={adminFolderOpen}
+            onToggle={() => setAdminFolderOpen(!adminFolderOpen)}
             selectedChat={selectedChat}
             onSelectChat={onSelectChat}
             getDisplayChat={getDisplayChat}
