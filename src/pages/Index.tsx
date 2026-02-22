@@ -186,6 +186,16 @@ const Index = () => {
                 onOpenChatInfo={() => setShowChatInfo(true)}
                 chatId={selectedChat}
                 onMobileBack={handleMobileBack}
+                userId={userId}
+                onLogout={handleLogout}
+                onOpenProfile={handleOpenProfile}
+                onOpenSettings={handleOpenSettings}
+                onOpenUsers={handleOpenUsers}
+                onAddStudent={() => setShowAddStudent(true)}
+                onAddParent={() => setShowAddParent(true)}
+                onAddTeacher={() => setShowAddTeacher(true)}
+                onCreateGroup={() => setShowCreateGroup(true)}
+                onAddAdmin={() => setShowAddAdmin(true)}
                 participantsCount={(() => {
                   const c = chats.find(c => c.id === selectedChat);
                   if (!c?.participants) return 0;
