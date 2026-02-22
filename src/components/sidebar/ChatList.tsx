@@ -4,6 +4,8 @@ import { ChatItem } from './ChatItem';
 import { FolderItem } from './FolderItem';
 import type { Chat, UserRole, SimpleUser } from './types';
 
+const SUPERVISOR_ID = 'admin';
+
 const isTeacherChat = (chat: Chat, allUsers: SimpleUser[]) => {
   if (chat.type !== 'private' || !chat.participants) return false;
   return chat.participants.some(id => {
@@ -12,10 +14,17 @@ const isTeacherChat = (chat: Chat, allUsers: SimpleUser[]) => {
   });
 };
 
-const isNonLeadGroup = (chat: Chat, userId?: string) => {
+const isNonLeadGroupForTeacher = (chat: Chat, userId?: string) => {
   if (chat.type !== 'group' || chat.id === 'teachers-group') return false;
   if (!chat.leadTeachers || chat.leadTeachers.length === 0) return false;
   return !chat.leadTeachers.includes(userId || '');
+};
+
+const isNonLeadGroupForAdmin = (chat: Chat, userId?: string) => {
+  if (chat.type !== 'group' || chat.id === 'teachers-group') return false;
+  if (userId === SUPERVISOR_ID) return false;
+  if (!chat.leadAdmin) return false;
+  return chat.leadAdmin !== userId;
 };
 
 type ChatListProps = {
@@ -51,15 +60,22 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
 
   const isAdmin = userRole === 'admin';
   const isTeacher = userRole === 'teacher';
+  const isSupervisor = userId === SUPERVISOR_ID;
+
   const teacherChats = isAdmin ? filtered.filter(c => isTeacherChat(c, allUsers)) : [];
   const teacherUnread = teacherChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
-  const nonLeadChats = isTeacher ? filtered.filter(c => isNonLeadGroup(c, userId)) : [];
+  const nonLeadChats = isTeacher
+    ? filtered.filter(c => isNonLeadGroupForTeacher(c, userId))
+    : (isAdmin && !isSupervisor)
+      ? filtered.filter(c => isNonLeadGroupForAdmin(c, userId))
+      : [];
   const nonLeadUnread = nonLeadChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
   const otherChats = filtered.filter(c => {
     if (isAdmin && isTeacherChat(c, allUsers)) return false;
-    if (isTeacher && isNonLeadGroup(c, userId)) return false;
+    if (isTeacher && isNonLeadGroupForTeacher(c, userId)) return false;
+    if (isAdmin && !isSupervisor && isNonLeadGroupForAdmin(c, userId)) return false;
     return true;
   });
 
@@ -115,6 +131,20 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             />
           );
         })}
+
+        {nonLeadChats.length > 0 && (
+          <FolderItem
+            name="Чужие ученики"
+            icon="FolderOpen"
+            chats={nonLeadChats}
+            unread={nonLeadUnread}
+            isOpen={nonLeadFolderOpen}
+            onToggle={() => setNonLeadFolderOpen(!nonLeadFolderOpen)}
+            selectedChat={selectedChat}
+            onSelectChat={onSelectChat}
+            getDisplayChat={getDisplayChat}
+          />
+        )}
       </ScrollArea>
     );
   }

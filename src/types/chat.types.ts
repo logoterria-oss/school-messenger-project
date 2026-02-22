@@ -37,6 +37,7 @@ export type Chat = {
   isPinned?: boolean;
   participants?: string[];
   leadTeachers?: string[];
+  leadAdmin?: string;
   schedule?: string;
   conclusionLink?: string;
   avatar?: string;

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,59 +19,62 @@ type User = {
 type CreateGroupDialogProps = {
   open: boolean;
   onClose: () => void;
-  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[]) => void;
+  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[], leadAdmin?: string) => void;
   allUsers: User[];
 };
+
+const SUPERVISOR_ID = 'admin';
 
 const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDialogProps) => {
   const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [leadTeachers, setLeadTeachers] = useState<string[]>([]);
+  const [leadAdmin, setLeadAdmin] = useState<string>('');
   const [schedule, setSchedule] = useState('');
   const [conclusionLink, setConclusionLink] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   const teachers = allUsers.filter(u => u.role === 'teacher');
+  const admins = allUsers.filter(u => u.role === 'admin' && u.id !== SUPERVISOR_ID);
   const parents = allUsers.filter(u => u.role === 'parent');
   const students = allUsers.filter(u => u.role === 'student');
 
-  const filteredParents = parents.filter(u => 
+  const filteredParents = parents.filter(u =>
     u.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  const filteredStudents = students.filter(u => 
+  const filteredStudents = students.filter(u =>
     u.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCreate = () => {
-    if (!groupName.trim()) {
-      return;
-    }
+    if (!groupName.trim()) return;
     const allTeacherIds = teachers.map(t => t.id);
-    const finalUsers = [...new Set([...allTeacherIds, ...selectedUsers])];
-    
-    onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim(), leadTeachers);
-    setGroupName('');
-    setSelectedUsers([]);
-    setLeadTeachers([]);
-    setSchedule('');
-    setConclusionLink('');
-    setSearchQuery('');
+    const allAdminIds = admins.map(a => a.id);
+    const finalUsers = [...new Set([...allTeacherIds, ...allAdminIds, ...selectedUsers])];
+
+    onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim(), leadTeachers, leadAdmin || undefined);
+    resetForm();
     onClose();
   };
 
-  const handleClose = () => {
+  const resetForm = () => {
     setGroupName('');
     setSelectedUsers([]);
     setLeadTeachers([]);
+    setLeadAdmin('');
     setSchedule('');
     setConclusionLink('');
     setSearchQuery('');
+  };
+
+  const handleClose = () => {
+    resetForm();
     onClose();
   };
 
   const toggleUser = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
+    setSelectedUsers(prev =>
+      prev.includes(userId)
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
@@ -102,6 +104,37 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
               onChange={(e) => setGroupName(e.target.value)}
             />
           </div>
+
+          {admins.length > 0 && (
+            <div className="space-y-2">
+              <Label>Ведущий админ</Label>
+              <p className="text-xs text-muted-foreground">Все админы добавляются автоматически. Виктория Абраменко — супервизор и видит всё. Выберите ведущего админа для этой группы</p>
+              <div className="border rounded-md p-3 space-y-2">
+                {admins.map((admin) => (
+                  <div
+                    key={admin.id}
+                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent cursor-pointer"
+                    onClick={() => setLeadAdmin(leadAdmin === admin.id ? '' : admin.id)}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                      leadAdmin === admin.id ? 'border-primary bg-primary' : 'border-muted-foreground/30'
+                    }`}>
+                      {leadAdmin === admin.id && <Icon name="Check" size={12} className="text-white" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm truncate">{admin.name}</p>
+                        {leadAdmin === admin.id && (
+                          <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full">Ведущий</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{admin.phone}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {teachers.length > 0 && (
             <div className="space-y-2">
@@ -138,14 +171,14 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
 
           <div className="space-y-2">
             <Label>Ученики и родители ({selectedUsers.length} выбрано)</Label>
-            
+
             <Input
               placeholder="Поиск по имени и фамилии..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="mb-2"
             />
-            
+
             <ScrollArea className="h-[200px] border rounded-md">
               <div className="p-3 space-y-4">
                 {parents.length === 0 && students.length === 0 ? (
@@ -161,19 +194,13 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
                         <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Родители</h4>
                         <div className="space-y-2">
                           {filteredParents.map((user) => (
-                            <div
-                              key={user.id}
-                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent"
-                            >
+                            <div key={user.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent">
                               <Checkbox
                                 id={`user-${user.id}`}
                                 checked={selectedUsers.includes(user.id)}
                                 onCheckedChange={() => toggleUser(user.id)}
                               />
-                              <label
-                                htmlFor={`user-${user.id}`}
-                                className="flex-1 min-w-0 cursor-pointer"
-                              >
+                              <label htmlFor={`user-${user.id}`} className="flex-1 min-w-0 cursor-pointer">
                                 <p className="font-medium text-sm truncate">{user.name}</p>
                                 <p className="text-xs text-muted-foreground">{user.phone}</p>
                               </label>
@@ -188,32 +215,19 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
                         <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Ученики</h4>
                         <div className="space-y-2">
                           {filteredStudents.map((user) => (
-                            <div
-                              key={user.id}
-                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent"
-                            >
+                            <div key={user.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent">
                               <Checkbox
                                 id={`user-${user.id}`}
                                 checked={selectedUsers.includes(user.id)}
                                 onCheckedChange={() => toggleUser(user.id)}
                               />
-                              <label
-                                htmlFor={`user-${user.id}`}
-                                className="flex-1 min-w-0 cursor-pointer"
-                              >
+                              <label htmlFor={`user-${user.id}`} className="flex-1 min-w-0 cursor-pointer">
                                 <p className="font-medium text-sm truncate">{user.name}</p>
                                 <p className="text-xs text-muted-foreground">{user.phone}</p>
                               </label>
                             </div>
                           ))}
                         </div>
-                      </div>
-                    )}
-
-                    {searchQuery && filteredParents.length === 0 && filteredStudents.length === 0 && (
-                      <div className="text-center py-8 text-sm text-muted-foreground">
-                        <Icon name="Search" size={32} className="mx-auto mb-2 opacity-50" />
-                        <p>Ничего не найдено</p>
                       </div>
                     )}
                   </>
@@ -224,13 +238,11 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
 
           <div className="space-y-2">
             <Label htmlFor="schedule">Расписание</Label>
-            <Textarea
+            <Input
               id="schedule"
-              placeholder="ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог..."
+              placeholder="Пн, Ср, Пт — 15:00"
               value={schedule}
               onChange={(e) => setSchedule(e.target.value)}
-              rows={3}
-              className="resize-none"
             />
           </div>
 
@@ -238,20 +250,16 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
             <Label htmlFor="conclusionLink">Ссылка на заключение</Label>
             <Input
               id="conclusionLink"
-              type="url"
-              placeholder="https://example.com/conclusion.pdf"
+              placeholder="https://..."
               value={conclusionLink}
               onChange={(e) => setConclusionLink(e.target.value)}
             />
           </div>
         </div>
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={handleClose}>
-            Отмена
-          </Button>
-          <Button onClick={handleCreate} disabled={!groupName.trim()}>
-            Создать
-          </Button>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>Отмена</Button>
+          <Button onClick={handleCreate} disabled={!groupName.trim()} className="bg-primary hover:bg-primary/90">Создать</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -32,7 +32,7 @@ def handler(event: dict, context) -> dict:
                 return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'X-User-Id header is required'})}
 
             cur.execute("""
-                SELECT DISTINCT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned,
+                SELECT DISTINCT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.lead_admin,
                        COALESCE(m.text, '') as last_message,
                        TO_CHAR(m.created_at, 'HH24:MI') as timestamp,
                        COALESCE(unread.count, 0) as unread,
@@ -55,7 +55,7 @@ def handler(event: dict, context) -> dict:
                     AND msg.sender_id != %s
                 ) unread ON true
                 WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = %s)
-                GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, m.text, m.created_at, unread.count
+                GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.lead_admin, m.text, m.created_at, unread.count
                 ORDER BY c.is_pinned DESC, m.created_at DESC NULLS LAST
             """, (user_id, user_id, user_id))
 
@@ -121,8 +121,8 @@ def handler(event: dict, context) -> dict:
                 return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'Missing required fields'})}
 
             cur.execute("""
-                INSERT INTO chats (id, name, type, avatar, schedule, conclusion_link, is_pinned)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO chats (id, name, type, avatar, schedule, conclusion_link, is_pinned, lead_admin)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id) DO NOTHING
                 RETURNING id
             """, (
@@ -132,7 +132,8 @@ def handler(event: dict, context) -> dict:
                 data.get('avatar'),
                 data.get('schedule'),
                 data.get('conclusionLink'),
-                data.get('isPinned', False)
+                data.get('isPinned', False),
+                data.get('leadAdmin')
             ))
 
             result = cur.fetchone()
@@ -186,6 +187,9 @@ def handler(event: dict, context) -> dict:
             if 'name' in data:
                 updates.append('name = %s')
                 values.append(data['name'])
+            if 'leadAdmin' in data:
+                updates.append('lead_admin = %s')
+                values.append(data['leadAdmin'])
 
             if updates:
                 updates.append('updated_at = NOW()')

@@ -8,6 +8,7 @@ export type Chat = {
   unread: number;
   type: 'group' | 'private';
   leadTeachers?: string[];
+  leadAdmin?: string;
   isPinned?: boolean;
   avatar?: string;
   participants?: string[];

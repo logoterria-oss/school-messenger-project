@@ -267,6 +267,7 @@ export const useChatLogic = () => {
             unread: (c.unread || 0) as number,
             participants: c.participants as string[] | undefined,
             leadTeachers: (c.lead_teachers && (c.lead_teachers as string[]).length > 0) ? c.lead_teachers as string[] : undefined,
+            leadAdmin: (c.lead_admin || undefined) as string | undefined,
             isPinned: c.is_pinned as boolean | undefined,
             schedule: c.schedule as string | undefined,
             conclusionLink: c.conclusion_link as string | undefined,
@@ -1013,14 +1014,14 @@ export const useChatLogic = () => {
     });
   };
 
-  const handleCreateGroup = async (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = []) => {
+  const handleCreateGroup = async (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = [], leadAdmin?: string) => {
     const teachersAndAdmins = allUsers
       .filter(user => user.role === 'teacher' || user.role === 'admin')
       .map(user => user.id);
     
-    const adminId = 'admin';
+    const supervisorId = 'admin';
     
-    const allParticipants = [...new Set([...selectedUserIds, ...teachersAndAdmins, adminId])];
+    const allParticipants = [...new Set([...selectedUserIds, ...teachersAndAdmins, supervisorId])];
     const groupId = Date.now().toString();
 
     const topics = [
@@ -1044,6 +1045,7 @@ export const useChatLogic = () => {
         conclusionLink: conclusionLink || undefined,
         topics,
         leadTeachers: leadTeachers.length > 0 ? leadTeachers : undefined,
+        leadAdmin: leadAdmin || undefined,
       });
     } catch (err) {
       console.error('Failed to create group in DB:', err);
@@ -1058,6 +1060,7 @@ export const useChatLogic = () => {
       type: 'group',
       participants: allParticipants,
       leadTeachers: leadTeachers.length > 0 ? leadTeachers : undefined,
+      leadAdmin: leadAdmin || undefined,
       schedule: schedule || undefined,
       conclusionLink: conclusionLink || undefined,
       avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
