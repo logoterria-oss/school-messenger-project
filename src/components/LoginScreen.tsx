@@ -110,6 +110,48 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+  const TEST_ACCOUNTS: Record<UserRole, { name: string; phone: string }[]> = {
+    admin: [
+      { name: 'Тест Админ 2', phone: '70000000001' },
+      { name: 'Тест Админ 3', phone: '70000000002' },
+      { name: 'Тест Админ 4', phone: '70000000003' },
+      { name: 'Тест Админ 5', phone: '70000000004' },
+    ],
+    teacher: [
+      { name: 'тест учитель', phone: '73333333333' },
+      { name: 'Тест Педагог 2', phone: '70000000011' },
+      { name: 'Тест Педагог 3', phone: '70000000012' },
+      { name: 'Тест Педагог 4', phone: '70000000013' },
+      { name: 'Тест Педагог 5', phone: '70000000014' },
+    ],
+    parent: [
+      { name: 'Тест Родитель', phone: '72222222222' },
+      { name: 'Тест Родитель 2', phone: '70000000021' },
+      { name: 'Тест Родитель 3', phone: '70000000022' },
+      { name: 'Тест Родитель 4', phone: '70000000023' },
+      { name: 'Тест Родитель 5', phone: '70000000024' },
+    ],
+    student: [
+      { name: 'Тестовый Ученик', phone: '71111111111' },
+      { name: 'Тест Ученик 2', phone: '70000000031' },
+      { name: 'Тест Ученик 3', phone: '70000000032' },
+      { name: 'Тест Ученик 4', phone: '70000000033' },
+      { name: 'Тест Ученик 5', phone: '70000000034' },
+    ],
+  };
+
+  const handleQuickLogin = async (phone: string) => {
+    setError('');
+    setIsLoggingIn(true);
+    try {
+      const user = await apiLogin(phone, 'test123');
+      setTimeout(() => onLogin(user.role, user.name), 500);
+    } catch {
+      setIsLoggingIn(false);
+      setError('Ошибка быстрого входа');
+    }
+  };
+
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
     setError('');
@@ -329,6 +371,23 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               >
                 Войти
               </Button>
+
+              {selectedRole && TEST_ACCOUNTS[selectedRole] && (
+                <div className="pt-3 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-2 max-lg:text-[9px]">Быстрый вход (тест):</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {TEST_ACCOUNTS[selectedRole].map((acc) => (
+                      <button
+                        key={acc.phone}
+                        onClick={() => handleQuickLogin(acc.phone)}
+                        className="px-3 py-2 text-xs rounded-lg border border-border hover:border-primary/50 hover:bg-accent transition-colors text-left truncate max-lg:px-2 max-lg:py-1.5 max-lg:text-[10px]"
+                      >
+                        {acc.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
