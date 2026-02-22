@@ -614,7 +614,7 @@ export const useChatLogic = () => {
 
       setChatMessages(prev => ({
         ...prev,
-        [targetId]: prev[targetId].map(msg => 
+        [targetId]: (prev[targetId] || []).map(msg => 
           msg.id === messageId ? { ...msg, status: 'sent' } : msg
         )
       }));
@@ -622,7 +622,7 @@ export const useChatLogic = () => {
       console.error('Failed to send message:', error);
       setChatMessages(prev => ({
         ...prev,
-        [targetId]: prev[targetId].map(msg => 
+        [targetId]: (prev[targetId] || []).map(msg => 
           msg.id === messageId ? { ...msg, status: 'sent' } : msg
         )
       }));
@@ -631,7 +631,7 @@ export const useChatLogic = () => {
     setTimeout(() => {
       setChatMessages(prev => ({
         ...prev,
-        [targetId]: prev[targetId].map(msg => 
+        [targetId]: (prev[targetId] || []).map(msg => 
           msg.id === messageId ? { ...msg, status: 'sent' } : msg
         )
       }));
@@ -640,7 +640,7 @@ export const useChatLogic = () => {
     setTimeout(() => {
       setChatMessages(prev => ({
         ...prev,
-        [targetId]: prev[targetId].map(msg => 
+        [targetId]: (prev[targetId] || []).map(msg => 
           msg.id === messageId ? { ...msg, status: 'delivered' } : msg
         )
       }));
@@ -649,7 +649,7 @@ export const useChatLogic = () => {
     setTimeout(() => {
       setChatMessages(prev => ({
         ...prev,
-        [targetId]: prev[targetId].map(msg => 
+        [targetId]: (prev[targetId] || []).map(msg => 
           msg.id === messageId ? { ...msg, status: 'read' } : msg
         )
       }));
@@ -716,8 +716,6 @@ export const useChatLogic = () => {
     
     // Создание закрепленных чатов для педагогов
     if (role === 'teacher') {
-      const currentUserId = allUsers.find(u => u.name === name && u.role === 'teacher')?.id;
-      
       // ВАЖНО: Удаляем старые неправильные чаты (педагог-педагог)
       existingChats = existingChats.filter(chat => {
         // Оставляем все групповые чаты
@@ -1172,9 +1170,7 @@ export const useChatLogic = () => {
       .filter(user => user.role === 'teacher' || user.role === 'admin')
       .map(user => user.id);
     
-    const supervisorId = 'admin';
-    
-    const allParticipants = [...new Set([...selectedUserIds, ...teachersAndAdmins, supervisorId])];
+    const allParticipants = [...new Set([...selectedUserIds, ...teachersAndAdmins, SUPERVISOR_ID])];
     const groupId = Date.now().toString();
 
     const topics = [
@@ -1341,15 +1337,19 @@ export const useChatLogic = () => {
   };
 
   const handleUpdateParticipants = (chatId: string, participantIds: string[]) => {
-    const teacherAndAdminIds = allUsers
-      .filter(u => u.role === 'teacher' || u.role === 'admin')
-      .map(u => u.id);
-    const finalParticipants = [...new Set([...participantIds, ...teacherAndAdminIds, 'admin'])];
+    const chat = chats.find(c => c.id === chatId);
+    let finalParticipants = participantIds;
+    if (chat?.type === 'group') {
+      const teacherAndAdminIds = allUsers
+        .filter(u => u.role === 'teacher' || u.role === 'admin')
+        .map(u => u.id);
+      finalParticipants = [...new Set([...participantIds, ...teacherAndAdminIds, SUPERVISOR_ID])];
+    }
     setChats(prev => {
-      const updated = prev.map(chat =>
-        chat.id === chatId
-          ? { ...chat, participants: finalParticipants }
-          : chat
+      const updated = prev.map(c =>
+        c.id === chatId
+          ? { ...c, participants: finalParticipants }
+          : c
       );
       localStorage.setItem('chats', JSON.stringify(updated));
       return updated;

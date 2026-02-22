@@ -18,7 +18,8 @@ const isTeacherChat = (chat: Chat, allUsers: SimpleUser[], userId?: string) => {
 const isAdminChat = (chat: Chat, allUsers: SimpleUser[], userId?: string) => {
   if (chat.type !== 'private' || !chat.participants) return false;
   return chat.participants.some(id => {
-    if (id === userId || id === SUPERVISOR_ID) return false;
+    if (id === userId) return false;
+    if (id === SUPERVISOR_ID) return false;
     const user = allUsers.find(u => u.id === id);
     return user?.role === 'admin';
   });
@@ -57,10 +58,8 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
 
   const filtered = [...chats].filter((chat) => {
     if (chat.type === 'private' && chat.participants) {
-      const otherUserId = chat.participants.find(id => id !== userId);
-      if (otherUserId === userId || (otherUserId === 'admin' && userId === 'admin')) {
-        return false;
-      }
+      const otherUserIds = chat.participants.filter(id => id !== userId);
+      if (otherUserIds.length === 0) return false;
     }
     if (query) {
       const display = getDisplayChat(chat);
@@ -190,7 +189,9 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
   }
 
   if (isTeacher) {
-    const adminChatIndex = sorted.findIndex(c => c.type === 'private' && c.participants?.includes('admin'));
+    const adminChatIndex = sorted.findIndex(c => 
+      c.type === 'private' && c.participants?.some(id => allUsers.find(u => u.id === id)?.role === 'admin')
+    );
     const insertIndex = adminChatIndex >= 0 ? adminChatIndex + 1 : sorted.length;
     const beforeNonLead = sorted.slice(0, insertIndex);
     const afterNonLead = sorted.slice(insertIndex);
