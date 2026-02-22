@@ -17,7 +17,7 @@ export const testAccounts: TestAccount[] = [
     email: 'parent.test@example.com',
     password: 'test123',
     role: 'parent',
-    avatar: 'https://cdn.poehali.dev/files/Родитель.jpg',
+    avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/c478476c-1695-424a-bc34-76109e654dd2.jpg',
     linkedTo: ['student-test-1']
   },
   {
@@ -27,7 +27,7 @@ export const testAccounts: TestAccount[] = [
     email: 'student.test@example.com',
     password: 'test123',
     role: 'student',
-    avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
+    avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/7b844c02-3fc8-46a5-a087-b36db9e5e47e.jpg',
     linkedTo: ['parent-test-1']
   },
   {
@@ -37,7 +37,7 @@ export const testAccounts: TestAccount[] = [
     email: 'parent2.test@example.com',
     password: 'test123',
     role: 'parent',
-    avatar: 'https://cdn.poehali.dev/files/Родитель.jpg',
+    avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/c478476c-1695-424a-bc34-76109e654dd2.jpg',
     linkedTo: ['student-test-2']
   },
   {
@@ -47,7 +47,7 @@ export const testAccounts: TestAccount[] = [
     email: 'student2.test@example.com',
     password: 'test123',
     role: 'student',
-    avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
+    avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/7b844c02-3fc8-46a5-a087-b36db9e5e47e.jpg',
     linkedTo: ['parent-test-2']
   },
   {
@@ -57,7 +57,7 @@ export const testAccounts: TestAccount[] = [
     email: 'parent3.test@example.com',
     password: 'test123',
     role: 'parent',
-    avatar: 'https://cdn.poehali.dev/files/Родитель.jpg',
+    avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/c478476c-1695-424a-bc34-76109e654dd2.jpg',
     linkedTo: ['student-test-3']
   },
   {
@@ -67,7 +67,7 @@ export const testAccounts: TestAccount[] = [
     email: 'student3.test@example.com',
     password: 'test123',
     role: 'student',
-    avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
+    avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/7b844c02-3fc8-46a5-a087-b36db9e5e47e.jpg',
     linkedTo: ['parent-test-3']
   }
 ];

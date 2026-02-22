@@ -94,7 +94,7 @@ const loadUsersFromStorage = (): User[] => {
     phone: teacher.phone,
     email: teacher.email,
     password: teacher.password,
-    avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
+    avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/b570bb12-a919-4198-92e6-c93a9445c88c.jpg',
   }));
   
   const testUsers = testAccounts.map(account => ({
@@ -534,10 +534,10 @@ export const useChatLogic = () => {
     
     const senderName = userRole === 'admin' ? 'Виктория Абраменко' : userName;
     const defaultAvatars: Record<string, string> = {
-      admin: 'https://cdn.poehali.dev/files/Админ.jpg',
-      teacher: 'https://cdn.poehali.dev/files/Педагог.jpg',
-      parent: 'https://cdn.poehali.dev/files/Родитель.jpg',
-      student: 'https://cdn.poehali.dev/files/Ученик.jpg',
+      admin: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg',
+      teacher: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/b570bb12-a919-4198-92e6-c93a9445c88c.jpg',
+      parent: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/c478476c-1695-424a-bc34-76109e654dd2.jpg',
+      student: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/7b844c02-3fc8-46a5-a087-b36db9e5e47e.jpg',
     };
     const senderAvatar = userRole === 'admin'
       ? defaultAvatars.admin
@@ -796,7 +796,7 @@ export const useChatLogic = () => {
           return {
             ...chat,
             name: 'Виктория Абраменко', // Исправляем имя
-            avatar: 'https://cdn.poehali.dev/files/Админ.jpg', // Исправляем аватар
+            avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg', // Исправляем аватар
             participants: [currentUserId, 'admin'],
           };
         }
@@ -813,7 +813,7 @@ export const useChatLogic = () => {
           unread: 0,
           participants: [currentUserId, 'admin'],
           isPinned: true,
-          avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
+          avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg',
         };
         existingChats.unshift(adminChat);
       }
@@ -883,7 +883,7 @@ export const useChatLogic = () => {
             unread: 0,
             participants: [teacher.id, currentUserId],
             isPinned: true,
-            avatar: teacher.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
+            avatar: teacher.avatar || 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/b570bb12-a919-4198-92e6-c93a9445c88c.jpg',
           };
           existingChats.unshift(privateChat);
         }
@@ -904,7 +904,7 @@ export const useChatLogic = () => {
             unread: 0,
             participants: [currentUserId, SUPERVISOR_ID],
             isPinned: true,
-            avatar: supervisorUser?.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
+            avatar: supervisorUser?.avatar || 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg',
           };
           existingChats.unshift(supervisorChat);
         }
@@ -933,7 +933,7 @@ export const useChatLogic = () => {
             unread: 0,
             participants: [adm.id, currentUserId],
             isPinned: false,
-            avatar: adm.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
+            avatar: adm.avatar || 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg',
           };
           existingChats.push(privateChat);
         }
@@ -1048,7 +1048,7 @@ export const useChatLogic = () => {
       phone,
       password,
       role: 'student',
-      avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
+      avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/7b844c02-3fc8-46a5-a087-b36db9e5e47e.jpg',
     };
     setAllUsers(prev => [...prev, newUser]);
     try {
@@ -1067,7 +1067,7 @@ export const useChatLogic = () => {
       email,
       password,
       role: 'parent',
-      avatar: 'https://cdn.poehali.dev/files/Родитель.jpg',
+      avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/c478476c-1695-424a-bc34-76109e654dd2.jpg',
     };
     setAllUsers(prev => [...prev, newUser]);
     try {
@@ -1086,7 +1086,7 @@ export const useChatLogic = () => {
       email,
       password,
       role: 'teacher',
-      avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
+      avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/b570bb12-a919-4198-92e6-c93a9445c88c.jpg',
     };
     setAllUsers(prev => [...prev, newUser]);
 
@@ -1124,7 +1124,7 @@ export const useChatLogic = () => {
             unread: 0,
             participants: [newUser.id, 'admin'],
             isPinned: true,
-            avatar: newUser.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
+            avatar: newUser.avatar || 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/b570bb12-a919-4198-92e6-c93a9445c88c.jpg',
           };
           updatedChats.unshift(privateChat);
         }
@@ -1143,7 +1143,7 @@ export const useChatLogic = () => {
       email,
       password,
       role: 'admin',
-      avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
+      avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg',
     };
     setAllUsers(prev => [...prev, newUser]);
 
@@ -1189,7 +1189,7 @@ export const useChatLogic = () => {
         name: groupName,
         type: 'group',
         participants: allParticipants,
-        avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
+        avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/7b844c02-3fc8-46a5-a087-b36db9e5e47e.jpg',
         schedule: schedule || undefined,
         conclusionLink: conclusionLink || undefined,
         topics,
@@ -1212,7 +1212,7 @@ export const useChatLogic = () => {
       leadAdmin: leadAdmin || undefined,
       schedule: schedule || undefined,
       conclusionLink: conclusionLink || undefined,
-      avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
+      avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/7b844c02-3fc8-46a5-a087-b36db9e5e47e.jpg',
     };
     setChats(prev => [newGroup, ...prev]);
     setGroupTopics(prev => ({
@@ -1233,7 +1233,7 @@ export const useChatLogic = () => {
         text: welcomeText,
         sender: 'Виктория Абраменко',
         senderId: 'admin',
-        senderAvatar: 'https://cdn.poehali.dev/files/Админ.jpg',
+        senderAvatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/861e809f-c7d5-4832-a853-e636d1e28f3f.jpg',
         timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
         isOwn: true,
       }]
