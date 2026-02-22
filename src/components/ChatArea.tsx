@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Icon from '@/components/ui/icon';
 import { MessageBubble } from './MessageBubble';
-import { getChatSettings } from '@/utils/notificationSettings';
+import { getChatSettings, setChatSound, setChatPush } from '@/utils/notificationSettings';
 
 type AttachedFile = {
   type: 'image' | 'file';
@@ -45,6 +46,31 @@ type ChatAreaProps = {
   onOpenChatInfo?: () => void;
   chatId?: string;
   participantsCount?: number;
+};
+
+const TopicMuteButton = ({ topicId }: { topicId: string }) => {
+  const [muted, setMuted] = useState(() => {
+    const s = getChatSettings(topicId);
+    return !s.sound && !s.push;
+  });
+
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newMuted = !muted;
+    setChatSound(topicId, !newMuted);
+    setChatPush(topicId, !newMuted);
+    setMuted(newMuted);
+  };
+
+  return (
+    <button
+      onClick={toggle}
+      className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent transition-colors"
+      title={muted ? 'Включить уведомления' : 'Выключить уведомления'}
+    >
+      <Icon name={muted ? 'BellOff' : 'Bell'} size={14} className={muted ? 'text-muted-foreground' : 'text-primary'} />
+    </button>
+  );
 };
 
 export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount }: ChatAreaProps) => {
@@ -107,27 +133,32 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
               {filteredTopics.map((topic) => {
                 const topicSettings = getChatSettings(topic.id);
                 const topicMuted = !topicSettings.sound && !topicSettings.push;
+                const isActive = selectedTopic === topic.id;
                 return (
-                  <button
-                    key={topic.id}
-                    onClick={() => onTopicSelect?.(topic.id)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all ${
-                      selectedTopic === topic.id
-                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                        : 'bg-card border-border hover:border-primary/50 hover:bg-accent'
-                    }`}
-                  >
-                    <Icon name={topic.icon} size={14} />
-                    <span className="text-sm font-medium">{topic.name}</span>
-                    {topicMuted && selectedTopic !== topic.id && (
-                      <Icon name="BellOff" size={12} className="text-muted-foreground" />
+                  <div key={topic.id} className="flex items-center gap-1">
+                    <button
+                      onClick={() => onTopicSelect?.(topic.id)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all ${
+                        isActive
+                          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                          : 'bg-card border-border hover:border-primary/50 hover:bg-accent'
+                      }`}
+                    >
+                      <Icon name={topic.icon} size={14} />
+                      <span className="text-sm font-medium">{topic.name}</span>
+                      {topicMuted && !isActive && (
+                        <Icon name="BellOff" size={12} className="text-muted-foreground" />
+                      )}
+                      {topic.unread > 0 && !isActive && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${topicMuted ? 'bg-muted-foreground/40 text-white' : 'bg-primary text-primary-foreground'}`}>
+                          {topic.unread}
+                        </span>
+                      )}
+                    </button>
+                    {isActive && (
+                      <TopicMuteButton topicId={topic.id} />
                     )}
-                    {topic.unread > 0 && selectedTopic !== topic.id && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${topicMuted ? 'bg-muted-foreground/40 text-white' : 'bg-primary text-primary-foreground'}`}>
-                        {topic.unread}
-                      </span>
-                    )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
