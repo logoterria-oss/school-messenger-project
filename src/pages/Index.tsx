@@ -208,16 +208,16 @@ const Index = () => {
               />
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-accent/20">
-              <div className="text-center space-y-3">
-                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                  <Icon name="MessageSquare" size={36} className="text-primary" />
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mx-auto">
+                  <Icon name="MessageSquare" size={24} className="text-muted-foreground/60" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-medium mb-1">
+                  <h2 className="text-base font-medium text-foreground/80 mb-1">
                     Выберите чат
                   </h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground/60">
                     Начните общение с педагогами и родителями
                   </p>
                 </div>

@@ -68,23 +68,23 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
     : parentTopics;
 
   return (
-    <div className="w-[420px] bg-card border-r border-border flex flex-col">
-      <div className="p-4 bg-card">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
+    <div className="w-[380px] bg-card/50 backdrop-blur-sm border-r border-border/60 flex flex-col">
+      <div className="px-4 pt-4 pb-3">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
             <img 
               src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
               alt="LineaSchool" 
-              className="w-10 h-10 rounded-lg flex-shrink-0"
+              className="w-9 h-9 rounded-lg flex-shrink-0"
               loading="lazy"
             />
             <div>
-              <h1 className="text-base font-extrabold" style={{ color: '#3BA662' }}>LineaSchool</h1>
-              <p className="text-xs text-muted-foreground">
-                {userRole === 'admin' && 'Виктория Абраменко (админ)'}
-                {userRole === 'teacher' && (userName ? `${userName} (педагог)` : 'Педагог')}
-                {userRole === 'parent' && (userName ? `${userName} (родитель)` : 'Родитель')}
-                {userRole === 'student' && (userName ? `${userName} (ученик)` : 'Ученик')}
+              <h1 className="text-sm font-bold text-primary">LineaSchool</h1>
+              <p className="text-[11px] text-muted-foreground/70 leading-tight">
+                {userRole === 'admin' && 'Виктория Абраменко'}
+                {userRole === 'teacher' && (userName || 'Педагог')}
+                {userRole === 'parent' && (userName || 'Родитель')}
+                {userRole === 'student' && (userName || 'Ученик')}
               </p>
             </div>
           </div>
@@ -145,17 +145,17 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
         </div>
 
         <div className="relative">
-          <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
           <Input
-            placeholder="Поиск чатов..."
+            placeholder="Поиск..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 bg-accent border-0 text-sm"
+            className="pl-8 h-8 bg-accent/50 border-0 text-xs rounded-lg placeholder:text-muted-foreground/40"
           />
         </div>
 
         {isParentOrStudent && filteredParentTopics.length > 0 && (
-          <div className="mt-4 space-y-1">
+          <div className="mt-3 space-y-0.5">
             {filteredParentTopics.map((topic) => (
               <button
                 key={topic.id}
@@ -165,16 +165,16 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
                   }
                   onTopicSelect?.(topic.id);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
                   selectedTopic === topic.id
-                    ? 'bg-primary text-white'
-                    : 'text-foreground hover:bg-accent'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-foreground hover:bg-accent/60'
                 }`}
               >
-                <Icon name={topic.icon} size={18} />
-                <span className="font-medium flex-1 text-left">{topic.name}</span>
+                <Icon name={topic.icon} size={16} className={selectedTopic === topic.id ? 'text-primary' : 'text-muted-foreground'} />
+                <span className={`flex-1 text-left text-[13px] ${selectedTopic === topic.id ? 'font-semibold' : 'font-medium'}`}>{topic.name}</span>
                 {topic.unread > 0 && selectedTopic !== topic.id && (
-                  <Badge className="bg-primary text-white text-xs px-1.5 py-0 h-5 min-w-5 rounded-full">
+                  <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md font-semibold">
                     {topic.unread}
                   </Badge>
                 )}
@@ -183,6 +183,12 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           </div>
         )}
       </div>
+
+      {!isParentOrStudent && chats.length > 0 && (
+        <div className="px-4 pb-2">
+          <div className="h-px bg-border/40" />
+        </div>
+      )}
 
       {!isParentOrStudent && (
         <ChatList

@@ -1,5 +1,4 @@
 import { memo, useState, useCallback } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { getChatSettings, setChatSound, setChatPush } from '@/utils/notificationSettings';
@@ -29,50 +28,55 @@ export const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { av
   }, [chat.id, settings.push]);
 
   const isMuted = !settings.sound && !settings.push;
+  const initial = chat.name ? chat.name.charAt(0).toUpperCase() : '?';
 
   return (
     <>
       <button
         onClick={onClick}
         onContextMenu={handleContextMenu}
-        className={`w-full px-4 py-3 text-left transition-colors border-l-4 ${
+        className={`w-full px-3 py-2 text-left transition-all rounded-lg mx-1 ${
           isSelected
-            ? 'bg-accent border-primary'
-            : 'border-transparent hover:bg-accent/50'
+            ? 'bg-primary/10 shadow-sm'
+            : 'hover:bg-accent/60'
         }`}
+        style={{ width: 'calc(100% - 8px)' }}
       >
         <div className="flex items-center gap-3">
-          <Avatar className="w-14 h-14">
-            {chat.avatar && <AvatarImage src={chat.avatar} />}
-            <AvatarFallback className="bg-primary text-white text-sm">
-              {chat.type === 'group' ? (
-                <Icon name="Users" size={20} />
-              ) : (
-                <Icon name="User" size={20} />
-              )}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-baseline justify-between mb-0.5">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <h3 className="font-medium text-sm truncate text-foreground">{chat.name}</h3>
-                {chat.isPinned && (
-                  <Icon name="Pin" size={14} className="text-muted-foreground flex-shrink-0" />
-                )}
-                {isMuted && (
-                  <Icon name="BellOff" size={14} className="text-muted-foreground flex-shrink-0" />
+          <div className={`w-10 h-10 rounded-lg flex-shrink-0 overflow-hidden ${isSelected ? 'ring-2 ring-primary/30' : ''}`}>
+            {chat.avatar ? (
+              <img src={chat.avatar} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-accent flex items-center justify-center">
+                {chat.type === 'group' ? (
+                  <Icon name="Users" size={16} className="text-muted-foreground" />
+                ) : (
+                  <span className="text-sm font-semibold text-muted-foreground">{initial}</span>
                 )}
               </div>
-              <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-0.5">
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <h3 className={`text-[13px] truncate ${isSelected ? 'font-semibold text-primary' : 'font-medium text-foreground'}`}>{chat.name}</h3>
+                {chat.isPinned && (
+                  <Icon name="Pin" size={12} className="text-muted-foreground/60 flex-shrink-0 rotate-45" />
+                )}
+                {isMuted && (
+                  <Icon name="BellOff" size={12} className="text-muted-foreground/60 flex-shrink-0" />
+                )}
+              </div>
+              <span className="text-[11px] text-muted-foreground/70 ml-2 flex-shrink-0">
                 {chat.timestamp}
               </span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <p className="text-sm text-muted-foreground truncate flex-1">
+              <p className="text-xs text-muted-foreground truncate flex-1">
                 {chat.lastMessage}
               </p>
               {chat.unread > 0 && (
-                <Badge className={`text-xs px-2 py-0 h-5 min-w-5 rounded-full flex items-center justify-center ${isMuted ? 'bg-muted-foreground/40 text-white' : 'bg-primary text-white'}`}>
+                <Badge className={`text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold ${isMuted ? 'bg-muted-foreground/30 text-foreground/60' : 'bg-primary text-white'}`}>
                   {chat.unread}
                 </Badge>
               )}

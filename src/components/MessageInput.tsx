@@ -155,7 +155,7 @@ export const MessageInput = ({
 
   if (disabled) {
     return (
-      <div className="bg-card border-t border-border px-4 py-3">
+      <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-5 py-3">
         <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm py-2">
           <Icon name="Lock" size={16} />
           <span>{disabledMessage || 'Отправка сообщений недоступна'}</span>
@@ -165,34 +165,34 @@ export const MessageInput = ({
   }
 
   return (
-    <div className="bg-card border-t border-border px-4 py-3">
+    <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-5 py-3">
       {attachments.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
           {attachments.map((attachment, idx) => (
-            <div 
+            <div
               key={idx}
-              className="relative group bg-accent rounded-lg overflow-hidden"
+              className="relative group bg-accent/60 rounded-lg overflow-hidden"
             >
               {attachment.type === 'image' && attachment.fileUrl && (
                 <div className="relative">
-                  <img 
-                    src={attachment.fileUrl} 
-                    alt="Preview" 
-                    className="h-20 w-20 object-cover"
+                  <img
+                    src={attachment.fileUrl}
+                    alt="Preview"
+                    className="h-16 w-16 object-cover rounded-lg"
                   />
                   <button
                     onClick={() => onRemoveAttachment(idx)}
-                    className="absolute top-1 right-1 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-0.5 right-0.5 bg-destructive text-white rounded-md p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <Icon name="X" size={14} />
+                    <Icon name="X" size={12} />
                   </button>
                 </div>
               )}
-              
+
               {attachment.type === 'file' && (
-                <div className="flex items-center gap-2 p-2 pr-8 min-w-[200px]">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Icon name="FileText" size={20} className="text-primary" />
+                <div className="flex items-center gap-2 p-2 pr-8 min-w-[180px]">
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon name="FileText" size={16} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{attachment.fileName}</p>
@@ -200,7 +200,7 @@ export const MessageInput = ({
                   </div>
                   <button
                     onClick={() => onRemoveAttachment(idx)}
-                    className="absolute top-2 right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1.5 right-1.5 bg-destructive text-white rounded-md p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Icon name="X" size={12} />
                   </button>
@@ -211,11 +211,11 @@ export const MessageInput = ({
         </div>
       )}
 
-      <div className="relative flex items-center gap-2">
+      <div className="relative">
         {showMentions && filteredUsers.length > 0 && (
           <div
             ref={mentionListRef}
-            className="absolute bottom-full left-0 right-0 mb-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50"
+            className="absolute bottom-full left-0 right-0 mb-1 bg-card border border-border rounded-xl shadow-lg max-h-48 overflow-y-auto z-50"
           >
             {filteredUsers.map((user, idx) => (
               <button
@@ -229,90 +229,77 @@ export const MessageInput = ({
                 }}
                 onMouseEnter={() => setSelectedMentionIndex(idx)}
               >
-                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center overflow-hidden flex-shrink-0">
                   {user.avatar ? (
                     <img src={user.avatar} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-xs font-medium text-primary">{user.name.charAt(0)}</span>
+                    <span className="text-xs font-semibold text-muted-foreground">{user.name.charAt(0)}</span>
                   )}
                 </div>
-                <span className="font-medium truncate">{user.name}</span>
+                <span className="font-medium truncate text-sm">{user.name}</span>
               </button>
             ))}
           </div>
         )}
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <Icon name="Smile" size={20} />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-2" side="top" align="start">
-            <div className="grid grid-cols-5 gap-1">
-              {EMOJI_LIST.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => onMessageChange(messageText + emoji)}
-                  className="text-2xl hover:scale-125 transition-transform p-1 cursor-pointer"
-                >
-                  {emoji}
+        <div className="flex items-end gap-2 bg-accent/40 rounded-xl px-3 py-2">
+          <div className="flex items-center gap-0.5 flex-shrink-0 pb-0.5">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground">
+                  <Icon name="Smile" size={18} />
                 </button>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
-        
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={onImageUpload}
-        />
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground"
-          onClick={() => imageInputRef.current?.click()}
-        >
-          <Icon name="Image" size={20} />
-        </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" side="top" align="start">
+                <div className="grid grid-cols-5 gap-1">
+                  {EMOJI_LIST.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => onMessageChange(messageText + emoji)}
+                      className="text-xl hover:scale-110 transition-transform p-1.5 cursor-pointer rounded-md hover:bg-accent"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={onFileUpload}
-        />
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Icon name="Paperclip" size={20} />
-        </Button>
+            <input ref={imageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={onImageUpload} />
+            <button
+              className="w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => imageInputRef.current?.click()}
+            >
+              <Icon name="Image" size={18} />
+            </button>
 
-        <Textarea
-          ref={textareaRef}
-          placeholder={mentionableUsers && mentionableUsers.length > 0 ? "Сообщение... (@  — упомянуть)" : "Введите сообщение"}
-          value={messageText}
-          onChange={(e) => handleTextChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="flex-1 bg-card border-border min-h-[40px] max-h-[120px] resize-none py-2 overflow-y-auto"
-          rows={1}
-        />
-        <Button
-          onClick={onSendMessage}
-          size="icon"
-          className="bg-primary hover:bg-primary/90 text-white"
-          disabled={!messageText.trim() && attachments.length === 0}
-        >
-          <Icon name="Send" size={18} />
-        </Button>
+            <input ref={fileInputRef} type="file" multiple className="hidden" onChange={onFileUpload} />
+            <button
+              className="w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Icon name="Paperclip" size={18} />
+            </button>
+          </div>
+
+          <Textarea
+            ref={textareaRef}
+            placeholder={mentionableUsers && mentionableUsers.length > 0 ? "Напишите сообщение... (@ — упомянуть)" : "Напишите сообщение..."}
+            value={messageText}
+            onChange={(e) => handleTextChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="flex-1 bg-transparent border-0 shadow-none min-h-[36px] max-h-[120px] resize-none py-1.5 overflow-y-auto focus-visible:ring-0 text-sm placeholder:text-muted-foreground/50"
+            rows={1}
+          />
+
+          <button
+            onClick={onSendMessage}
+            disabled={!messageText.trim() && attachments.length === 0}
+            className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed mb-0.5"
+          >
+            <Icon name="ArrowUp" size={16} />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Icon from '@/components/ui/icon';
 import {
   Popover,
@@ -42,53 +41,20 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
   const images = message.attachments?.filter(a => a.type === 'image') || [];
   const files = message.attachments?.filter(a => a.type === 'file') || [];
 
-  const openImage = (index: number) => {
-    setSelectedImageIndex(index);
-  };
-
-  const closeImage = () => {
-    setSelectedImageIndex(null);
-  };
-
-  const nextImage = () => {
-    setSelectedImageIndex(prev => {
-      if (prev !== null && prev < images.length - 1) {
-        return prev + 1;
-      }
-      return prev;
-    });
-  };
-
-  const prevImage = () => {
-    setSelectedImageIndex(prev => {
-      if (prev !== null && prev > 0) {
-        return prev - 1;
-      }
-      return prev;
-    });
-  };
+  const openImage = (index: number) => setSelectedImageIndex(index);
+  const closeImage = () => setSelectedImageIndex(null);
 
   useEffect(() => {
     if (selectedImageIndex === null) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
-        setSelectedImageIndex(prev => {
-          if (prev !== null && prev < images.length - 1) return prev + 1;
-          return prev;
-        });
+        setSelectedImageIndex(prev => (prev !== null && prev < images.length - 1) ? prev + 1 : prev);
       }
       if (e.key === 'ArrowLeft') {
-        setSelectedImageIndex(prev => {
-          if (prev !== null && prev > 0) return prev - 1;
-          return prev;
-        });
+        setSelectedImageIndex(prev => (prev !== null && prev > 0) ? prev - 1 : prev);
       }
-      if (e.key === 'Escape') {
-        setSelectedImageIndex(null);
-      }
+      if (e.key === 'Escape') setSelectedImageIndex(null);
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedImageIndex, images.length]);
@@ -104,49 +70,63 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
     if (count === 1) return 'aspect-square max-w-xs';
     if (count === 2) return 'aspect-square';
     if (count === 3 && idx === 0) return 'col-span-3 aspect-video';
-    if (count === 3) return 'aspect-square';
     return 'aspect-square';
   };
 
   const senderInitial = message.sender ? message.sender.charAt(0).toUpperCase() : '?';
 
   return (
-    <div
-      className={`flex group ${message.isOwn ? 'justify-end' : 'justify-start'}`}
-    >
-      {!message.isOwn && (
-        <Avatar className="w-8 h-8 mr-2 mt-1 flex-shrink-0">
-          {message.senderAvatar && <AvatarImage src={message.senderAvatar} />}
-          <AvatarFallback className="bg-primary/20 text-primary text-xs font-medium">
-            {senderInitial}
-          </AvatarFallback>
-        </Avatar>
-      )}
-      <div className="relative" style={{ overflow: 'visible' }}>
-        <div
-          className={`max-w-md rounded-lg shadow-sm ${
-            message.isOwn
-              ? 'bg-[#D9FDD3] text-foreground rounded-br-none'
-              : 'bg-card text-foreground rounded-bl-none'
-          }`}
-        >
-          {!message.isOwn && (
-            <p className="text-xs font-medium text-primary mb-1 px-3 pt-2">
+    <div className="group relative">
+      <div className={`flex items-start gap-3 px-4 py-2.5 rounded-xl transition-colors hover:bg-accent/40 ${message.isOwn ? 'bg-primary/[0.04]' : ''}`}>
+        <div className="w-9 h-9 rounded-lg flex-shrink-0 overflow-hidden mt-0.5">
+          {message.senderAvatar ? (
+            <img src={message.senderAvatar} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className={`w-full h-full flex items-center justify-center text-xs font-semibold ${message.isOwn ? 'bg-primary/15 text-primary' : 'bg-accent text-muted-foreground'}`}>
+              {senderInitial}
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2 mb-0.5">
+            <span className={`text-[13px] font-semibold ${message.isOwn ? 'text-primary' : 'text-foreground'}`}>
               {message.sender}
+            </span>
+            <span className="text-[11px] text-muted-foreground/70">{message.timestamp}</span>
+            {message.isOwn && message.status && (
+              <span className="flex items-center">
+                {message.status === 'sending' && <Icon name="Clock" size={12} className="text-muted-foreground/50" />}
+                {message.status === 'sent' && <Icon name="Check" size={12} className="text-muted-foreground/50" />}
+                {message.status === 'delivered' && <Icon name="CheckCheck" size={12} className="text-muted-foreground/50" />}
+                {message.status === 'read' && <Icon name="CheckCheck" size={12} className="text-primary" />}
+              </span>
+            )}
+          </div>
+
+          {message.text && (
+            <p className="text-[14px] leading-relaxed break-words whitespace-pre-wrap text-foreground/90">
+              {message.text.split(/(@[А-Яа-яёЁA-Za-z]+(?:\s[А-Яа-яёЁA-Za-z]+)?)/).map((part, i) =>
+                part.startsWith('@') ? (
+                  <span key={i} className="text-primary font-semibold">{part}</span>
+                ) : (
+                  <span key={i}>{part}</span>
+                )
+              )}
             </p>
           )}
 
           {images.length > 0 && (
-            <div className="p-1">
-              <div className={`grid gap-0.5 ${getGridLayout(Math.min(images.length, 4))} max-w-xs`}>
+            <div className="mt-2">
+              <div className={`grid gap-1.5 ${getGridLayout(Math.min(images.length, 4))} max-w-sm`}>
                 {images.slice(0, 4).map((img, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className={`${getImageSize(Math.min(images.length, 4), idx)} overflow-hidden rounded-lg cursor-pointer relative group/img`}
                     onClick={() => openImage(idx)}
                   >
-                    <img 
-                      src={img.fileUrl} 
+                    <img
+                      src={img.fileUrl}
                       alt={`Изображение ${idx + 1}`}
                       className="w-full h-full object-cover group-hover/img:brightness-90 transition-all"
                       loading="lazy"
@@ -163,11 +143,11 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
           )}
 
           {files.length > 0 && (
-            <div className="space-y-1">
+            <div className="mt-2 space-y-1">
               {files.map((file, idx) => (
-                <div key={idx} className="px-3 py-2 flex items-center gap-3 min-w-[280px]">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Icon name="FileText" size={24} className="text-primary" />
+                <div key={idx} className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-sm">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon name="FileText" size={20} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{file.fileName}</p>
@@ -176,7 +156,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 h-8 w-8"
                     onClick={() => {
                       if (file.fileUrl) {
                         const a = document.createElement('a');
@@ -188,147 +168,92 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
                       }
                     }}
                   >
-                    <Icon name="Download" size={18} />
+                    <Icon name="Download" size={16} />
                   </Button>
                 </div>
               ))}
             </div>
           )}
-          
-          {message.text && (
-            <div className="px-3 py-2">
-              <p className="text-[14.2px] leading-[19px] break-words whitespace-pre-wrap">
-                {message.text.split(/(@[А-Яа-яёЁA-Za-z]+(?:\s[А-Яа-яёЁA-Za-z]+)?)/).map((part, i) =>
-                  part.startsWith('@') ? (
-                    <span key={i} className="text-primary font-semibold">{part}</span>
-                  ) : (
-                    <span key={i}>{part}</span>
-                  )
-                )}
-              </p>
-            </div>
-          )}
 
-          <div className="flex items-center justify-end gap-1 px-3 pb-2">
-            <span className="text-[11px] text-muted-foreground">
-              {message.timestamp}
-            </span>
-            {message.isOwn && (
-              <>
-                {message.status === 'sending' && (
-                  <Icon name="Clock" size={14} className="text-muted-foreground" />
-                )}
-                {message.status === 'sent' && (
-                  <Icon name="Check" size={14} className="text-muted-foreground" />
-                )}
-                {message.status === 'delivered' && (
-                  <Icon name="CheckCheck" size={14} className="text-muted-foreground" />
-                )}
-                {message.status === 'read' && (
-                  <Icon name="CheckCheck" size={14} className="text-primary" />
-                )}
-              </>
-            )}
-          </div>
-        </div>
-
-        {message.reactions && message.reactions.length > 0 && (
-          <div className="absolute -bottom-2 right-2 flex gap-1 bg-card rounded-full px-2 py-0.5 border border-border shadow-sm">
-            {message.reactions.map((reaction, idx) => (
-              <button
-                key={idx}
-                className="flex items-center gap-0.5 text-xs hover:scale-110 transition-transform"
-                onClick={() => onReaction(message.id, reaction.emoji)}
-              >
-                <span>{reaction.emoji}</span>
-                <span className="text-muted-foreground">{reaction.count}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={`absolute top-1 ${message.isOwn ? 'left-[-40px]' : 'right-[-40px]'} opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 z-10`}
-            >
-              <Icon name="SmilePlus" size={16} />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-2 z-50" side="top">
-            <div className="flex gap-1">
-              {REACTIONS.map((emoji) => (
+          {message.reactions && message.reactions.length > 0 && (
+            <div className="flex gap-1 mt-1.5">
+              {message.reactions.map((reaction, idx) => (
                 <button
-                  key={emoji}
-                  onClick={() => onReaction(message.id, emoji)}
-                  className="text-2xl hover:scale-125 transition-transform p-1 cursor-pointer"
+                  key={idx}
+                  onClick={() => onReaction(message.id, reaction.emoji)}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent hover:bg-accent/80 border border-border/50 transition-colors"
+                  title={reaction.users?.join(', ')}
                 >
-                  {emoji}
+                  <span className="text-sm">{reaction.emoji}</span>
+                  <span className="text-xs text-muted-foreground">{reaction.count}</span>
                 </button>
               ))}
             </div>
-          </PopoverContent>
-        </Popover>
+          )}
+        </div>
+
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="w-7 h-7 rounded-md hover:bg-accent flex items-center justify-center">
+                <Icon name="SmilePlus" size={15} className="text-muted-foreground" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" side="top">
+              <div className="flex gap-1">
+                {REACTIONS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => onReaction(message.id, emoji)}
+                    className="w-8 h-8 rounded-md hover:bg-accent flex items-center justify-center transition-transform hover:scale-110"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
-      <Dialog open={selectedImageIndex !== null} onOpenChange={closeImage}>
-        <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-none">
-          <DialogTitle className="sr-only">Просмотр изображения</DialogTitle>
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white"
-              onClick={closeImage}
-            >
-              <Icon name="X" size={24} />
-            </Button>
-            
-            {selectedImageIndex !== null && images[selectedImageIndex] && (
-              <>
-                <img 
-                  src={images[selectedImageIndex].fileUrl} 
-                  alt={`Изображение ${selectedImageIndex + 1} из ${images.length}`}
-                  className="w-full h-auto max-h-[90vh] object-contain"
-                  loading="eager"
-                />
-                
-                {images.length > 1 && (
-                  <>
-                    {selectedImageIndex > 0 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-12 h-12"
-                        onClick={prevImage}
-                      >
-                        <Icon name="ChevronLeft" size={32} />
-                      </Button>
-                    )}
-                    
-                    {selectedImageIndex < images.length - 1 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-12 h-12"
-                        onClick={nextImage}
-                      >
-                        <Icon name="ChevronRight" size={32} />
-                      </Button>
-                    )}
-                    
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                      {selectedImageIndex + 1} / {images.length}
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {selectedImageIndex !== null && images[selectedImageIndex] && (
+        <Dialog open={true} onOpenChange={closeImage}>
+          <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-black/95 border-none">
+            <DialogTitle className="sr-only">Просмотр изображения</DialogTitle>
+            <div className="relative flex items-center justify-center min-h-[400px]">
+              <img
+                src={images[selectedImageIndex].fileUrl}
+                alt={`Изображение ${selectedImageIndex + 1}`}
+                className="max-w-full max-h-[85vh] object-contain"
+              />
+              {selectedImageIndex > 0 && (
+                <button
+                  onClick={() => setSelectedImageIndex(prev => prev !== null ? prev - 1 : null)}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <Icon name="ChevronLeft" size={24} className="text-white" />
+                </button>
+              )}
+              {selectedImageIndex < images.length - 1 && (
+                <button
+                  onClick={() => setSelectedImageIndex(prev => prev !== null ? prev + 1 : null)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <Icon name="ChevronRight" size={24} className="text-white" />
+                </button>
+              )}
+              <button
+                onClick={closeImage}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+              >
+                <Icon name="X" size={20} className="text-white" />
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
+
+export default MessageBubble;

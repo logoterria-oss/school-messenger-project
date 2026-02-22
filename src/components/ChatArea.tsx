@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Icon from '@/components/ui/icon';
 import { MessageBubble } from './MessageBubble';
 import { getChatSettings, setChatSound, setChatPush } from '@/utils/notificationSettings';
@@ -65,10 +64,10 @@ const TopicMuteButton = ({ topicId }: { topicId: string }) => {
   return (
     <button
       onClick={toggle}
-      className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent transition-colors"
+      className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-accent transition-colors"
       title={muted ? 'Включить уведомления' : 'Выключить уведомления'}
     >
-      <Icon name={muted ? 'BellOff' : 'Bell'} size={14} className={muted ? 'text-muted-foreground' : 'text-primary'} />
+      <Icon name={muted ? 'BellOff' : 'Bell'} size={13} className={muted ? 'text-muted-foreground' : 'text-primary'} />
     </button>
   );
 };
@@ -88,76 +87,72 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
   })();
 
   const shouldShowTopics = filteredTopics.length > 0;
-  
+
   return (
     <>
-      <div className="bg-card border-b border-border">
-        <div className="flex items-center justify-between px-4 py-3">
+      <div className="bg-card/80 backdrop-blur-sm border-b border-border/60">
+        <div className="flex items-center justify-between px-5 py-2.5">
           {!isParentOrStudent && (
-            <div className="flex items-center gap-3">
-              <Avatar className="w-10 h-10">
-                <AvatarFallback className="bg-primary text-white">
-                  {isGroup ? <Icon name="Users" size={18} /> : <Icon name="User" size={18} />}
-                </AvatarFallback>
-              </Avatar>
+            <div className="flex items-center gap-2.5">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isGroup ? 'bg-primary/10' : 'bg-accent'}`}>
+                <Icon name={isGroup ? 'Users' : 'User'} size={15} className={isGroup ? 'text-primary' : 'text-muted-foreground'} />
+              </div>
               <div>
-                <h2 className="font-medium text-base">{chatName}</h2>
-                <p className="text-xs text-muted-foreground">
+                <h2 className="font-semibold text-sm leading-tight">{chatName}</h2>
+                <p className="text-[11px] text-muted-foreground/70">
                   {isGroup ? `${participantsCount || 0} участников` : 'Личный чат'}
                 </p>
               </div>
             </div>
           )}
           {isParentOrStudent && <div />}
-          <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <Icon name="Search" size={20} />
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
+              <Icon name="Search" size={16} />
             </Button>
             {!isTeachersGroup && (
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={onOpenChatInfo}
-                className="text-sm font-medium"
+                className="text-xs font-medium h-8 text-muted-foreground hover:text-foreground"
               >
-                <Icon name="Info" size={16} className="mr-2" />
+                <Icon name="Info" size={14} className="mr-1.5" />
                 Основное
               </Button>
             )}
           </div>
         </div>
-        
+
         {shouldShowTopics && !isParentOrStudent && (
-          <div className="px-4 pb-3 border-t border-border/50">
-            <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
+          <div className="px-5 pb-2">
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide">
               {filteredTopics.map((topic) => {
                 const topicSettings = getChatSettings(topic.id);
                 const topicMuted = !topicSettings.sound && !topicSettings.push;
                 const isActive = selectedTopic === topic.id;
                 return (
-                  <div key={topic.id} className="flex items-center gap-1">
+                  <div key={topic.id} className="flex items-center gap-0.5">
                     <button
                       onClick={() => onTopicSelect?.(topic.id)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg whitespace-nowrap transition-all text-xs font-medium ${
                         isActive
-                          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                          : 'bg-card border-border hover:border-primary/50 hover:bg-accent'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-accent/60 text-muted-foreground hover:bg-accent hover:text-foreground'
                       }`}
                     >
-                      <Icon name={topic.icon} size={14} />
-                      <span className="text-sm font-medium">{topic.name}</span>
+                      <Icon name={topic.icon} size={13} />
+                      <span>{topic.name}</span>
                       {topicMuted && !isActive && (
-                        <Icon name="BellOff" size={12} className="text-muted-foreground" />
+                        <Icon name="BellOff" size={11} className="text-muted-foreground/60" />
                       )}
                       {topic.unread > 0 && !isActive && (
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${topicMuted ? 'bg-muted-foreground/40 text-white' : 'bg-primary text-primary-foreground'}`}>
+                        <span className={`text-[10px] px-1 py-0 rounded min-w-[16px] text-center font-semibold ${topicMuted ? 'bg-muted-foreground/30 text-foreground/60' : 'bg-primary text-white'}`}>
                           {topic.unread}
                         </span>
                       )}
                     </button>
-                    {isActive && (
-                      <TopicMuteButton topicId={topic.id} />
-                    )}
+                    {isActive && <TopicMuteButton topicId={topic.id} />}
                   </div>
                 );
               })}
@@ -166,15 +161,10 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
         )}
       </div>
 
-      <div 
-        className="flex-1 p-6 overflow-y-auto"
-        style={{
-          backgroundColor: 'var(--background)'
-        }}
-      >
-        <div className="space-y-3 max-w-5xl mx-auto px-10">
+      <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--background)' }}>
+        <div className="max-w-4xl mx-auto py-4 space-y-0.5">
           {messages.map((message) => (
-            <MessageBubble 
+            <MessageBubble
               key={message.id}
               message={message}
               onReaction={onReaction}
@@ -182,13 +172,13 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
           ))}
           {isGroup && typingUsers && typingUsers.length > 0 && (
             <div className="flex items-center gap-2 px-4 py-2">
-              <div className="bg-accent rounded-2xl px-4 py-2 flex items-center gap-2">
-                <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/60 rounded-lg">
+                <div className="flex gap-0.5">
+                  <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-                <span className="text-xs text-muted-foreground ml-1">
+                <span className="text-xs text-muted-foreground">
                   {typingUsers.join(', ')} {typingUsers.length === 1 ? 'печатает' : 'печатают'}...
                 </span>
               </div>
@@ -199,3 +189,5 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
     </>
   );
 };
+
+export default ChatArea;
