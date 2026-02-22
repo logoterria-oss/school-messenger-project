@@ -4,7 +4,7 @@ import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
-import { getUsers, getChats, getMessages } from '@/services/api';
+import { getUsers, getChats, getMessages, createChat } from '@/services/api';
 
 type User = {
   id: string;
@@ -257,8 +257,33 @@ export const useChatLogic = () => {
         
         if (users.length > 0) setAllUsers(users);
         if (chatsData.chats.length > 0) {
-          setChats(chatsData.chats);
-          setGroupTopics(chatsData.topics);
+          const mappedChats = chatsData.chats.map((c: Record<string, unknown>) => ({
+            id: c.id as string,
+            name: c.name as string,
+            type: c.type as 'group' | 'private',
+            avatar: c.avatar as string | undefined,
+            lastMessage: (c.last_message || '') as string,
+            timestamp: (c.timestamp || '') as string,
+            unread: (c.unread || 0) as number,
+            participants: c.participants as string[] | undefined,
+            leadTeachers: (c.lead_teachers && (c.lead_teachers as string[]).length > 0) ? c.lead_teachers as string[] : undefined,
+            isPinned: c.is_pinned as boolean | undefined,
+            schedule: c.schedule as string | undefined,
+            conclusionLink: c.conclusion_link as string | undefined,
+          }));
+          setChats(mappedChats);
+          const mappedTopics: GroupTopics = {};
+          for (const [chatId, topics] of Object.entries(chatsData.topics)) {
+            mappedTopics[chatId] = (topics as Array<Record<string, unknown>>).map(t => ({
+              id: t.id as string,
+              name: t.name as string,
+              icon: t.icon as string,
+              lastMessage: '',
+              timestamp: '',
+              unread: (t.unread || 0) as number,
+            }));
+          }
+          setGroupTopics(mappedTopics);
         }
       } catch (err) {
         console.error('Failed to load data:', err);
@@ -988,7 +1013,7 @@ export const useChatLogic = () => {
     });
   };
 
-  const handleCreateGroup = (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = []) => {
+  const handleCreateGroup = async (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = []) => {
     const teachersAndAdmins = allUsers
       .filter(user => user.role === 'teacher' || user.role === 'admin')
       .map(user => user.id);
@@ -996,9 +1021,36 @@ export const useChatLogic = () => {
     const adminId = 'admin';
     
     const allParticipants = [...new Set([...selectedUserIds, ...teachersAndAdmins, adminId])];
+    const groupId = Date.now().toString();
+
+    const topics = [
+      { id: `${groupId}-important`, name: 'Важное', icon: 'AlertCircle' },
+      { id: `${groupId}-zoom`, name: 'Zoom', icon: 'Video' },
+      { id: `${groupId}-homework`, name: 'ДЗ', icon: 'BookOpen' },
+      { id: `${groupId}-reports`, name: 'Отчеты', icon: 'FileText' },
+      { id: `${groupId}-payment`, name: 'Оплата', icon: 'CreditCard' },
+      { id: `${groupId}-cancellation`, name: 'Отмена занятий', icon: 'XCircle' },
+      { id: `${groupId}-admin-contact`, name: 'Связь с админом', icon: 'Headphones' },
+    ];
+
+    try {
+      await createChat({
+        id: groupId,
+        name: groupName,
+        type: 'group',
+        participants: allParticipants,
+        avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
+        schedule: schedule || undefined,
+        conclusionLink: conclusionLink || undefined,
+        topics,
+        leadTeachers: leadTeachers.length > 0 ? leadTeachers : undefined,
+      });
+    } catch (err) {
+      console.error('Failed to create group in DB:', err);
+    }
     
     const newGroup: Chat = {
-      id: Date.now().toString(),
+      id: groupId,
       name: groupName,
       lastMessage: '',
       timestamp: 'Сейчас',
@@ -1013,15 +1065,7 @@ export const useChatLogic = () => {
     setChats(prev => [newGroup, ...prev]);
     setGroupTopics(prev => ({
       ...prev,
-      [newGroup.id]: [
-        { id: `${newGroup.id}-important`, name: 'Важное', icon: 'AlertCircle', lastMessage: '', timestamp: '', unread: 0 },
-        { id: `${newGroup.id}-zoom`, name: 'Zoom', icon: 'Video', lastMessage: '', timestamp: '', unread: 0 },
-        { id: `${newGroup.id}-homework`, name: 'ДЗ', icon: 'BookOpen', lastMessage: '', timestamp: '', unread: 0 },
-        { id: `${newGroup.id}-reports`, name: 'Отчеты', icon: 'FileText', lastMessage: '', timestamp: '', unread: 0 },
-        { id: `${newGroup.id}-payment`, name: 'Оплата', icon: 'CreditCard', lastMessage: '', timestamp: '', unread: 0 },
-        { id: `${newGroup.id}-cancellation`, name: 'Отмена занятий', icon: 'XCircle', lastMessage: '', timestamp: '', unread: 0 },
-        { id: `${newGroup.id}-admin-contact`, name: 'Связь с админом', icon: 'Headphones', lastMessage: '', timestamp: '', unread: 0 },
-      ]
+      [groupId]: topics.map(t => ({ ...t, lastMessage: '', timestamp: '', unread: 0 })),
     }));
     const welcomeText = `Добро пожаловать в ЛинеяСкул!
 
@@ -1032,8 +1076,8 @@ export const useChatLogic = () => {
 
     setChatMessages(prev => ({
       ...prev,
-      [`${newGroup.id}-important`]: [{
-        id: `welcome-${newGroup.id}`,
+      [`${groupId}-important`]: [{
+        id: `welcome-${groupId}`,
         text: welcomeText,
         sender: 'Виктория Абраменко',
         senderId: 'admin',

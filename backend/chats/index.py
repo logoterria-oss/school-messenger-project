@@ -12,29 +12,25 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id'
             },
             'body': ''
         }
+
+    cors = {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
 
     try:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         if method == 'GET':
-            # Получить чаты пользователя
             headers = event.get('headers', {}) or {}
             user_id = headers.get('x-user-id') or headers.get('X-User-Id')
 
             if not user_id:
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'X-User-Id header is required'})
-                }
+                return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'X-User-Id header is required'})}
 
-            # Получаем чаты с последним сообщением и непрочитанными
             cur.execute("""
                 SELECT DISTINCT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned,
                        COALESCE(m.text, '') as last_message,
@@ -58,18 +54,32 @@ def handler(event: dict, context) -> dict:
                     AND (ms.status IS NULL OR ms.status != 'read')
                     AND msg.sender_id != %s
                 ) unread ON true
-                WHERE cp.user_id = %s
+                WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = %s)
                 GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, m.text, m.created_at, unread.count
                 ORDER BY c.is_pinned DESC, m.created_at DESC NULLS LAST
             """, (user_id, user_id, user_id))
 
             chats = cur.fetchall()
+            chat_ids = [c['id'] for c in chats]
 
-            # Получаем топики для групповых чатов
-            chat_ids = [c['id'] for c in chats if c['type'] == 'group']
+            lead_teachers_dict = {}
+            if chat_ids:
+                cur.execute("""
+                    SELECT chat_id, ARRAY_AGG(user_id) as lead_teachers
+                    FROM chat_lead_teachers
+                    WHERE chat_id = ANY(%s)
+                    GROUP BY chat_id
+                """, (chat_ids,))
+                for row in cur.fetchall():
+                    lead_teachers_dict[row['chat_id']] = row['lead_teachers']
+
+            for chat in chats:
+                chat['lead_teachers'] = lead_teachers_dict.get(chat['id'], [])
+
+            group_ids = [c['id'] for c in chats if c['type'] == 'group']
             topics_dict = {}
 
-            if chat_ids:
+            if group_ids:
                 cur.execute("""
                     SELECT t.id, t.chat_id, t.name, t.icon,
                            COALESCE(COUNT(DISTINCT m.id) FILTER (
@@ -81,14 +91,13 @@ def handler(event: dict, context) -> dict:
                     WHERE t.chat_id = ANY(%s)
                     GROUP BY t.id, t.chat_id, t.name, t.icon
                     ORDER BY t.created_at
-                """, (user_id, chat_ids))
+                """, (user_id, group_ids))
 
-                topics = cur.fetchall()
-                for topic in topics:
-                    chat_id = topic['chat_id']
-                    if chat_id not in topics_dict:
-                        topics_dict[chat_id] = []
-                    topics_dict[chat_id].append({
+                for topic in cur.fetchall():
+                    cid = topic['chat_id']
+                    if cid not in topics_dict:
+                        topics_dict[cid] = []
+                    topics_dict[cid].append({
                         'id': topic['id'],
                         'name': topic['name'],
                         'icon': topic['icon'],
@@ -100,29 +109,21 @@ def handler(event: dict, context) -> dict:
 
             return {
                 'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({
-                    'chats': [dict(c) for c in chats],
-                    'topics': topics_dict
-                }, default=str)
+                'headers': cors,
+                'body': json.dumps({'chats': [dict(c) for c in chats], 'topics': topics_dict}, default=str)
             }
 
         elif method == 'POST':
-            # Создать новый чат
             data = json.loads(event.get('body', '{}'))
 
             required_fields = ['id', 'name', 'type', 'participants']
             if not all(field in data for field in required_fields):
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Missing required fields'})
-                }
+                return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'Missing required fields'})}
 
-            # Создаем чат
             cur.execute("""
                 INSERT INTO chats (id, name, type, avatar, schedule, conclusion_link, is_pinned)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO NOTHING
                 RETURNING id
             """, (
                 data['id'],
@@ -134,44 +135,44 @@ def handler(event: dict, context) -> dict:
                 data.get('isPinned', False)
             ))
 
-            chat_id = cur.fetchone()['id']
+            result = cur.fetchone()
+            chat_id = result['id'] if result else data['id']
 
-            # Добавляем участников
-            for user_id in data['participants']:
+            for uid in data['participants']:
                 cur.execute("""
                     INSERT INTO chat_participants (chat_id, user_id)
                     VALUES (%s, %s)
-                """, (chat_id, user_id))
+                    ON CONFLICT DO NOTHING
+                """, (chat_id, uid))
 
-            # Создаем топики для группового чата
+            lead_teachers = data.get('leadTeachers', [])
+            for uid in lead_teachers:
+                cur.execute("""
+                    INSERT INTO chat_lead_teachers (chat_id, user_id)
+                    VALUES (%s, %s)
+                    ON CONFLICT DO NOTHING
+                """, (chat_id, uid))
+
             if data['type'] == 'group' and 'topics' in data:
                 for topic in data['topics']:
                     cur.execute("""
                         INSERT INTO topics (id, chat_id, name, icon)
                         VALUES (%s, %s, %s, %s)
+                        ON CONFLICT DO NOTHING
                     """, (topic['id'], chat_id, topic['name'], topic['icon']))
 
             conn.commit()
             cur.close()
             conn.close()
 
-            return {
-                'statusCode': 201,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'chatId': chat_id})
-            }
+            return {'statusCode': 201, 'headers': cors, 'body': json.dumps({'chatId': chat_id})}
 
         elif method == 'PUT':
-            # Обновить чат
             data = json.loads(event.get('body', '{}'))
             chat_id = data.get('id')
 
             if not chat_id:
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Chat ID is required'})
-                }
+                return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'Chat ID is required'})}
 
             updates = []
             values = []
@@ -182,37 +183,30 @@ def handler(event: dict, context) -> dict:
             if 'conclusionLink' in data:
                 updates.append('conclusion_link = %s')
                 values.append(data['conclusionLink'])
+            if 'name' in data:
+                updates.append('name = %s')
+                values.append(data['name'])
 
-            if not updates:
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'No fields to update'})
-                }
+            if updates:
+                updates.append('updated_at = NOW()')
+                values.append(chat_id)
+                query = f"UPDATE chats SET {', '.join(updates)} WHERE id = %s RETURNING id"
+                cur.execute(query, values)
+                cur.fetchone()
 
-            updates.append('updated_at = NOW()')
-            values.append(chat_id)
+            if 'leadTeachers' in data:
+                cur.execute("SELECT user_id FROM chat_lead_teachers WHERE chat_id = %s", (chat_id,))
+                existing = {r['user_id'] for r in cur.fetchall()}
+                new_set = set(data['leadTeachers'])
 
-            query = f"UPDATE chats SET {', '.join(updates)} WHERE id = %s RETURNING id"
-            cur.execute(query, values)
+                for uid in new_set - existing:
+                    cur.execute("INSERT INTO chat_lead_teachers (chat_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (chat_id, uid))
 
-            result = cur.fetchone()
             conn.commit()
             cur.close()
             conn.close()
 
-            if not result:
-                return {
-                    'statusCode': 404,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Chat not found'})
-                }
-
-            return {
-                'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'chatId': result['id']})
-            }
+            return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'chatId': chat_id})}
 
     except Exception as e:
         if 'cur' in locals():
@@ -220,14 +214,6 @@ def handler(event: dict, context) -> dict:
         if 'conn' in locals():
             conn.close()
 
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': str(e)})
-        }
+        return {'statusCode': 500, 'headers': cors, 'body': json.dumps({'error': str(e)})}
 
-    return {
-        'statusCode': 405,
-        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-        'body': json.dumps({'error': 'Method not allowed'})
-    }
+    return {'statusCode': 405, 'headers': cors, 'body': json.dumps({'error': 'Method not allowed'})}

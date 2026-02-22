@@ -155,6 +155,7 @@ export async function createChat(chat: {
   conclusionLink?: string;
   isPinned?: boolean;
   topics?: Array<{ id: string; name: string; icon: string }>;
+  leadTeachers?: string[];
 }): Promise<string> {
   const response = await fetch(API_URLS.chats, {
     method: 'POST',
