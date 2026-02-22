@@ -34,6 +34,47 @@ export function playNotificationSound() {
   }
 }
 
+let notificationPermission: NotificationPermission = 'default';
+
+export function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  notificationPermission = Notification.permission;
+  if (notificationPermission === 'default') {
+    Notification.requestPermission().then(perm => {
+      notificationPermission = perm;
+    });
+  }
+}
+
+function isPageHidden(): boolean {
+  return document.hidden;
+}
+
+function showBrowserNotification(newMessages: number) {
+  if (notificationPermission !== 'granted') return;
+  if (!isPageHidden()) return;
+
+  const title = 'Новое сообщение';
+  const body = newMessages === 1
+    ? 'У вас 1 новое непрочитанное сообщение'
+    : `У вас ${newMessages} новых непрочитанных сообщений`;
+
+  try {
+    const notification = new Notification(title, {
+      body,
+      icon: '/favicon.ico',
+      tag: 'chat-notification',
+    });
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+    setTimeout(() => notification.close(), 5000);
+  } catch {
+    // ignore
+  }
+}
+
 let lastTotalUnread = -1;
 
 export function checkAndPlaySound(totalUnread: number) {
@@ -42,7 +83,9 @@ export function checkAndPlaySound(totalUnread: number) {
     return;
   }
   if (totalUnread > lastTotalUnread) {
+    const diff = totalUnread - lastTotalUnread;
     playNotificationSound();
+    showBrowserNotification(diff);
   }
   lastTotalUnread = totalUnread;
 }

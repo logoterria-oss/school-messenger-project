@@ -6,7 +6,7 @@ import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, markAsRead } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
-import { checkAndPlaySound } from '@/utils/notificationSound';
+import { checkAndPlaySound, requestNotificationPermission } from '@/utils/notificationSound';
 
 const mapApiMessages = (msgs: ApiMessage[]): Message[] =>
   msgs.map(m => ({
@@ -255,6 +255,8 @@ export const useChatLogic = () => {
   // Подключение WebSocket и загрузка данных из API
   useEffect(() => {
     if (!isAuthenticated || !userId) return;
+
+    requestNotificationPermission();
 
     // Временно отключаем WebSocket для ускорения загрузки
     // wsService.connect(userId);
@@ -675,6 +677,7 @@ export const useChatLogic = () => {
     setUserId(currentUserId);
     
     setIsAuthenticated(true);
+    requestNotificationPermission();
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('userRole', role);
     localStorage.setItem('userName', name || '');
