@@ -10,7 +10,7 @@ import Icon from '@/components/ui/icon';
 type User = {
   id: string;
   name: string;
-  role: 'teacher' | 'parent' | 'student';
+  role: 'teacher' | 'parent' | 'student' | 'admin';
   avatar?: string;
 };
 
@@ -36,7 +36,10 @@ type ChatInfoSidebarProps = {
   allParents?: SimpleUser[];
   participantIds?: string[];
   leadTeacherIds?: string[];
+  leadAdminId?: string;
+  allAdmins?: SimpleUser[];
   onUpdateLeadTeachers?: (leadTeachers: string[]) => void;
+  onUpdateLeadAdmin?: (leadAdmin: string | undefined) => void;
   onUpdateParticipants?: (participantIds: string[]) => void;
   onUpdateSchedule?: (schedule: string) => void;
   onUpdateConclusionLink?: (link: string) => void;
@@ -44,9 +47,11 @@ type ChatInfoSidebarProps = {
   onUpdateName?: (name: string) => void;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], onUpdateLeadTeachers, onUpdateParticipants, onUpdateSchedule, onUpdateConclusionLink, chatName, onUpdateName }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onUpdateConclusionLink, chatName, onUpdateName }: ChatInfoSidebarProps) => {
   const [isEditingLeads, setIsEditingLeads] = useState(false);
   const [editLeads, setEditLeads] = useState<string[]>([]);
+  const [isEditingLeadAdmin, setIsEditingLeadAdmin] = useState(false);
+  const [editLeadAdmin, setEditLeadAdmin] = useState<string>('');
   const [isEditingSchedule, setIsEditingSchedule] = useState(false);
   const [editSchedule, setEditSchedule] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -268,6 +273,73 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
               </div>
             )}
           </div>
+
+          {isAdmin && !isTeachersGroup && allAdmins.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
+                  <Icon name="Shield" size={16} />
+                  Ведущий админ
+                </h4>
+                {!isEditingLeadAdmin && onUpdateLeadAdmin && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setEditLeadAdmin(leadAdminId || ''); setIsEditingLeadAdmin(true); }}>
+                    <Icon name="Pencil" size={14} className="mr-1" />
+                    Изменить
+                  </Button>
+                )}
+              </div>
+              {isEditingLeadAdmin ? (
+                <div className="space-y-3">
+                  <div className="border rounded-md p-3 space-y-2">
+                    {allAdmins.map((admin) => (
+                      <div
+                        key={admin.id}
+                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent cursor-pointer"
+                        onClick={() => setEditLeadAdmin(editLeadAdmin === admin.id ? '' : admin.id)}
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                          editLeadAdmin === admin.id ? 'border-primary bg-primary' : 'border-muted-foreground/30'
+                        }`}>
+                          {editLeadAdmin === admin.id && <Icon name="Check" size={12} className="text-white" />}
+                        </div>
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={admin.avatar} />
+                          <AvatarFallback className="bg-blue-500/10 text-blue-600 text-xs"><Icon name="Shield" size={14} /></AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium">{admin.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => { onUpdateLeadAdmin?.(editLeadAdmin || undefined); setIsEditingLeadAdmin(false); }} className="flex-1">Сохранить</Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsEditingLeadAdmin(false)} className="flex-1">Отмена</Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {leadAdminId ? (
+                    <div className="space-y-2">
+                      {(() => {
+                        const admin = allAdmins.find(a => a.id === leadAdminId);
+                        if (!admin) return <p className="text-sm text-muted-foreground">Ведущий админ не найден</p>;
+                        return (
+                          <div className="flex items-center gap-3 p-2 rounded-lg bg-accent/50">
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={admin.avatar} />
+                              <AvatarFallback className="bg-blue-500/10 text-blue-600 text-xs"><Icon name="Shield" size={14} /></AvatarFallback>
+                            </Avatar>
+                            <p className="text-sm font-medium">{admin.name}</p>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Ведущий админ не назначен</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           {isAdmin && !isTeachersGroup && (
             <div>

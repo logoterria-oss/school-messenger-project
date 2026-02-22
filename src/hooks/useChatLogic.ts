@@ -1203,6 +1203,18 @@ export const useChatLogic = () => {
     });
   };
 
+  const handleUpdateLeadAdmin = (chatId: string, leadAdmin: string | undefined) => {
+    setChats(prev => {
+      const updated = prev.map(chat =>
+        chat.id === chatId
+          ? { ...chat, leadAdmin }
+          : chat
+      );
+      localStorage.setItem('chats', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const handleUpdateGroupInfo = (chatId: string, updates: { schedule?: string; conclusionLink?: string; name?: string }) => {
     setChats(prev => {
       const updated = prev.map(chat =>
@@ -1254,6 +1266,7 @@ export const useChatLogic = () => {
     handleDeleteUser,
     handleUpdateTeacher,
     handleUpdateLeadTeachers,
+    handleUpdateLeadAdmin,
     handleUpdateParticipants,
     handleUpdateGroupInfo,
     handleAddAdmin,

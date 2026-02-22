@@ -63,6 +63,7 @@ const Index = () => {
     handleDeleteUser,
     handleUpdateTeacher,
     handleUpdateLeadTeachers,
+    handleUpdateLeadAdmin,
     handleUpdateParticipants,
     handleUpdateGroupInfo,
     handleAddAdmin,
@@ -280,11 +281,14 @@ const Index = () => {
                   conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
                 }}
                 allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
+                allAdmins={allUsers.filter(u => u.role === 'admin' && u.id !== 'admin').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
                 allStudents={allUsers.filter(u => u.role === 'student').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
                 allParents={allUsers.filter(u => u.role === 'parent').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
                 participantIds={chatParticipants}
                 leadTeacherIds={currentChat?.leadTeachers || []}
+                leadAdminId={currentChat?.leadAdmin}
                 onUpdateLeadTeachers={(leads) => selectedChat && handleUpdateLeadTeachers(selectedChat, leads)}
+                onUpdateLeadAdmin={(admin) => selectedChat && handleUpdateLeadAdmin(selectedChat, admin)}
                 onUpdateParticipants={(ids) => selectedChat && handleUpdateParticipants(selectedChat, ids)}
                 chatName={currentChat?.name}
                 onUpdateName={(name) => selectedChat && handleUpdateGroupInfo(selectedChat, { name })}
