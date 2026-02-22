@@ -3,14 +3,16 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
+import { getGlobalSettings, setGlobalSound, setGlobalPush } from '@/utils/notificationSettings';
 
 type AppSettingsProps = {
   onBack: () => void;
 };
 
 export const AppSettings = ({ onBack }: AppSettingsProps) => {
-  const [notifications, setNotifications] = useState(true);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const globalSettings = getGlobalSettings();
+  const [notifications, setNotifications] = useState(globalSettings.push);
+  const [soundEnabled, setSoundEnabled] = useState(globalSettings.sound);
   const [darkMode, setDarkMode] = useState(false);
   const [autoDownload, setAutoDownload] = useState(false);
 
@@ -53,7 +55,7 @@ export const AppSettings = ({ onBack }: AppSettingsProps) => {
                 <Switch
                   id="notifications"
                   checked={notifications}
-                  onCheckedChange={setNotifications}
+                  onCheckedChange={(val) => { setNotifications(val); setGlobalPush(val); }}
                 />
               </div>
 
@@ -69,7 +71,7 @@ export const AppSettings = ({ onBack }: AppSettingsProps) => {
                 <Switch
                   id="sound"
                   checked={soundEnabled}
-                  onCheckedChange={setSoundEnabled}
+                  onCheckedChange={(val) => { setSoundEnabled(val); setGlobalSound(val); }}
                   disabled={!notifications}
                 />
               </div>

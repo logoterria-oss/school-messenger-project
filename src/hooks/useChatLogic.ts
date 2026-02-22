@@ -384,8 +384,7 @@ export const useChatLogic = () => {
       getChats(userId).then(chatsData => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
-          const totalUnread = mappedChats.reduce((sum, c) => sum + c.unread, 0);
-          checkAndPlaySound(totalUnread);
+          checkAndPlaySound(mappedChats.map(c => ({ id: c.id, name: c.name, unread: c.unread })));
           setChats(mappedChats);
           setGroupTopics(mappedTopics);
         }

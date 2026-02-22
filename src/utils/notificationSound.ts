@@ -1,3 +1,5 @@
+import { shouldPlaySound, shouldShowPush } from './notificationSettings';
+
 let audioContext: AudioContext | null = null;
 
 function getAudioContext(): AudioContext {
@@ -29,9 +31,7 @@ export function playNotificationSound() {
 
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.3);
-  } catch {
-    // ignore
-  }
+  } catch { /* ignore */ }
 }
 
 let notificationPermission: NotificationPermission = 'default';
@@ -50,42 +50,50 @@ function isPageHidden(): boolean {
   return document.hidden;
 }
 
-function showBrowserNotification(newMessages: number) {
+function showBrowserNotification(chatName: string) {
   if (notificationPermission !== 'granted') return;
   if (!isPageHidden()) return;
 
-  const title = 'Новое сообщение';
-  const body = newMessages === 1
-    ? 'У вас 1 новое непрочитанное сообщение'
-    : `У вас ${newMessages} новых непрочитанных сообщений`;
-
   try {
-    const notification = new Notification(title, {
-      body,
+    const notification = new Notification('Новое сообщение', {
+      body: `Новое сообщение в "${chatName}"`,
       icon: '/favicon.ico',
-      tag: 'chat-notification',
+      tag: `chat-notification-${Date.now()}`,
     });
     notification.onclick = () => {
       window.focus();
       notification.close();
     };
     setTimeout(() => notification.close(), 5000);
-  } catch {
-    // ignore
-  }
+  } catch { /* ignore */ }
 }
 
-let lastTotalUnread = -1;
+type ChatUnreadInfo = { id: string; name: string; unread: number };
 
-export function checkAndPlaySound(totalUnread: number) {
-  if (lastTotalUnread === -1) {
-    lastTotalUnread = totalUnread;
+let lastUnreadMap: Record<string, number> = {};
+let initialized = false;
+
+export function checkAndPlaySound(chats: ChatUnreadInfo[]) {
+  const currentMap: Record<string, number> = {};
+  for (const c of chats) {
+    currentMap[c.id] = c.unread;
+  }
+
+  if (!initialized) {
+    lastUnreadMap = currentMap;
+    initialized = true;
     return;
   }
-  if (totalUnread > lastTotalUnread) {
-    const diff = totalUnread - lastTotalUnread;
-    playNotificationSound();
-    showBrowserNotification(diff);
+
+  let needSound = false;
+  for (const chat of chats) {
+    const prev = lastUnreadMap[chat.id] || 0;
+    if (chat.unread > prev) {
+      if (shouldPlaySound(chat.id)) needSound = true;
+      if (shouldShowPush(chat.id)) showBrowserNotification(chat.name);
+    }
   }
-  lastTotalUnread = totalUnread;
+
+  if (needSound) playNotificationSound();
+  lastUnreadMap = currentMap;
 }
