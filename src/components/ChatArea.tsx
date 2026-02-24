@@ -147,7 +147,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground h-8 w-8">
+                <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground h-8 w-8 transition-transform duration-200 active:scale-90">
                   <Icon name="Menu" size={18} />
                 </Button>
               </DropdownMenuTrigger>
