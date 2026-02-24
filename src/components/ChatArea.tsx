@@ -118,13 +118,13 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
             )}
             {!isParentOrStudent && (
               <>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isGroup ? 'bg-primary/10' : 'bg-accent'}`}>
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 ${isGroup ? 'bg-primary/10' : 'bg-accent'}`}>
                   <Icon name={isGroup ? 'Users' : 'User'} size={15} className={isGroup ? 'text-primary' : 'text-muted-foreground'} />
                 </div>
-                <div>
-                  <h2 className="font-semibold text-sm leading-tight">{chatName}</h2>
+                <div className="min-w-0">
+                  <h2 className="font-semibold text-sm leading-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">{chatName}</h2>
                   <p className="text-[11px] text-muted-foreground/70">
-                    {isGroup ? `${participantsCount || 0} участников` : 'Личный чат'}
+                    {isGroup ? `${participantsCount || 0} уч.` : 'Личный чат'}
                   </p>
                 </div>
               </>
@@ -137,12 +137,12 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
             {!isTeachersGroup && (
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={onOpenChatInfo}
-                className="text-xs font-medium h-8 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground h-8 w-8 sm:w-auto sm:px-2.5"
               >
-                <Icon name="Info" size={14} className="mr-1.5" />
-                <span className="hidden sm:inline">Основное</span>
+                <Icon name="Info" size={14} className="sm:mr-1.5" />
+                <span className="hidden sm:inline text-xs font-medium">Основное</span>
               </Button>
             )}
             <DropdownMenu>
