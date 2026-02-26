@@ -90,7 +90,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-muted-foreground mr-10 md:mr-0">
+              <Button variant="ghost" size="icon" className="text-muted-foreground">
                 <Icon name="Menu" size={20} />
               </Button>
             </DropdownMenuTrigger>

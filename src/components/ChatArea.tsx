@@ -145,60 +145,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
                 <span className="hidden sm:inline text-xs font-medium">Основное</span>
               </Button>
             )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground h-8 w-8 transition-transform duration-200 active:scale-90">
-                  <Icon name="Menu" size={18} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {userRole === 'admin' && (
-                  <>
-                    <DropdownMenuItem onClick={onOpenUsers}>
-                      <Icon name="Users" size={16} className="mr-2" />
-                      Все пользователи
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={onAddStudent}>
-                      <Icon name="UserPlus" size={16} className="mr-2" />
-                      Добавить ученика
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onAddParent}>
-                      <Icon name="UserPlus" size={16} className="mr-2" />
-                      Добавить родителя
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onAddTeacher}>
-                      <Icon name="UserPlus" size={16} className="mr-2" />
-                      Добавить педагога
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onCreateGroup}>
-                      <Icon name="Users" size={16} className="mr-2" />
-                      Создать группу
-                    </DropdownMenuItem>
-                    {userId === 'admin' && (
-                      <DropdownMenuItem onClick={onAddAdmin}>
-                        <Icon name="Shield" size={16} className="mr-2" />
-                        Добавить админа
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuItem onClick={onOpenProfile}>
-                  <Icon name="User" size={16} className="mr-2" />
-                  Профиль
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onOpenSettings}>
-                  <Icon name="Settings" size={16} className="mr-2" />
-                  Настройки
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onLogout} className="text-destructive">
-                  <Icon name="LogOut" size={16} className="mr-2" />
-                  Выйти
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+
           </div>
         </div>
 
