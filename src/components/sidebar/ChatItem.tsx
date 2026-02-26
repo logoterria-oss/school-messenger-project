@@ -61,7 +61,7 @@ export const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { av
               <div className="flex items-center gap-1.5 flex-1 min-w-0">
                 <h3 className={`text-[13px] truncate ${isSelected ? 'font-semibold text-primary' : 'font-medium text-foreground'}`}>{chat.name}</h3>
                 {chat.isPinned && (
-                  <Icon name="Pin" size={16} className="text-muted-foreground/60 flex-shrink-0 rotate-45" />
+                  <Icon name="Pin" size={12} className="text-muted-foreground/60 flex-shrink-0 rotate-45" />
                 )}
                 {isMuted && (
                   <Icon name="BellOff" size={16} className="text-muted-foreground/60 flex-shrink-0" />
