@@ -81,10 +81,10 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
             <div>
               <h1 className="text-sm font-bold text-primary">ЛинэяСкул</h1>
               <p className="text-[11px] text-muted-foreground/70 leading-tight">
-                {userRole === 'admin' && 'Виктория Абраменко'}
-                {userRole === 'teacher' && (userName || 'Педагог')}
-                {userRole === 'parent' && (userName || 'Родитель')}
-                {userRole === 'student' && (userName || 'Ученик')}
+                {userRole === 'admin' && 'Виктория Абраменко (админ)'}
+                {userRole === 'teacher' && `${userName || 'Педагог'} (педагог)`}
+                {userRole === 'parent' && `${userName || 'Родитель'} (родитель)`}
+                {userRole === 'student' && `${userName || 'Ученик'} (ученик)`}
               </p>
             </div>
           </div>
