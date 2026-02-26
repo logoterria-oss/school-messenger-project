@@ -43,7 +43,7 @@ export const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { av
         style={{ width: 'calc(100% - 8px)' }}
       >
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-lg flex-shrink-0 overflow-hidden ${isSelected ? 'ring-2 ring-primary/30' : ''}`}>
+          <div className={`w-[52px] h-[52px] rounded-lg flex-shrink-0 overflow-hidden ${isSelected ? 'ring-2 ring-primary/30' : ''}`}>
             {chat.avatar ? (
               <img src={chat.avatar} alt="" className="w-full h-full object-cover" />
             ) : (

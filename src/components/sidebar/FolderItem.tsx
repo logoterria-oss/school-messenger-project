@@ -28,7 +28,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
         style={{ width: 'calc(100% - 8px)' }}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-accent/80 flex items-center justify-center flex-shrink-0">
+          <div className="w-[52px] h-[52px] rounded-lg bg-accent/80 flex items-center justify-center flex-shrink-0">
             <Icon name={icon} size={24} className="text-primary" />
           </div>
           <div className="flex-1 min-w-0">
