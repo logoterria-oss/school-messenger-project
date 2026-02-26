@@ -71,20 +71,20 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
     <div className="w-full md:w-[380px] h-screen bg-card/50 backdrop-blur-sm border-r border-border/60 flex flex-col overflow-hidden">
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-4">
             <img 
               src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
               alt="ЛинэяСкул" 
-              className="w-9 h-9 rounded-lg flex-shrink-0"
+              className="w-[72px] h-[72px] rounded-xl flex-shrink-0"
               loading="lazy"
             />
             <div>
-              <h1 className="text-sm font-bold text-primary">ЛинэяСкул</h1>
-              <p className="text-[11px] text-muted-foreground/70 leading-tight">
-                {userRole === 'admin' && 'Виктория Абраменко'}
-                {userRole === 'teacher' && (userName || 'Педагог')}
-                {userRole === 'parent' && (userName || 'Родитель')}
-                {userRole === 'student' && (userName || 'Ученик')}
+              <h1 className="text-2xl font-bold text-primary leading-tight">ЛинэяСкул</h1>
+              <p className="text-base text-muted-foreground/70 leading-tight mt-0.5">
+                {userRole === 'admin' && `Виктория Абраменко (админ)`}
+                {userRole === 'teacher' && `${userName || 'Педагог'} (педагог)`}
+                {userRole === 'parent' && `${userName || 'Родитель'} (родитель)`}
+                {userRole === 'student' && `${userName || 'Ученик'} (ученик)`}
               </p>
             </div>
           </div>
