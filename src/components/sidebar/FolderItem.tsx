@@ -29,7 +29,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-accent/80 flex items-center justify-center flex-shrink-0">
-            <Icon name={icon} size={18} className="text-primary" />
+            <Icon name={icon} size={24} className="text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
@@ -42,7 +42,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
                     {unread}
                   </Badge>
                 )}
-                <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={14} className="text-muted-foreground/60" />
+                <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={18} className="text-muted-foreground/60" />
               </div>
             </div>
             <p className="text-xs text-muted-foreground/70">

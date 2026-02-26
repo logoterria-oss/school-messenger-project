@@ -171,7 +171,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
                     : 'text-foreground hover:bg-accent/60'
                 }`}
               >
-                <Icon name={topic.icon} size={16} className={selectedTopic === topic.id ? 'text-primary' : 'text-muted-foreground'} />
+                <Icon name={topic.icon} size={21} className={selectedTopic === topic.id ? 'text-primary' : 'text-muted-foreground'} />
                 <span className={`flex-1 text-left text-[13px] ${selectedTopic === topic.id ? 'font-semibold' : 'font-medium'}`}>{topic.name}</span>
                 {topic.unread > 0 && selectedTopic !== topic.id && (
                   <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md font-semibold">
