@@ -74,12 +74,12 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           <div className="flex items-center gap-2.5">
             <img 
               src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
-              alt="LineaSchool" 
+              alt="ЛинэяСкул" 
               className="w-9 h-9 rounded-lg flex-shrink-0"
               loading="lazy"
             />
             <div>
-              <h1 className="text-sm font-bold text-primary">LineaSchool</h1>
+              <h1 className="text-sm font-bold text-primary">ЛинэяСкул</h1>
               <p className="text-[11px] text-muted-foreground/70 leading-tight">
                 {userRole === 'admin' && 'Виктория Абраменко'}
                 {userRole === 'teacher' && (userName || 'Педагог')}

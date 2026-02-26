@@ -199,11 +199,11 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <div className="flex items-center justify-center gap-6 mb-8 max-lg:gap-2.5 max-lg:mb-8">
             <img 
               src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
-              alt="LineaSchool" 
+              alt="ЛинэяСкул" 
               className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0 max-lg:w-12 max-lg:h-12 max-lg:rounded-xl" 
             />
             <div className="flex flex-col">
-              <h1 className="text-5xl font-extrabold max-lg:text-2xl" style={{ color: '#3BA662' }}>LineaSchool</h1>
+              <h1 className="text-5xl font-extrabold max-lg:text-2xl" style={{ color: '#3BA662' }}>ЛинэяСкул</h1>
               <p className="text-xl font-normal max-lg:text-xs" style={{ color: '#3BA662' }}>мессенджер</p>
             </div>
           </div>
@@ -251,7 +251,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
           <img 
             src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
-            alt="LineaSchool" 
+            alt="ЛинэяСкул" 
             className="rounded-3xl object-cover"
             loading="eager"
             style={{
@@ -286,12 +286,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       <div className={`flex items-center justify-center gap-6 mb-8 max-lg:gap-2.5 max-lg:mb-5 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
         <img 
           src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
-          alt="LineaSchool" 
+          alt="ЛинэяСкул" 
           className="w-28 h-28 rounded-3xl shadow-xl flex-shrink-0 max-lg:w-12 max-lg:h-12 max-lg:rounded-xl"
           loading="eager"
         />
         <div className="flex flex-col">
-          <h1 className="text-5xl font-extrabold max-lg:text-2xl" style={{ color: '#3BA662' }}>LineaSchool</h1>
+          <h1 className="text-5xl font-extrabold max-lg:text-2xl" style={{ color: '#3BA662' }}>ЛинэяСкул</h1>
           <p className="text-xl font-normal max-lg:text-xs" style={{ color: '#3BA662' }}>мессенджер</p>
         </div>
       </div>
