@@ -151,7 +151,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
 
         {shouldShowTopics && !isParentOrStudent && (
           <div className="px-3 md:px-5 pb-2">
-            <div className="flex gap-1 flex-wrap md:flex-nowrap md:overflow-x-auto scrollbar-hide">
+            <div className="flex gap-1 flex-wrap">
               {filteredTopics.map((topic) => {
                 const topicSettings = getChatSettings(topic.id);
                 const topicMuted = !topicSettings.sound && !topicSettings.push;
@@ -160,13 +160,13 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
                   <div key={topic.id} className="flex items-center gap-0.5">
                     <button
                       onClick={() => onTopicSelect?.(topic.id)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg whitespace-nowrap transition-all text-xs font-medium ${
+                      className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all text-[11px] font-medium ${
                         isActive
                           ? 'bg-primary text-primary-foreground shadow-sm'
                           : 'bg-accent/60 text-muted-foreground hover:bg-accent hover:text-foreground'
                       }`}
                     >
-                      <Icon name={topic.icon} size={13} />
+                      <Icon name={topic.icon} size={12} />
                       <span>{topic.name}</span>
                       {topicMuted && !isActive && (
                         <Icon name="BellOff" size={11} className="text-muted-foreground/60" />
