@@ -4,7 +4,7 @@ import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
-import { getUsers, getChats, getMessages, createChat, markAsRead } from '@/services/api';
+import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission } from '@/utils/notificationSound';
 import { applyAdminDefaults } from '@/utils/notificationSettings';
@@ -757,6 +757,14 @@ export const useChatLogic = () => {
       
       if (!hasTeachersGroup) {
         const allTeacherIds = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
+        const tgTopics = [
+          { id: 'teachers-group-important', name: 'Важное', icon: 'AlertCircle' },
+          { id: 'teachers-group-general', name: 'Общее', icon: 'MessageSquare' },
+          { id: 'teachers-group-flood', name: 'Флудилка', icon: 'Coffee' },
+          { id: 'teachers-group-new-students', name: 'Новые ученики', icon: 'UserPlus' },
+          { id: 'teachers-group-parent-reviews', name: 'Отзывы родителей', icon: 'Star' },
+          { id: 'teachers-group-support', name: 'Техподдержка', icon: 'Headphones' },
+        ];
         const teachersGroupChat: Chat = {
           id: teachersGroupId,
           name: 'Педагоги',
@@ -769,6 +777,7 @@ export const useChatLogic = () => {
           avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg',
         };
         existingChats.unshift(teachersGroupChat);
+        createChat({ id: teachersGroupId, name: 'Педагоги', type: 'group', participants: [...allTeacherIds, 'admin'], isPinned: true, avatar: teachersGroupChat.avatar, topics: tgTopics }).catch(() => {});
       }
 
       if (!groupTopics['teachers-group'] || groupTopics['teachers-group'].length === 0) {
@@ -789,14 +798,13 @@ export const useChatLogic = () => {
       const adminChatId = `private-${currentUserId}-admin`;
       let adminChatExists = false;
       
-      // Обновляем существующий чат или создаем новый
       existingChats = existingChats.map(chat => {
         if (chat.id === adminChatId) {
           adminChatExists = true;
           return {
             ...chat,
-            name: 'Виктория Абраменко', // Исправляем имя
-            avatar: 'https://cdn.poehali.dev/files/Админ.jpg', // Исправляем аватар
+            name: 'Виктория Абраменко',
+            avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
             participants: [currentUserId, 'admin'],
           };
         }
@@ -816,6 +824,7 @@ export const useChatLogic = () => {
           avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
         };
         existingChats.unshift(adminChat);
+        createChat({ id: adminChatId, name: 'Виктория Абраменко', type: 'private', participants: [currentUserId, 'admin'], isPinned: true, avatar: adminChat.avatar }).catch(() => {});
       }
       
       setChats(existingChats);
@@ -838,6 +847,14 @@ export const useChatLogic = () => {
       
       if (!hasTeachersGroup) {
         const allTeacherIds = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
+        const adminTgTopics = [
+          { id: 'teachers-group-important', name: 'Важное', icon: 'AlertCircle' },
+          { id: 'teachers-group-general', name: 'Общее', icon: 'MessageSquare' },
+          { id: 'teachers-group-flood', name: 'Флудилка', icon: 'Coffee' },
+          { id: 'teachers-group-new-students', name: 'Новые ученики', icon: 'UserPlus' },
+          { id: 'teachers-group-parent-reviews', name: 'Отзывы родителей', icon: 'Star' },
+          { id: 'teachers-group-support', name: 'Техподдержка', icon: 'Headphones' },
+        ];
         const teachersGroupChat: Chat = {
           id: teachersGroupId,
           name: 'Педагоги',
@@ -850,6 +867,7 @@ export const useChatLogic = () => {
           avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg',
         };
         existingChats.unshift(teachersGroupChat);
+        createChat({ id: teachersGroupId, name: 'Педагоги', type: 'group', participants: [...allTeacherIds, 'admin'], isPinned: true, avatar: teachersGroupChat.avatar, topics: adminTgTopics }).catch(() => {});
       }
 
       if (!groupTopics['teachers-group'] || groupTopics['teachers-group'].length === 0) {
@@ -886,6 +904,7 @@ export const useChatLogic = () => {
             avatar: teacher.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
           };
           existingChats.unshift(privateChat);
+          createChat({ id: privateChatId, name: teacher.name, type: 'private', participants: [teacher.id, currentUserId], isPinned: true, avatar: privateChat.avatar }).catch(() => {});
         }
       });
 
@@ -907,6 +926,7 @@ export const useChatLogic = () => {
             avatar: supervisorUser?.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
           };
           existingChats.unshift(supervisorChat);
+          createChat({ id: supervisorChatId, name: supervisorChat.name, type: 'private', participants: [currentUserId, SUPERVISOR_ID], isPinned: true, avatar: supervisorChat.avatar }).catch(() => {});
         }
       }
 
@@ -936,6 +956,7 @@ export const useChatLogic = () => {
             avatar: adm.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
           };
           existingChats.push(privateChat);
+          createChat({ id: privateChatId, name: adm.name, type: 'private', participants: [adm.id, currentUserId], avatar: privateChat.avatar }).catch(() => {});
         }
       });
 
@@ -1097,19 +1118,16 @@ export const useChatLogic = () => {
       console.error('Failed to save teacher to DB:', e);
     }
     
-    // Автоматически добавляем нового педагога во все существующие группы
     setChats(prevChats => {
       const updatedChats = prevChats.map(chat => {
         if (chat.type === 'group' && chat.participants) {
-          return {
-            ...chat,
-            participants: [...chat.participants, newUser.id]
-          };
+          const newParticipants = [...chat.participants, newUser.id];
+          updateChat(chat.id, { participants: newParticipants }).catch(() => {});
+          return { ...chat, participants: newParticipants };
         }
         return chat;
       });
       
-      // Создаем личный чат нового педагога с админом (если мы админ)
       if (userRole === 'admin') {
         const privateChatId = `private-${newUser.id}-admin`;
         const hasPrivateChat = updatedChats.some(chat => chat.id === privateChatId);
@@ -1127,6 +1145,7 @@ export const useChatLogic = () => {
             avatar: newUser.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
           };
           updatedChats.unshift(privateChat);
+          createChat({ id: privateChatId, name: newUser.name, type: 'private', participants: [newUser.id, 'admin'], isPinned: true, avatar: privateChat.avatar }).catch(() => {});
         }
       }
       
@@ -1157,7 +1176,9 @@ export const useChatLogic = () => {
     setChats(prevChats => {
       const updatedChats = prevChats.map(chat => {
         if (chat.type === 'group' && chat.participants) {
-          return { ...chat, participants: [...chat.participants, newAdminId] };
+          const newParticipants = [...chat.participants, newAdminId];
+          updateChat(chat.id, { participants: newParticipants }).catch(() => {});
+          return { ...chat, participants: newParticipants };
         }
         return chat;
       });
@@ -1226,18 +1247,20 @@ export const useChatLogic = () => {
 📷 Фотографии домашних и "классных" заданий обязательно отправлять в чат "Отчеты". Это поможет педагогам оценивать успехи и более точечно работать над нарушенными функциями.
 ‼️ Об отмене/переносе  занятия нужно предупредить не позднее, чем за 4 часа до его начала. В противном случае урок будет списан. Если пропуск без предупреждения связан с болезнью, вы можете предоставить справку от педиатра, и тогда мы перенесем занятие на конец абонемента.`;
 
+    const welcomeMsg = {
+      id: `welcome-${groupId}`,
+      text: welcomeText,
+      sender: 'Виктория Абраменко',
+      senderId: 'admin',
+      senderAvatar: 'https://cdn.poehali.dev/files/Админ.jpg',
+      timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      isOwn: true,
+    };
     setChatMessages(prev => ({
       ...prev,
-      [`${groupId}-important`]: [{
-        id: `welcome-${groupId}`,
-        text: welcomeText,
-        sender: 'Виктория Абраменко',
-        senderId: 'admin',
-        senderAvatar: 'https://cdn.poehali.dev/files/Админ.jpg',
-        timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-        isOwn: true,
-      }]
+      [`${groupId}-important`]: [welcomeMsg]
     }));
+    apiSendMessage({ id: welcomeMsg.id, chatId: groupId, topicId: `${groupId}-important`, senderId: 'admin', senderName: 'Виктория Абраменко', text: welcomeText }).catch(() => {});
   };
 
   const handleTyping = (text: string) => {
@@ -1250,7 +1273,7 @@ export const useChatLogic = () => {
   };
 
   const handleDeleteGroup = (chatId: string) => {
-    // Удаляем чат из списка
+    deleteChat(chatId).catch(() => {});
     setChats(prev => prev.filter(chat => chat.id !== chatId));
     
     // Удаляем топики группы
@@ -1281,23 +1304,32 @@ export const useChatLogic = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    setAllUsers(prev => prev.filter(u => u.id !== userId));
-    setChats(prev => prev
-      .map(chat => ({
-        ...chat,
-        participants: chat.participants?.filter(id => id !== userId),
-      }))
-      .filter(chat => {
-        if (chat.type === 'private' && chat.participants) {
-          return chat.participants.length >= 2;
-        }
-        return true;
-      })
-    );
+  const handleDeleteUser = async (deletedUserId: string) => {
+    setAllUsers(prev => prev.filter(u => u.id !== deletedUserId));
+    setChats(prev => {
+      const updated = prev
+        .map(chat => {
+          if (chat.participants?.includes(deletedUserId)) {
+            const newParticipants = chat.participants.filter(id => id !== deletedUserId);
+            updateChat(chat.id, { participants: newParticipants }).catch(() => {});
+            return { ...chat, participants: newParticipants };
+          }
+          return chat;
+        })
+        .filter(chat => {
+          if (chat.type === 'private' && chat.participants) {
+            if (chat.participants.length < 2) {
+              deleteChat(chat.id).catch(() => {});
+              return false;
+            }
+          }
+          return true;
+        });
+      return updated;
+    });
     try {
       const { deleteUser } = await import('@/services/api');
-      await deleteUser(userId);
+      await deleteUser(deletedUserId);
     } catch (e) {
       console.error('Failed to delete user from DB:', e);
     }
@@ -1334,6 +1366,7 @@ export const useChatLogic = () => {
       localStorage.setItem('chats', JSON.stringify(updated));
       return updated;
     });
+    updateChat(chatId, { leadTeachers }).catch(() => {});
   };
 
   const handleUpdateParticipants = (chatId: string, participantIds: string[]) => {
@@ -1354,6 +1387,7 @@ export const useChatLogic = () => {
       localStorage.setItem('chats', JSON.stringify(updated));
       return updated;
     });
+    updateChat(chatId, { participants: finalParticipants }).catch(() => {});
   };
 
   const handleUpdateLeadAdmin = (chatId: string, leadAdmin: string | undefined) => {
@@ -1366,6 +1400,7 @@ export const useChatLogic = () => {
       localStorage.setItem('chats', JSON.stringify(updated));
       return updated;
     });
+    updateChat(chatId, { leadAdmin: leadAdmin || null }).catch(() => {});
   };
 
   const handleUpdateGroupInfo = (chatId: string, updates: { schedule?: string; conclusionLink?: string; name?: string }) => {
@@ -1378,6 +1413,7 @@ export const useChatLogic = () => {
       localStorage.setItem('chats', JSON.stringify(updated));
       return updated;
     });
+    updateChat(chatId, updates).catch(() => {});
   };
 
   return {

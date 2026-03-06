@@ -172,6 +172,28 @@ export async function createChat(chat: {
   return data.chatId;
 }
 
+export async function updateChat(chatId: string, updates: Record<string, unknown>): Promise<void> {
+  const response = await fetch(API_URLS.chats, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: chatId, ...updates }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update chat');
+  }
+}
+
+export async function deleteChat(chatId: string): Promise<void> {
+  const response = await fetch(`${API_URLS.chats}?chatId=${chatId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete chat');
+  }
+}
+
 // Сообщения
 export async function getMessages(chatId: string, topicId?: string): Promise<Message[]> {
   const url = new URL(API_URLS.messages);
