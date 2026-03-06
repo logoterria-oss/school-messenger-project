@@ -191,6 +191,8 @@ def handler(event: dict, context) -> dict:
             }
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         if 'cur' in locals():
             cur.close()
         if 'conn' in locals():

@@ -32,7 +32,7 @@ def handler(event: dict, context) -> dict:
                 return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'X-User-Id header is required'})}
 
             cur.execute("""
-                SELECT DISTINCT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.lead_admin,
+                SELECT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.lead_admin,
                        COALESCE(m.text, '') as last_message,
                        TO_CHAR(m.created_at, 'HH24:MI') as timestamp,
                        COALESCE(unread.count, 0) as unread,
@@ -213,6 +213,8 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'chatId': chat_id})}
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         if 'cur' in locals():
             cur.close()
         if 'conn' in locals():
