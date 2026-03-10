@@ -32,31 +32,43 @@ def handler(event: dict, context) -> dict:
                 return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'X-User-Id header is required'})}
 
             cur.execute("""
-                SELECT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.lead_admin,
-                       COALESCE(m.text, '') as last_message,
-                       TO_CHAR(m.created_at, 'HH24:MI') as timestamp,
-                       COALESCE(unread.count, 0) as unread,
-                       ARRAY_AGG(DISTINCT cp.user_id) as participants
-                FROM chats c
-                JOIN chat_participants cp ON cp.chat_id = c.id
-                LEFT JOIN LATERAL (
-                    SELECT text, created_at
-                    FROM messages
-                    WHERE chat_id = c.id
-                    ORDER BY created_at DESC
-                    LIMIT 1
-                ) m ON true
-                LEFT JOIN LATERAL (
-                    SELECT COUNT(*) as count
-                    FROM messages msg
-                    LEFT JOIN message_status ms ON ms.message_id = msg.id AND ms.user_id = %s
-                    WHERE msg.chat_id = c.id
-                    AND (ms.status IS NULL OR ms.status != 'read')
-                    AND msg.sender_id != %s
-                ) unread ON true
-                WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = %s)
-                GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.lead_admin, m.text, m.created_at, unread.count
-                ORDER BY c.is_pinned DESC, m.created_at DESC NULLS LAST
+                WITH chat_data AS (
+                    SELECT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.is_archived, c.lead_admin,
+                           COALESCE(m.text, '') as last_message,
+                           TO_CHAR(m.created_at, 'HH24:MI') as timestamp,
+                           COALESCE(unread.count, 0) as unread,
+                           ARRAY_AGG(DISTINCT cp.user_id ORDER BY cp.user_id) as participants,
+                           m.created_at as last_msg_at
+                    FROM chats c
+                    JOIN chat_participants cp ON cp.chat_id = c.id
+                    LEFT JOIN LATERAL (
+                        SELECT text, created_at
+                        FROM messages
+                        WHERE chat_id = c.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) m ON true
+                    LEFT JOIN LATERAL (
+                        SELECT COUNT(*) as count
+                        FROM messages msg
+                        LEFT JOIN message_status ms ON ms.message_id = msg.id AND ms.user_id = %s
+                        WHERE msg.chat_id = c.id
+                        AND (ms.status IS NULL OR ms.status != 'read')
+                        AND msg.sender_id != %s
+                    ) unread ON true
+                    WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = %s)
+                    GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.is_archived, c.lead_admin, m.text, m.created_at, unread.count
+                ),
+                deduped AS (
+                    SELECT DISTINCT ON (
+                        CASE WHEN type = 'private' THEN participants::text ELSE id END
+                    ) *
+                    FROM chat_data
+                    ORDER BY CASE WHEN type = 'private' THEN participants::text ELSE id END, is_pinned DESC NULLS LAST, last_msg_at DESC NULLS LAST
+                )
+                SELECT id, name, type, avatar, schedule, conclusion_link, is_pinned, is_archived, lead_admin, last_message, timestamp, unread, participants
+                FROM deduped
+                ORDER BY is_pinned DESC, last_msg_at DESC NULLS LAST
             """, (user_id, user_id, user_id))
 
             chats = cur.fetchall()
@@ -119,6 +131,25 @@ def handler(event: dict, context) -> dict:
             required_fields = ['id', 'name', 'type', 'participants']
             if not all(field in data for field in required_fields):
                 return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'Missing required fields'})}
+
+            if data['type'] == 'private' and len(data['participants']) == 2:
+                sorted_p = sorted(data['participants'])
+                cur.execute("""
+                    SELECT c.id FROM chats c
+                    WHERE c.type = 'private'
+                    AND c.id IN (
+                        SELECT cp1.chat_id
+                        FROM chat_participants cp1
+                        JOIN chat_participants cp2 ON cp1.chat_id = cp2.chat_id
+                        WHERE cp1.user_id = %s AND cp2.user_id = %s
+                    )
+                    LIMIT 1
+                """, (sorted_p[0], sorted_p[1]))
+                existing = cur.fetchone()
+                if existing:
+                    cur.close()
+                    conn.close()
+                    return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'chatId': existing['id'], 'existing': True})}
 
             cur.execute("""
                 INSERT INTO chats (id, name, type, avatar, schedule, conclusion_link, is_pinned, lead_admin)

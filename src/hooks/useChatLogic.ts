@@ -320,7 +320,7 @@ export const useChatLogic = () => {
         getChats(userId).then(chatsData => {
           if (chatsData.chats.length > 0) {
             const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
-            setChats(mappedChats);
+            setChats(deduplicatePrivateChats(mappedChats));
             setGroupTopics(mappedTopics);
             if (userRole === 'admin') {
               const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
@@ -340,7 +340,7 @@ export const useChatLogic = () => {
         if (users.length > 0) setAllUsers(users);
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
-          setChats(mappedChats);
+          setChats(deduplicatePrivateChats(mappedChats));
           setGroupTopics(mappedTopics);
           if (userRole === 'admin') {
             const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
