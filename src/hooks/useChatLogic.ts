@@ -24,6 +24,13 @@ const mapApiMessages = (msgs: ApiMessage[]): Message[] =>
     status: 'delivered' as const,
   }));
 
+const mergeMessages = (existing: Message[], fromApi: Message[]): Message[] => {
+  const merged = new Map<string, Message>();
+  existing.forEach(msg => merged.set(msg.id, msg));
+  fromApi.forEach(msg => merged.set(msg.id, msg));
+  return Array.from(merged.values());
+};
+
 type User = {
   id: string;
   name: string;
@@ -278,7 +285,7 @@ export const useChatLogic = () => {
           setSelectedTopic(autoTopicId);
           markAsRead(userId, myGroup.id, autoTopicId).catch(() => {});
           getMessages(myGroup.id, autoTopicId).then(msgs => {
-            setChatMessages(prev => ({ ...prev, [autoTopicId]: mapApiMessages(msgs) }));
+            setChatMessages(prev => ({ ...prev, [autoTopicId]: mergeMessages(prev[autoTopicId] || [], mapApiMessages(msgs)) }));
           }).catch(() => {});
         }
       }
@@ -391,7 +398,7 @@ export const useChatLogic = () => {
         const targetId = data.topicId || data.chatId;
         setChatMessages(prev => ({
           ...prev,
-          [targetId]: mapApiMessages(msgs)
+          [targetId]: mergeMessages(prev[targetId] || [], mapApiMessages(msgs))
         }));
 
         const isCurrentChat = data.chatId === selectedChat && (!data.topicId || data.topicId === selectedTopic);
@@ -516,12 +523,12 @@ export const useChatLogic = () => {
           };
         });
         getMessages(chatId, firstTopicId).then(msgs => {
-          setChatMessages(prev => ({ ...prev, [firstTopicId!]: mapApiMessages(msgs) }));
+          setChatMessages(prev => ({ ...prev, [firstTopicId!]: mergeMessages(prev[firstTopicId!] || [], mapApiMessages(msgs)) }));
         }).catch(() => {});
       } else {
         markAsRead(userId, chatId).catch(() => {});
         getMessages(chatId).then(msgs => {
-          setChatMessages(prev => ({ ...prev, [chatId]: mapApiMessages(msgs) }));
+          setChatMessages(prev => ({ ...prev, [chatId]: mergeMessages(prev[chatId] || [], mapApiMessages(msgs)) }));
         }).catch(() => {});
       }
     }
@@ -543,7 +550,7 @@ export const useChatLogic = () => {
       }
 
       getMessages(selectedGroup, topicId).then(msgs => {
-        setChatMessages(prev => ({ ...prev, [topicId]: mapApiMessages(msgs) }));
+        setChatMessages(prev => ({ ...prev, [topicId]: mergeMessages(prev[topicId] || [], mapApiMessages(msgs)) }));
       }).catch(() => {});
     }
   };
