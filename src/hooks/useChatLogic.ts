@@ -235,17 +235,30 @@ export const useChatLogic = () => {
   // TODO: Интеграция с WebSocket/сервером для получения данных о печатающих пользователях
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
+  const roleLabels: Record<string, string> = {
+    admin: 'админ',
+    teacher: 'педагог',
+    parent: 'родитель',
+    student: 'ученик',
+  };
+
   const messages = useMemo(() => {
     const raw = selectedTopic 
       ? (chatMessages[selectedTopic] || []) 
       : selectedChat 
       ? (chatMessages[selectedChat] || []) 
       : [];
-    return raw.map(msg => ({
-      ...msg,
-      isOwn: msg.senderId ? msg.senderId === userId : msg.isOwn,
-    }));
-  }, [selectedTopic, selectedChat, chatMessages, userId]);
+    return raw.map(msg => {
+      const user = msg.senderId ? allUsers.find(u => u.id === msg.senderId) : undefined;
+      const roleLabel = user?.role ? roleLabels[user.role] : undefined;
+      const displayName = roleLabel ? `${msg.sender} (${roleLabel})` : msg.sender;
+      return {
+        ...msg,
+        sender: displayName,
+        isOwn: msg.senderId ? msg.senderId === userId : msg.isOwn,
+      };
+    });
+  }, [selectedTopic, selectedChat, chatMessages, userId, allUsers]);
 
   useEffect(() => {
     if (isAuthenticated && (userRole === 'parent' || userRole === 'student') && !selectedChat && userId) {
