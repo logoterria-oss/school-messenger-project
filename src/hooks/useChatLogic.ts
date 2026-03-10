@@ -74,7 +74,7 @@ const loadUsersFromStorage = (): User[] => {
   // Если есть кэш в памяти - возвращаем мгновенно
   if (cachedUsers) return cachedUsers;
   
-  const VERSION = 'v7-fix-duplicate-chats';
+  const VERSION = 'v8-fix-duplicate-chats-final';
   const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
   
@@ -320,7 +320,9 @@ export const useChatLogic = () => {
         getChats(userId).then(chatsData => {
           if (chatsData.chats.length > 0) {
             const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
-            setChats(deduplicatePrivateChats(mappedChats));
+            const deduped = deduplicatePrivateChats(mappedChats);
+            const withStaff = ensureStaffChats(userRole!, userId, deduped, allUsers);
+            setChats(withStaff);
             setGroupTopics(mappedTopics);
             if (userRole === 'admin') {
               const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
@@ -337,10 +339,13 @@ export const useChatLogic = () => {
           getChats(userId).catch(() => ({ chats: [], topics: {} }))
         ]);
         
+        const resolvedUsers = users.length > 0 ? users : allUsers;
         if (users.length > 0) setAllUsers(users);
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
-          setChats(deduplicatePrivateChats(mappedChats));
+          const deduped = deduplicatePrivateChats(mappedChats);
+          const withStaff = ensureStaffChats(userRole!, userId, deduped, resolvedUsers);
+          setChats(withStaff);
           setGroupTopics(mappedTopics);
           if (userRole === 'admin') {
             const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
@@ -768,91 +773,6 @@ export const useChatLogic = () => {
           ]
         }));
       }
-      
-      // 2. ЛС с руководителем (Абраменко Виктория)
-      if (currentUserId) {
-        const supervisorChatId = `private-${currentUserId}-${SUPERVISOR_ID}`;
-        const hasSupervisorChat = existingChats.some(chat =>
-          chat.id === supervisorChatId ||
-          chat.id === `private-${currentUserId}-admin` ||
-          (chat.type === 'private' && chat.participants &&
-           chat.participants.includes(currentUserId) && chat.participants.includes(SUPERVISOR_ID))
-        );
-        if (!hasSupervisorChat) {
-          const supervisorUser = allUsers.find(u => u.id === SUPERVISOR_ID);
-          const supervisorChat: Chat = {
-            id: supervisorChatId,
-            name: (supervisorUser?.name || 'Виктория Абраменко') + ' (руководитель)',
-            type: 'private',
-            lastMessage: '',
-            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            unread: 0,
-            participants: [currentUserId, SUPERVISOR_ID],
-            isPinned: true,
-            avatar: supervisorUser?.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
-          };
-          existingChats.push(supervisorChat);
-          createChat({ id: supervisorChatId, name: supervisorChat.name, type: 'private', participants: [currentUserId, SUPERVISOR_ID], isPinned: true, avatar: supervisorChat.avatar }).catch(() => {});
-        }
-
-        // 3. ЛС с другими педагогами (кроме себя)
-        const otherTeachers = allUsers.filter(u => u.role === 'teacher' && u.id !== currentUserId);
-        otherTeachers.forEach(teacher => {
-          const ids = [teacher.id, currentUserId].sort();
-          const privateChatId = `private-teacher-${ids[0]}-${ids[1]}`;
-          const hasChat = existingChats.some(chat =>
-            chat.id === privateChatId ||
-            (chat.type === 'private' && chat.participants &&
-             chat.participants.length === 2 &&
-             chat.participants.includes(teacher.id) &&
-             chat.participants.includes(currentUserId))
-          );
-          if (!hasChat) {
-            const privateChat: Chat = {
-              id: privateChatId,
-              name: teacher.name,
-              type: 'private',
-              lastMessage: '',
-              timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-              unread: 0,
-              participants: [teacher.id, currentUserId],
-              isPinned: false,
-              avatar: teacher.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
-            };
-            existingChats.push(privateChat);
-            createChat({ id: privateChatId, name: teacher.name, type: 'private', participants: [teacher.id, currentUserId], avatar: privateChat.avatar }).catch(() => {});
-          }
-        });
-
-        // 4. ЛС с другими админами (кроме руководителя, он уже создан выше)
-        const otherAdmins = allUsers.filter(u => u.role === 'admin' && u.id !== currentUserId && u.id !== SUPERVISOR_ID);
-        otherAdmins.forEach(adm => {
-          const ids = [adm.id, currentUserId].sort();
-          const privateChatId = `private-${ids[0]}-${ids[1]}`;
-          const hasChat = existingChats.some(chat =>
-            chat.id === privateChatId ||
-            (chat.type === 'private' && chat.participants &&
-             chat.participants.length === 2 &&
-             chat.participants.includes(adm.id) &&
-             chat.participants.includes(currentUserId))
-          );
-          if (!hasChat) {
-            const privateChat: Chat = {
-              id: privateChatId,
-              name: adm.name,
-              type: 'private',
-              lastMessage: '',
-              timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-              unread: 0,
-              participants: [adm.id, currentUserId],
-              isPinned: false,
-              avatar: adm.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
-            };
-            existingChats.push(privateChat);
-            createChat({ id: privateChatId, name: adm.name, type: 'private', participants: [adm.id, currentUserId], avatar: privateChat.avatar }).catch(() => {});
-          }
-        });
-      }
 
       existingChats = deduplicatePrivateChats(existingChats);
       
@@ -912,92 +832,6 @@ export const useChatLogic = () => {
           ]
         }));
       }
-      
-      // 2. Личные чаты с каждым педагогом
-      const teachers = allUsers.filter(u => u.role === 'teacher');
-      teachers.forEach(teacher => {
-        const privateChatId = `private-${teacher.id}-${currentUserId}`;
-        const legacyChatId = `private-${teacher.id}-admin`;
-        const hasPrivateChat = existingChats.some(chat =>
-          chat.id === privateChatId || chat.id === legacyChatId ||
-          (chat.type === 'private' && chat.participants &&
-           chat.participants.length === 2 &&
-           chat.participants.includes(teacher.id) &&
-           chat.participants.includes(currentUserId))
-        );
-        
-        if (!hasPrivateChat) {
-          const privateChat: Chat = {
-            id: privateChatId,
-            name: teacher.name,
-            type: 'private',
-            lastMessage: '',
-            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            unread: 0,
-            participants: [teacher.id, currentUserId],
-            isPinned: true,
-            avatar: teacher.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
-          };
-          existingChats.unshift(privateChat);
-          createChat({ id: privateChatId, name: teacher.name, type: 'private', participants: [teacher.id, currentUserId], isPinned: true, avatar: privateChat.avatar }).catch(() => {});
-        }
-      });
-
-      // 3. ЛС с Абраменко (супервизор) для не-supervisor админов
-      if (currentUserId !== SUPERVISOR_ID) {
-        const supervisorChatId = `private-${currentUserId}-${SUPERVISOR_ID}`;
-        const hasSupervisorChat = existingChats.some(chat =>
-          chat.id === supervisorChatId ||
-          (chat.type === 'private' && chat.participants &&
-           chat.participants.includes(currentUserId) && chat.participants.includes(SUPERVISOR_ID))
-        );
-        if (!hasSupervisorChat) {
-          const supervisorUser = allUsers.find(u => u.id === SUPERVISOR_ID);
-          const supervisorChat: Chat = {
-            id: supervisorChatId,
-            name: (supervisorUser?.name || 'Виктория Абраменко') + ' (руководитель)',
-            type: 'private',
-            lastMessage: '',
-            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            unread: 0,
-            participants: [currentUserId, SUPERVISOR_ID],
-            isPinned: true,
-            avatar: supervisorUser?.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
-          };
-          existingChats.unshift(supervisorChat);
-          createChat({ id: supervisorChatId, name: supervisorChat.name, type: 'private', participants: [currentUserId, SUPERVISOR_ID], isPinned: true, avatar: supervisorChat.avatar }).catch(() => {});
-        }
-      }
-
-      // 4. Личные чаты с другими админами (кроме себя и супервизора)
-      const otherAdmins = allUsers.filter(u => u.role === 'admin' && u.id !== currentUserId && u.id !== SUPERVISOR_ID);
-      otherAdmins.forEach(adm => {
-        const ids = [adm.id, currentUserId].sort();
-        const privateChatId = `private-admin-${ids[0]}-${ids[1]}`;
-        const hasPrivateChat = existingChats.some(chat =>
-          chat.id === privateChatId ||
-          (chat.type === 'private' && chat.participants &&
-           chat.participants.length === 2 &&
-           chat.participants.includes(adm.id) &&
-           chat.participants.includes(currentUserId))
-        );
-        
-        if (!hasPrivateChat) {
-          const privateChat: Chat = {
-            id: privateChatId,
-            name: adm.name,
-            type: 'private',
-            lastMessage: '',
-            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            unread: 0,
-            participants: [adm.id, currentUserId],
-            isPinned: false,
-            avatar: adm.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
-          };
-          existingChats.push(privateChat);
-          createChat({ id: privateChatId, name: adm.name, type: 'private', participants: [adm.id, currentUserId], avatar: privateChat.avatar }).catch(() => {});
-        }
-      });
 
       existingChats = deduplicatePrivateChats(existingChats);
       
@@ -1022,6 +856,162 @@ export const useChatLogic = () => {
         }
       }
     }
+  };
+
+  const ensureStaffChats = (
+    role: UserRole,
+    currentUserId: string,
+    currentChats: Chat[],
+    users: User[]
+  ): Chat[] => {
+    if (role !== 'teacher' && role !== 'admin') return currentChats;
+
+    const hasPrivateChatWith = (otherId: string): boolean =>
+      currentChats.some(chat =>
+        chat.type === 'private' &&
+        chat.participants &&
+        chat.participants.length === 2 &&
+        chat.participants.includes(currentUserId) &&
+        chat.participants.includes(otherId)
+      );
+
+    const now = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    const newChats: Chat[] = [];
+
+    if (role === 'teacher') {
+      // LS with supervisor
+      if (!hasPrivateChatWith(SUPERVISOR_ID)) {
+        const supervisorUser = users.find(u => u.id === SUPERVISOR_ID);
+        const chatId = `private-${[currentUserId, SUPERVISOR_ID].sort().join('-')}`;
+        const chat: Chat = {
+          id: chatId,
+          name: (supervisorUser?.name || 'Виктория Абраменко') + ' (руководитель)',
+          type: 'private',
+          lastMessage: '',
+          timestamp: now,
+          unread: 0,
+          participants: [currentUserId, SUPERVISOR_ID],
+          isPinned: false,
+          avatar: supervisorUser?.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
+        };
+        newChats.push(chat);
+        createChat({ id: chatId, name: chat.name, type: 'private', participants: [currentUserId, SUPERVISOR_ID], avatar: chat.avatar }).catch(() => {});
+      }
+
+      // LS with other teachers
+      const otherTeachers = users.filter(u => u.role === 'teacher' && u.id !== currentUserId);
+      otherTeachers.forEach(teacher => {
+        if (!hasPrivateChatWith(teacher.id)) {
+          const ids = [teacher.id, currentUserId].sort();
+          const chatId = `private-teacher-${ids[0]}-${ids[1]}`;
+          const chat: Chat = {
+            id: chatId,
+            name: teacher.name,
+            type: 'private',
+            lastMessage: '',
+            timestamp: now,
+            unread: 0,
+            participants: [teacher.id, currentUserId],
+            isPinned: false,
+            avatar: teacher.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
+          };
+          newChats.push(chat);
+          createChat({ id: chatId, name: teacher.name, type: 'private', participants: [teacher.id, currentUserId], avatar: chat.avatar }).catch(() => {});
+        }
+      });
+
+      // LS with admins (non-supervisor)
+      const admins = users.filter(u => u.role === 'admin' && u.id !== SUPERVISOR_ID);
+      admins.forEach(adm => {
+        if (!hasPrivateChatWith(adm.id)) {
+          const ids = [adm.id, currentUserId].sort();
+          const chatId = `private-${ids[0]}-${ids[1]}`;
+          const chat: Chat = {
+            id: chatId,
+            name: adm.name,
+            type: 'private',
+            lastMessage: '',
+            timestamp: now,
+            unread: 0,
+            participants: [adm.id, currentUserId],
+            isPinned: false,
+            avatar: adm.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
+          };
+          newChats.push(chat);
+          createChat({ id: chatId, name: adm.name, type: 'private', participants: [adm.id, currentUserId], avatar: chat.avatar }).catch(() => {});
+        }
+      });
+    }
+
+    if (role === 'admin') {
+      const isSupervisor = currentUserId === SUPERVISOR_ID;
+
+      // LS with all teachers
+      const teachers = users.filter(u => u.role === 'teacher');
+      teachers.forEach(teacher => {
+        if (!hasPrivateChatWith(teacher.id)) {
+          const chatId = `private-${[teacher.id, currentUserId].sort().join('-')}`;
+          const chat: Chat = {
+            id: chatId,
+            name: teacher.name,
+            type: 'private',
+            lastMessage: '',
+            timestamp: now,
+            unread: 0,
+            participants: [teacher.id, currentUserId],
+            isPinned: false,
+            avatar: teacher.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
+          };
+          newChats.push(chat);
+          createChat({ id: chatId, name: teacher.name, type: 'private', participants: [teacher.id, currentUserId], avatar: chat.avatar }).catch(() => {});
+        }
+      });
+
+      // LS with supervisor (for non-supervisor admins)
+      if (!isSupervisor && !hasPrivateChatWith(SUPERVISOR_ID)) {
+        const supervisorUser = users.find(u => u.id === SUPERVISOR_ID);
+        const chatId = `private-${[currentUserId, SUPERVISOR_ID].sort().join('-')}`;
+        const chat: Chat = {
+          id: chatId,
+          name: (supervisorUser?.name || 'Виктория Абраменко') + ' (руководитель)',
+          type: 'private',
+          lastMessage: '',
+          timestamp: now,
+          unread: 0,
+          participants: [currentUserId, SUPERVISOR_ID],
+          isPinned: false,
+          avatar: supervisorUser?.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
+        };
+        newChats.push(chat);
+        createChat({ id: chatId, name: chat.name, type: 'private', participants: [currentUserId, SUPERVISOR_ID], avatar: chat.avatar }).catch(() => {});
+      }
+
+      // LS with other admins
+      const otherAdmins = users.filter(u => u.role === 'admin' && u.id !== currentUserId && u.id !== SUPERVISOR_ID);
+      otherAdmins.forEach(adm => {
+        if (!hasPrivateChatWith(adm.id)) {
+          const ids = [adm.id, currentUserId].sort();
+          const chatId = `private-admin-${ids[0]}-${ids[1]}`;
+          const chat: Chat = {
+            id: chatId,
+            name: adm.name,
+            type: 'private',
+            lastMessage: '',
+            timestamp: now,
+            unread: 0,
+            participants: [adm.id, currentUserId],
+            isPinned: false,
+            avatar: adm.avatar || 'https://cdn.poehali.dev/files/Админ.jpg',
+          };
+          newChats.push(chat);
+          createChat({ id: chatId, name: adm.name, type: 'private', participants: [adm.id, currentUserId], avatar: chat.avatar }).catch(() => {});
+        }
+      });
+    }
+
+    if (newChats.length === 0) return currentChats;
+
+    return deduplicatePrivateChats([...currentChats, ...newChats]);
   };
 
   const handleLogout = () => {

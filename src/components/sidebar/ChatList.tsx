@@ -83,7 +83,8 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     const userB = getOtherUser(b);
     const rankA = userA?.id === SUPERVISOR_ID ? 0 : userA?.role === 'admin' ? 1 : 2;
     const rankB = userB?.id === SUPERVISOR_ID ? 0 : userB?.role === 'admin' ? 1 : 2;
-    return rankA - rankB;
+    if (rankA !== rankB) return rankA - rankB;
+    return (userA?.name || '').localeCompare(userB?.name || '', 'ru');
   });
   const staffUnread = staffChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
