@@ -57,7 +57,9 @@ const loadChatsFromCache = (): Chat[] => {
   if (cachedChats) return cachedChats;
   const stored = localStorage.getItem('chats');
   let chats: Chat[] = stored ? JSON.parse(stored) : [];
-  chats = deduplicatePrivateChats(chats);
+  chats = deduplicatePrivateChats(chats).map(c =>
+    c.type === 'private' ? { ...c, isPinned: false } : c
+  );
   cachedChats = chats;
   if (stored) localStorage.setItem('chats', JSON.stringify(chats));
   return cachedChats;
@@ -74,7 +76,7 @@ const loadUsersFromStorage = (): User[] => {
   // Если есть кэш в памяти - возвращаем мгновенно
   if (cachedUsers) return cachedUsers;
   
-  const VERSION = 'v8-fix-duplicate-chats-final';
+  const VERSION = 'v9-clean-private-pins';
   const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
   
@@ -291,7 +293,7 @@ export const useChatLogic = () => {
         participants: c.participants as string[] | undefined,
         leadTeachers: (c.lead_teachers && (c.lead_teachers as string[]).length > 0) ? c.lead_teachers as string[] : undefined,
         leadAdmin: (c.lead_admin || undefined) as string | undefined,
-        isPinned: c.is_pinned as boolean | undefined,
+        isPinned: (c.type === 'private' ? false : c.is_pinned) as boolean | undefined,
         isArchived: c.is_archived as boolean | undefined,
         schedule: c.schedule as string | undefined,
         conclusionLink: c.conclusion_link as string | undefined,
@@ -718,47 +720,30 @@ export const useChatLogic = () => {
     localStorage.setItem('userName', name || '');
     localStorage.setItem('userId', currentUserId);
     
-    let existingChats = chats;
-    
-    // Создание закрепленных чатов для педагогов
-    if (role === 'teacher') {
-      existingChats = existingChats.filter(chat => {
-        if (chat.type === 'private' && chat.participants && currentUserId) {
-          const others = chat.participants.filter(id => id !== currentUserId);
-          if (others.length === 0) return false;
-          if (chat.participants.length === 2 && chat.participants[0] === chat.participants[1]) return false;
-        }
-        return true;
-      });
+    localStorage.removeItem('chats');
+    cachedChats = null;
+    setChats([]);
 
-      // 1. Чат "Педагоги" (групповой чат всех педагогов)
+    const ensureTeachersGroup = (role: UserRole) => {
+      if (role !== 'teacher' && role !== 'admin') return;
       const teachersGroupId = 'teachers-group';
-      const hasTeachersGroup = existingChats.some(chat => chat.id === teachersGroupId);
-      
-      if (!hasTeachersGroup) {
-        const allTeacherIds = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
-        const tgTopics = [
+      const allTeacherIds = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
+      createChat({
+        id: teachersGroupId,
+        name: 'Педагоги',
+        type: 'group',
+        participants: [...allTeacherIds, 'admin'],
+        isPinned: true,
+        avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg',
+        topics: [
           { id: 'teachers-group-important', name: 'Важное', icon: 'AlertCircle' },
           { id: 'teachers-group-general', name: 'Общее', icon: 'MessageSquare' },
           { id: 'teachers-group-flood', name: 'Флудилка', icon: 'Coffee' },
           { id: 'teachers-group-new-students', name: 'Новые ученики', icon: 'UserPlus' },
           { id: 'teachers-group-parent-reviews', name: 'Отзывы родителей', icon: 'Star' },
           { id: 'teachers-group-support', name: 'Техподдержка', icon: 'Headphones' },
-        ];
-        const teachersGroupChat: Chat = {
-          id: teachersGroupId,
-          name: 'Педагоги',
-          type: 'group',
-          lastMessage: 'Общий чат педагогов',
-          timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-          unread: 0,
-          participants: [...allTeacherIds, 'admin'],
-          isPinned: true,
-          avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg',
-        };
-        existingChats.unshift(teachersGroupChat);
-        createChat({ id: teachersGroupId, name: 'Педагоги', type: 'group', participants: [...allTeacherIds, 'admin'], isPinned: true, avatar: teachersGroupChat.avatar, topics: tgTopics }).catch(() => {});
-      }
+        ],
+      }).catch(() => {});
 
       if (!groupTopics['teachers-group'] || groupTopics['teachers-group'].length === 0) {
         setGroupTopics(prev => ({
@@ -773,71 +758,9 @@ export const useChatLogic = () => {
           ]
         }));
       }
+    };
 
-      existingChats = deduplicatePrivateChats(existingChats);
-      
-      setChats(existingChats);
-      localStorage.setItem('chats', JSON.stringify(existingChats));
-    }
-    
-    // Создание закрепленных чатов для админа
-    if (role === 'admin') {
-      existingChats = existingChats.filter(chat => {
-        if (chat.type === 'private' && chat.participants) {
-          const isWithSelf = chat.participants.every(id => id === currentUserId);
-          if (isWithSelf) return false;
-        }
-        return true;
-      });
-      
-      // 1. Чат "Педагоги" (групповой чат всех педагогов + админ)
-      const teachersGroupId = 'teachers-group';
-      const hasTeachersGroup = existingChats.some(chat => chat.id === teachersGroupId);
-      
-      if (!hasTeachersGroup) {
-        const allTeacherIds = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
-        const adminTgTopics = [
-          { id: 'teachers-group-important', name: 'Важное', icon: 'AlertCircle' },
-          { id: 'teachers-group-general', name: 'Общее', icon: 'MessageSquare' },
-          { id: 'teachers-group-flood', name: 'Флудилка', icon: 'Coffee' },
-          { id: 'teachers-group-new-students', name: 'Новые ученики', icon: 'UserPlus' },
-          { id: 'teachers-group-parent-reviews', name: 'Отзывы родителей', icon: 'Star' },
-          { id: 'teachers-group-support', name: 'Техподдержка', icon: 'Headphones' },
-        ];
-        const teachersGroupChat: Chat = {
-          id: teachersGroupId,
-          name: 'Педагоги',
-          type: 'group',
-          lastMessage: 'Общий чат педагогов',
-          timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-          unread: 0,
-          participants: [...allTeacherIds, 'admin'],
-          isPinned: true,
-          avatar: 'https://cdn.poehali.dev/files/6c04fc1dc8efff47815dc84d1e41d67b_964f0b0a-ab13-4528-8458-3898a259a3ac.jpg',
-        };
-        existingChats.unshift(teachersGroupChat);
-        createChat({ id: teachersGroupId, name: 'Педагоги', type: 'group', participants: [...allTeacherIds, 'admin'], isPinned: true, avatar: teachersGroupChat.avatar, topics: adminTgTopics }).catch(() => {});
-      }
-
-      if (!groupTopics['teachers-group'] || groupTopics['teachers-group'].length === 0) {
-        setGroupTopics(prev => ({
-          ...prev,
-          'teachers-group': [
-            { id: 'teachers-group-important', name: 'Важное', icon: 'AlertCircle', lastMessage: '', timestamp: '', unread: 0 },
-            { id: 'teachers-group-general', name: 'Общее', icon: 'MessageSquare', lastMessage: '', timestamp: '', unread: 0 },
-            { id: 'teachers-group-flood', name: 'Флудилка', icon: 'Coffee', lastMessage: '', timestamp: '', unread: 0 },
-            { id: 'teachers-group-new-students', name: 'Новые ученики', icon: 'UserPlus', lastMessage: '', timestamp: '', unread: 0 },
-            { id: 'teachers-group-parent-reviews', name: 'Отзывы родителей', icon: 'Star', lastMessage: '', timestamp: '', unread: 0 },
-            { id: 'teachers-group-support', name: 'Техподдержка', icon: 'Headphones', lastMessage: '', timestamp: '', unread: 0 },
-          ]
-        }));
-      }
-
-      existingChats = deduplicatePrivateChats(existingChats);
-      
-      setChats(existingChats);
-      localStorage.setItem('chats', JSON.stringify(existingChats));
-    }
+    ensureTeachersGroup(role);
     
     if (role === 'parent' || role === 'student') {
       const myGroup = chats.find(chat =>

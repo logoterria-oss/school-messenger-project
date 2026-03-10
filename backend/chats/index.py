@@ -33,7 +33,9 @@ def handler(event: dict, context) -> dict:
 
             cur.execute("""
                 WITH chat_data AS (
-                    SELECT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.is_archived, c.lead_admin,
+                    SELECT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link,
+                           CASE WHEN c.type = 'private' THEN false ELSE COALESCE(c.is_pinned, false) END as is_pinned,
+                           COALESCE(c.is_archived, false) as is_archived, c.lead_admin,
                            COALESCE(m.text, '') as last_message,
                            TO_CHAR(m.created_at, 'HH24:MI') as timestamp,
                            COALESCE(unread.count, 0) as unread,
@@ -57,6 +59,7 @@ def handler(event: dict, context) -> dict:
                         AND msg.sender_id != %s
                     ) unread ON true
                     WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = %s)
+                      AND COALESCE(c.is_archived, false) = false
                     GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.is_archived, c.lead_admin, m.text, m.created_at, unread.count
                 ),
                 deduped AS (
@@ -64,7 +67,7 @@ def handler(event: dict, context) -> dict:
                         CASE WHEN type = 'private' THEN participants::text ELSE id END
                     ) *
                     FROM chat_data
-                    ORDER BY CASE WHEN type = 'private' THEN participants::text ELSE id END, is_pinned DESC NULLS LAST, last_msg_at DESC NULLS LAST
+                    ORDER BY CASE WHEN type = 'private' THEN participants::text ELSE id END, last_msg_at DESC NULLS LAST
                 )
                 SELECT id, name, type, avatar, schedule, conclusion_link, is_pinned, is_archived, lead_admin, last_message, timestamp, unread, participants
                 FROM deduped
