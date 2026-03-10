@@ -221,7 +221,7 @@ const Index = () => {
                     ? (selectedChatData.participants || [])
                         .filter(pid => pid !== userId)
                         .map(pid => {
-                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
+                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко (руководитель)', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
                           const u = allUsers.find(u => u.id === pid);
                           return u ? { id: u.id, name: u.name, avatar: u.avatar } : null;
                         })

@@ -107,7 +107,7 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
 
           <div className="space-y-2">
               <Label>Ведущий администратор</Label>
-              <p className="text-xs text-muted-foreground">Все админы добавляются автоматически. Виктория Абраменко — супервизор и видит всё. Выберите ведущего администратора для этой группы</p>
+              <p className="text-xs text-muted-foreground">Все админы добавляются автоматически. Виктория Абраменко — руководитель и видит всё. Выберите ведущего администратора для этой группы</p>
               <div className="border rounded-md p-3 space-y-2">
                 {admins.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-2">Нет других администраторов</p>

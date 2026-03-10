@@ -532,7 +532,7 @@ export const useChatLogic = () => {
     const targetId = selectedTopic || selectedChat;
     const messageId = Date.now().toString();
     
-    const senderName = userRole === 'admin' ? 'Виктория Абраменко' : userName;
+    const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Пользователь');
     const defaultAvatars: Record<string, string> = {
       admin: 'https://cdn.poehali.dev/files/Админ.jpg',
       teacher: 'https://cdn.poehali.dev/files/Педагог.jpg',
@@ -803,7 +803,7 @@ export const useChatLogic = () => {
           adminChatExists = true;
           return {
             ...chat,
-            name: 'Виктория Абраменко',
+            name: 'Виктория Абраменко (руководитель)',
             avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
             participants: [currentUserId, 'admin'],
           };
@@ -814,7 +814,7 @@ export const useChatLogic = () => {
       if (!adminChatExists && currentUserId) {
         const adminChat: Chat = {
           id: adminChatId,
-          name: 'Виктория Абраменко',
+          name: 'Виктория Абраменко (руководитель)',
           type: 'private',
           lastMessage: '',
           timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
@@ -824,7 +824,7 @@ export const useChatLogic = () => {
           avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
         };
         existingChats.unshift(adminChat);
-        createChat({ id: adminChatId, name: 'Виктория Абраменко', type: 'private', participants: [currentUserId, 'admin'], isPinned: true, avatar: adminChat.avatar }).catch(() => {});
+        createChat({ id: adminChatId, name: 'Виктория Абраменко (руководитель)', type: 'private', participants: [currentUserId, 'admin'], isPinned: true, avatar: adminChat.avatar }).catch(() => {});
       }
       
       setChats(existingChats);
@@ -916,7 +916,7 @@ export const useChatLogic = () => {
           const supervisorUser = allUsers.find(u => u.id === SUPERVISOR_ID);
           const supervisorChat: Chat = {
             id: supervisorChatId,
-            name: supervisorUser?.name || 'Виктория Абраменко',
+            name: (supervisorUser?.name || 'Виктория Абраменко') + ' (руководитель)',
             type: 'private',
             lastMessage: '',
             timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
