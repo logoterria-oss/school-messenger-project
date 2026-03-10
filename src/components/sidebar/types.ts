@@ -6,6 +6,7 @@ export type Chat = {
   lastMessage: string;
   timestamp: string;
   unread: number;
+  unreadMentions?: number;
   type: 'group' | 'private';
   leadTeachers?: string[];
   leadAdmin?: string;

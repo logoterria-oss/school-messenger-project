@@ -170,7 +170,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
 
         {nonLeadChats.length > 0 && (
           <FolderItem
-            name="Чужие ученики"
+            name="Ученики на замену"
             icon="FolderOpen"
             chats={nonLeadChats}
             unread={nonLeadUnread}
@@ -179,6 +179,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             selectedChat={selectedChat}
             onSelectChat={onSelectChat}
             getDisplayChat={getDisplayChat}
+            onlyMentionUnread
           />
         )}
       </ScrollArea>
@@ -232,7 +233,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
 
         {nonLeadChats.length > 0 && (
           <FolderItem
-            name="Чужие ученики"
+            name="Ученики на замену"
             icon="FolderOpen"
             chats={nonLeadChats}
             unread={nonLeadUnread}
@@ -241,6 +242,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             selectedChat={selectedChat}
             onSelectChat={onSelectChat}
             getDisplayChat={getDisplayChat}
+            onlyMentionUnread
           />
         )}
       </ScrollArea>

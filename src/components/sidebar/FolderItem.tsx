@@ -13,9 +13,10 @@ type FolderItemProps = {
   selectedChat: string | null;
   onSelectChat: (chatId: string) => void;
   getDisplayChat: (chat: Chat) => Chat;
+  onlyMentionUnread?: boolean;
 };
 
-export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, selectedChat, onSelectChat, getDisplayChat }: FolderItemProps) => {
+export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, selectedChat, onSelectChat, getDisplayChat, onlyMentionUnread }: FolderItemProps) => {
   const hasSelectedChat = chats.some(c => c.id === selectedChat);
 
   return (
@@ -37,11 +38,16 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
                 <h3 className="font-medium text-[13px] text-foreground">{name}</h3>
               </div>
               <div className="flex items-center gap-2">
-                {unread > 0 && !isOpen && (
-                  <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
-                    {unread}
-                  </Badge>
-                )}
+                {(() => {
+                  const displayUnread = onlyMentionUnread
+                    ? chats.reduce((sum, c) => sum + (c.unreadMentions || 0), 0)
+                    : unread;
+                  return displayUnread > 0 && !isOpen ? (
+                    <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
+                      {displayUnread}
+                    </Badge>
+                  ) : null;
+                })()}
                 <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={18} className="text-muted-foreground/60" />
               </div>
             </div>
