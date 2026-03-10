@@ -80,8 +80,10 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
 
   const isStaffChat = (chat: Chat) => {
     if (chat.type !== 'private' || !chat.participants) return false;
-    return chat.participants.some(id => {
-      if (id === userId) return false;
+    if (!userId) return false;
+    const otherIds = chat.participants.filter(id => id !== userId);
+    if (otherIds.length === 0) return false;
+    return otherIds.some(id => {
       const user = allUsers.find(u => u.id === id);
       return user?.role === 'teacher' || user?.role === 'admin';
     });
@@ -123,7 +125,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     return 0;
   });
 
-  if (isAdmin) {
+  if (isAdmin || isTeacher) {
     const teachersGroupIndex = sorted.findIndex(c => c.id === 'teachers-group');
     const beforeFolder = teachersGroupIndex >= 0 ? sorted.slice(0, teachersGroupIndex + 1) : sorted;
     const afterFolder = teachersGroupIndex >= 0 ? sorted.slice(teachersGroupIndex + 1) : [];
@@ -156,18 +158,6 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
           />
         )}
 
-        {afterFolder.map((chat) => {
-          const displayChat = getDisplayChat(chat);
-          return (
-            <ChatItem
-              key={chat.id}
-              chat={displayChat}
-              isSelected={selectedChat === chat.id}
-              onClick={() => onSelectChat(chat.id)}
-            />
-          );
-        })}
-
         {nonLeadChats.length > 0 && (
           <FolderItem
             name="Ученики на замену"
@@ -182,42 +172,6 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             onlyMentionUnread
           />
         )}
-      </ScrollArea>
-    );
-  }
-
-  if (isTeacher) {
-    const teachersGroupIndex = sorted.findIndex(c => c.id === 'teachers-group');
-    const beforeFolder = teachersGroupIndex >= 0 ? sorted.slice(0, teachersGroupIndex + 1) : sorted;
-    const afterFolder = teachersGroupIndex >= 0 ? sorted.slice(teachersGroupIndex + 1) : [];
-
-    return (
-      <ScrollArea className="flex-1">
-        {beforeFolder.map((chat) => {
-          const displayChat = getDisplayChat(chat);
-          return (
-            <ChatItem
-              key={chat.id}
-              chat={displayChat}
-              isSelected={selectedChat === chat.id}
-              onClick={() => onSelectChat(chat.id)}
-            />
-          );
-        })}
-
-        {staffChats.length > 0 && (
-          <FolderItem
-            name="ЛС с педагогами и админами"
-            icon="FolderOpen"
-            chats={staffChats}
-            unread={staffUnread}
-            isOpen={staffFolderOpen}
-            onToggle={() => setStaffFolderOpen(!staffFolderOpen)}
-            selectedChat={selectedChat}
-            onSelectChat={onSelectChat}
-            getDisplayChat={getDisplayChat}
-          />
-        )}
 
         {afterFolder.map((chat) => {
           const displayChat = getDisplayChat(chat);
@@ -230,21 +184,6 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             />
           );
         })}
-
-        {nonLeadChats.length > 0 && (
-          <FolderItem
-            name="Ученики на замену"
-            icon="FolderOpen"
-            chats={nonLeadChats}
-            unread={nonLeadUnread}
-            isOpen={nonLeadFolderOpen}
-            onToggle={() => setNonLeadFolderOpen(!nonLeadFolderOpen)}
-            selectedChat={selectedChat}
-            onSelectChat={onSelectChat}
-            getDisplayChat={getDisplayChat}
-            onlyMentionUnread
-          />
-        )}
       </ScrollArea>
     );
   }
