@@ -39,19 +39,25 @@ type ChatSidebarProps = {
 export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onArchiveChat }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
+  const getRoleLabel = (user: { id: string; role?: string }) => {
+    if (user.id === 'admin') return 'руководитель';
+    if (user.role === 'admin') return 'админ';
+    if (user.role === 'teacher') return 'педагог';
+    return '';
+  };
+
   const getDisplayChat = (chat: Chat) => {
     if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
       const otherUserId = chat.participants.find(id => id !== userId && id !== 'current');
       if (otherUserId === 'admin' && userRole !== 'admin') {
         return { ...chat, name: 'Виктория Абраменко (руководитель)', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
       }
-      if (userRole === 'admin' && otherUserId) {
-        if (otherUserId === 'admin') {
-          return { ...chat, name: 'Виктория Абраменко (руководитель)', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
-        }
+      if (otherUserId) {
         const otherUser = allUsers.find(u => u.id === otherUserId);
         if (otherUser) {
-          return { ...chat, name: otherUser.name, avatar: otherUser.avatar || chat.avatar };
+          const role = getRoleLabel(otherUser);
+          const displayName = role ? `${otherUser.name} (${role})` : otherUser.name;
+          return { ...chat, name: displayName, avatar: otherUser.avatar || chat.avatar };
         }
       }
     }

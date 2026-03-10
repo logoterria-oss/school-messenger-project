@@ -74,7 +74,7 @@ const loadUsersFromStorage = (): User[] => {
   // Если есть кэш в памяти - возвращаем мгновенно
   if (cachedUsers) return cachedUsers;
   
-  const VERSION = 'v6-fix-teacher-self-chat';
+  const VERSION = 'v7-fix-duplicate-chats';
   const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
   
@@ -918,7 +918,13 @@ export const useChatLogic = () => {
       teachers.forEach(teacher => {
         const privateChatId = `private-${teacher.id}-${currentUserId}`;
         const legacyChatId = `private-${teacher.id}-admin`;
-        const hasPrivateChat = existingChats.some(chat => chat.id === privateChatId || chat.id === legacyChatId);
+        const hasPrivateChat = existingChats.some(chat =>
+          chat.id === privateChatId || chat.id === legacyChatId ||
+          (chat.type === 'private' && chat.participants &&
+           chat.participants.length === 2 &&
+           chat.participants.includes(teacher.id) &&
+           chat.participants.includes(currentUserId))
+        );
         
         if (!hasPrivateChat) {
           const privateChat: Chat = {
@@ -940,7 +946,11 @@ export const useChatLogic = () => {
       // 3. ЛС с Абраменко (супервизор) для не-supervisor админов
       if (currentUserId !== SUPERVISOR_ID) {
         const supervisorChatId = `private-${currentUserId}-${SUPERVISOR_ID}`;
-        const hasSupervisorChat = existingChats.some(chat => chat.id === supervisorChatId);
+        const hasSupervisorChat = existingChats.some(chat =>
+          chat.id === supervisorChatId ||
+          (chat.type === 'private' && chat.participants &&
+           chat.participants.includes(currentUserId) && chat.participants.includes(SUPERVISOR_ID))
+        );
         if (!hasSupervisorChat) {
           const supervisorUser = allUsers.find(u => u.id === SUPERVISOR_ID);
           const supervisorChat: Chat = {
