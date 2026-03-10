@@ -33,9 +33,10 @@ type ChatSidebarProps = {
   onAddTeacher?: () => void;
   onCreateGroup?: () => void;
   onAddAdmin?: () => void;
+  onArchiveChat?: (chatId: string, archive: boolean) => void;
 };
 
-export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onArchiveChat }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const getDisplayChat = (chat: Chat) => {
@@ -203,6 +204,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           onSelectChat={onSelectChat}
           getDisplayChat={getDisplayChat}
           searchQuery={searchQuery}
+          onArchiveChat={onArchiveChat}
         />
       )}
     </div>

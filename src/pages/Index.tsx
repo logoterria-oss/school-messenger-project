@@ -61,6 +61,7 @@ const Index = () => {
     handleAddTeacher,
     handleCreateGroup,
     handleDeleteGroup,
+    handleArchiveChat,
     handleDeleteUser,
     handleUpdateTeacher,
     handleUpdateLeadTeachers,
@@ -135,6 +136,7 @@ const Index = () => {
           groupTopics={groupTopics}
           onSelectChat={handleSelectChatMobile}
           onTopicSelect={handleSelectTopic}
+          onArchiveChat={handleArchiveChat}
         />
       </div>
 
@@ -320,6 +322,13 @@ const Index = () => {
                 onDeleteGroup={() => {
                   if (selectedChat && confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
                     handleDeleteGroup(selectedChat);
+                    setShowChatInfo(false);
+                  }
+                }}
+                isArchived={currentChat?.isArchived}
+                onArchive={() => {
+                  if (selectedChat) {
+                    handleArchiveChat(selectedChat, !currentChat?.isArchived);
                     setShowChatInfo(false);
                   }
                 }}

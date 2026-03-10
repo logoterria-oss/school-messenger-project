@@ -35,6 +35,7 @@ export type Chat = {
   unread: number;
   type: 'group' | 'private';
   isPinned?: boolean;
+  isArchived?: boolean;
   participants?: string[];
   leadTeachers?: string[];
   leadAdmin?: string;

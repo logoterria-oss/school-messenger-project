@@ -4,7 +4,15 @@ import Icon from '@/components/ui/icon';
 import { getChatSettings, setChatSound, setChatPush } from '@/utils/notificationSettings';
 import type { Chat } from './types';
 
-export const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { avatar?: string; isPinned?: boolean }, isSelected: boolean, onClick: () => void }) => {
+type ChatItemProps = {
+  chat: Chat & { avatar?: string; isPinned?: boolean };
+  isSelected: boolean;
+  onClick: () => void;
+  isAdmin?: boolean;
+  onArchive?: (chatId: string, archive: boolean) => void;
+};
+
+export const ChatItem = memo(({ chat, isSelected, onClick, isAdmin, onArchive }: ChatItemProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [settings, setSettings] = useState(() => getChatSettings(chat.id));
@@ -106,6 +114,15 @@ export const ChatItem = memo(({ chat, isSelected, onClick }: { chat: Chat & { av
               <Icon name={settings.push ? 'Bell' : 'BellOff'} size={16} />
               {settings.push ? 'Выключить уведомления' : 'Включить уведомления'}
             </button>
+            {isAdmin && onArchive && chat.id !== 'teachers-group' && (
+              <button
+                className="w-full px-4 py-2.5 text-sm text-left hover:bg-accent flex items-center gap-3"
+                onClick={() => { onArchive(chat.id, !chat.isArchived); setShowMenu(false); }}
+              >
+                <Icon name={chat.isArchived ? 'ArchiveRestore' : 'Archive'} size={16} />
+                {chat.isArchived ? 'Из архива' : 'В архив'}
+              </button>
+            )}
           </div>
         </>
       )}

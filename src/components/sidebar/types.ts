@@ -11,6 +11,7 @@ export type Chat = {
   leadTeachers?: string[];
   leadAdmin?: string;
   isPinned?: boolean;
+  isArchived?: boolean;
   avatar?: string;
   participants?: string[];
 };

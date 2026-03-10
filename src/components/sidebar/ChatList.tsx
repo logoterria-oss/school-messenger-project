@@ -6,25 +6,6 @@ import type { Chat, UserRole, SimpleUser } from './types';
 
 const SUPERVISOR_ID = 'admin';
 
-const isTeacherChat = (chat: Chat, allUsers: SimpleUser[], userId?: string) => {
-  if (chat.type !== 'private' || !chat.participants) return false;
-  return chat.participants.some(id => {
-    if (id === userId) return false;
-    const user = allUsers.find(u => u.id === id);
-    return user?.role === 'teacher';
-  });
-};
-
-const isAdminChat = (chat: Chat, allUsers: SimpleUser[], userId?: string) => {
-  if (chat.type !== 'private' || !chat.participants) return false;
-  return chat.participants.some(id => {
-    if (id === userId) return false;
-    if (id === SUPERVISOR_ID) return false;
-    const user = allUsers.find(u => u.id === id);
-    return user?.role === 'admin';
-  });
-};
-
 const isNonLeadGroupForTeacher = (chat: Chat, userId?: string) => {
   if (chat.type !== 'group' || chat.id === 'teachers-group') return false;
   if (!chat.leadTeachers || chat.leadTeachers.length === 0) return false;
@@ -47,13 +28,19 @@ type ChatListProps = {
   onSelectChat: (chatId: string) => void;
   getDisplayChat: (chat: Chat) => Chat;
   searchQuery?: string;
+  onArchiveChat?: (chatId: string, archive: boolean) => void;
 };
 
-export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectChat, getDisplayChat, searchQuery = '' }: ChatListProps) => {
+export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectChat, getDisplayChat, searchQuery = '', onArchiveChat }: ChatListProps) => {
   const [staffFolderOpen, setStaffFolderOpen] = useState(false);
   const [nonLeadFolderOpen, setNonLeadFolderOpen] = useState(false);
+  const [archiveFolderOpen, setArchiveFolderOpen] = useState(false);
 
   const query = searchQuery.toLowerCase().trim();
+
+  const isAdmin = userRole === 'admin';
+  const isTeacher = userRole === 'teacher';
+  const isSupervisor = userId === SUPERVISOR_ID;
 
   const filtered = [...chats].filter((chat) => {
     if (chat.type === 'private' && chat.participants) {
@@ -62,21 +49,13 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
       const uniqueIds = new Set(chat.participants);
       if (uniqueIds.size === 1 && uniqueIds.has(userId || '')) return false;
     }
+    if (isTeacher && chat.isArchived) return false;
     if (query) {
       const display = getDisplayChat(chat);
       return display.name.toLowerCase().includes(query);
     }
     return true;
   });
-
-  const isAdmin = userRole === 'admin';
-  const isTeacher = userRole === 'teacher';
-  const isSupervisor = userId === SUPERVISOR_ID;
-
-  const isSupervisorChat = (chat: Chat) => {
-    if (chat.type !== 'private' || !chat.participants) return false;
-    return chat.participants.includes(SUPERVISOR_ID) && userId !== SUPERVISOR_ID;
-  };
 
   const isStaffChat = (chat: Chat) => {
     if (chat.type !== 'private' || !chat.participants) return false;
@@ -89,7 +68,12 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     });
   };
 
-  const staffChatsUnsorted = (isAdmin || isTeacher) ? filtered.filter(c => isStaffChat(c)) : [];
+  const archivedChats = isAdmin ? filtered.filter(c => c.isArchived) : [];
+  const archivedUnread = archivedChats.reduce((sum, c) => sum + (c.unread || 0), 0);
+
+  const active = filtered.filter(c => !c.isArchived);
+
+  const staffChatsUnsorted = (isAdmin || isTeacher) ? active.filter(c => isStaffChat(c)) : [];
   const staffChats = staffChatsUnsorted.sort((a, b) => {
     const getOtherUser = (chat: Chat) => {
       const otherId = chat.participants?.find(id => id !== userId);
@@ -104,13 +88,13 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
   const staffUnread = staffChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
   const nonLeadChats = isTeacher
-    ? filtered.filter(c => isNonLeadGroupForTeacher(c, userId))
+    ? active.filter(c => isNonLeadGroupForTeacher(c, userId))
     : (isAdmin && !isSupervisor)
-      ? filtered.filter(c => isNonLeadGroupForAdmin(c, userId))
+      ? active.filter(c => isNonLeadGroupForAdmin(c, userId))
       : [];
   const nonLeadUnread = nonLeadChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
-  const otherChats = filtered.filter(c => {
+  const otherChats = active.filter(c => {
     if ((isAdmin || isTeacher) && isStaffChat(c)) return false;
     if (isTeacher && isNonLeadGroupForTeacher(c, userId)) return false;
     if (isAdmin && !isSupervisor && isNonLeadGroupForAdmin(c, userId)) return false;
@@ -140,6 +124,8 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
               chat={displayChat}
               isSelected={selectedChat === chat.id}
               onClick={() => onSelectChat(chat.id)}
+              isAdmin={isAdmin}
+              onArchive={onArchiveChat}
             />
           );
         })}
@@ -155,6 +141,8 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             selectedChat={selectedChat}
             onSelectChat={onSelectChat}
             getDisplayChat={getDisplayChat}
+            isAdmin={isAdmin}
+            onArchiveChat={onArchiveChat}
           />
         )}
 
@@ -170,6 +158,8 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             onSelectChat={onSelectChat}
             getDisplayChat={getDisplayChat}
             onlyMentionUnread
+            isAdmin={isAdmin}
+            onArchiveChat={onArchiveChat}
           />
         )}
 
@@ -181,9 +171,27 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
               chat={displayChat}
               isSelected={selectedChat === chat.id}
               onClick={() => onSelectChat(chat.id)}
+              isAdmin={isAdmin}
+              onArchive={onArchiveChat}
             />
           );
         })}
+
+        {isAdmin && archivedChats.length > 0 && (
+          <FolderItem
+            name="Архив"
+            icon="Archive"
+            chats={archivedChats}
+            unread={archivedUnread}
+            isOpen={archiveFolderOpen}
+            onToggle={() => setArchiveFolderOpen(!archiveFolderOpen)}
+            selectedChat={selectedChat}
+            onSelectChat={onSelectChat}
+            getDisplayChat={getDisplayChat}
+            isAdmin={isAdmin}
+            onArchiveChat={onArchiveChat}
+          />
+        )}
       </ScrollArea>
     );
   }

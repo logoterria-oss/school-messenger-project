@@ -45,9 +45,11 @@ type ChatInfoSidebarProps = {
   onUpdateConclusionLink?: (link: string) => void;
   chatName?: string;
   onUpdateName?: (name: string) => void;
+  isArchived?: boolean;
+  onArchive?: () => void;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onUpdateConclusionLink, chatName, onUpdateName }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onUpdateConclusionLink, chatName, onUpdateName, isArchived, onArchive }: ChatInfoSidebarProps) => {
   const [isEditingLeads, setIsEditingLeads] = useState(false);
   const [editLeads, setEditLeads] = useState<string[]>([]);
   const [isEditingLeadAdmin, setIsEditingLeadAdmin] = useState(false);
@@ -455,6 +457,15 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
               ) : (
                 <p className="text-sm text-muted-foreground">Заключение не добавлено</p>
               )}
+            </div>
+          )}
+
+          {isAdmin && onArchive && !isTeachersGroup && (
+            <div className="pt-4 border-t border-border">
+              <Button variant="outline" className="w-full" onClick={onArchive}>
+                <Icon name={isArchived ? 'ArchiveRestore' : 'Archive'} size={16} className="mr-2" />
+                {isArchived ? 'Вернуть из архива' : 'В архив'}
+              </Button>
             </div>
           )}
 

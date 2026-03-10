@@ -14,9 +14,11 @@ type FolderItemProps = {
   onSelectChat: (chatId: string) => void;
   getDisplayChat: (chat: Chat) => Chat;
   onlyMentionUnread?: boolean;
+  isAdmin?: boolean;
+  onArchiveChat?: (chatId: string, archive: boolean) => void;
 };
 
-export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, selectedChat, onSelectChat, getDisplayChat, onlyMentionUnread }: FolderItemProps) => {
+export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, selectedChat, onSelectChat, getDisplayChat, onlyMentionUnread, isAdmin, onArchiveChat }: FolderItemProps) => {
   const hasSelectedChat = chats.some(c => c.id === selectedChat);
 
   return (
@@ -68,6 +70,8 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
                 chat={displayChat}
                 isSelected={selectedChat === chat.id}
                 onClick={() => onSelectChat(chat.id)}
+                isAdmin={isAdmin}
+                onArchive={onArchiveChat}
               />
             );
           })}

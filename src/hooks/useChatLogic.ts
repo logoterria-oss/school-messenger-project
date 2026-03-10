@@ -292,6 +292,7 @@ export const useChatLogic = () => {
         leadTeachers: (c.lead_teachers && (c.lead_teachers as string[]).length > 0) ? c.lead_teachers as string[] : undefined,
         leadAdmin: (c.lead_admin || undefined) as string | undefined,
         isPinned: c.is_pinned as boolean | undefined,
+        isArchived: c.is_archived as boolean | undefined,
         schedule: c.schedule as string | undefined,
         conclusionLink: c.conclusion_link as string | undefined,
       }));
@@ -1300,6 +1301,22 @@ export const useChatLogic = () => {
     // Другие участники получат событие и добавят userName в свой список typingUsers
   };
 
+  const handleArchiveChat = (chatId: string, archive: boolean) => {
+    setChats(prev => {
+      const updated = prev.map(chat =>
+        chat.id === chatId ? { ...chat, isArchived: archive } : chat
+      );
+      localStorage.setItem('chats', JSON.stringify(updated));
+      return updated;
+    });
+    updateChat(chatId, { is_archived: archive }).catch(() => {});
+    if (archive && selectedChat === chatId) {
+      setSelectedChat(null);
+      setSelectedGroup(null);
+      setSelectedTopic(null);
+    }
+  };
+
   const handleDeleteGroup = (chatId: string) => {
     deleteChat(chatId).catch(() => {});
     setChats(prev => prev.filter(chat => chat.id !== chatId));
@@ -1480,6 +1497,7 @@ export const useChatLogic = () => {
     handleAddTeacher,
     handleCreateGroup,
     handleDeleteGroup,
+    handleArchiveChat,
     handleDeleteUser,
     handleUpdateTeacher,
     handleUpdateLeadTeachers,
