@@ -21,9 +21,12 @@ type TeacherAdminChatInfoProps = {
   onClose: () => void;
   teacherInfo: TeacherInfo;
   onUpdateTeacher: (info: Partial<TeacherInfo>) => void;
+  isAdmin?: boolean;
+  isArchived?: boolean;
+  onArchive?: () => void;
 };
 
-export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTeacher }: TeacherAdminChatInfoProps) => {
+export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTeacher, isAdmin, isArchived, onArchive }: TeacherAdminChatInfoProps) => {
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isEditingSlots, setIsEditingSlots] = useState(false);
@@ -279,6 +282,15 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
           </div>
         </div>
       </ScrollArea>
+
+      {isAdmin && onArchive && (
+        <div className="p-4 border-t border-border">
+          <Button variant="outline" className="w-full" onClick={onArchive}>
+            <Icon name={isArchived ? 'ArchiveRestore' : 'Archive'} size={16} className="mr-2" />
+            {isArchived ? 'Вернуть из архива' : 'В архив'}
+          </Button>
+        </div>
+      )}
 
       {/* Диалог редактирования телефона */}
       <Dialog open={isEditingPhone} onOpenChange={setIsEditingPhone}>

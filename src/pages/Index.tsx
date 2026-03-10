@@ -283,6 +283,14 @@ const Index = () => {
                       educationDocs: teacherData.educationDocs || [],
                     }}
                     onUpdateTeacher={(updates) => handleUpdateTeacher(teacherData.id, updates)}
+                    isAdmin={userRole === 'admin'}
+                    isArchived={currentChat?.isArchived}
+                    onArchive={() => {
+                      if (selectedChat) {
+                        handleArchiveChat(selectedChat, !currentChat?.isArchived);
+                        setShowChatInfo(false);
+                      }
+                    }}
                   />
                 </Suspense>
               );
