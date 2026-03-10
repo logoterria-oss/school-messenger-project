@@ -7,7 +7,7 @@ import { login as apiLogin } from '@/services/api';
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
 type LoginScreenProps = {
-  onLogin: (role: UserRole, name?: string) => void;
+  onLogin: (role: UserRole, name?: string, id?: string) => void;
 };
 
 const ROLES = [
@@ -145,7 +145,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     setIsLoggingIn(true);
     try {
       const user = await apiLogin(phone, 'test123');
-      setTimeout(() => onLogin(user.role, user.name), 500);
+      setTimeout(() => onLogin(user.role, user.name, user.id), 500);
     } catch {
       setIsLoggingIn(false);
       setError('Ошибка быстрого входа');
@@ -180,9 +180,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       // Пытаемся войти через API
       const user = await apiLogin(login.trim(), password);
       
-      // Успешный вход
       setTimeout(() => {
-        onLogin(user.role, user.name);
+        onLogin(user.role, user.name, user.id);
       }, 500);
     } catch (err) {
       console.error('Login error:', err);

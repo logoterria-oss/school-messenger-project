@@ -74,7 +74,7 @@ const loadUsersFromStorage = (): User[] => {
   // Если есть кэш в памяти - возвращаем мгновенно
   if (cachedUsers) return cachedUsers;
   
-  const VERSION = 'v5-teacher-staff-chats';
+  const VERSION = 'v6-fix-teacher-self-chat';
   const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
   
@@ -698,11 +698,11 @@ export const useChatLogic = () => {
     setAttachments(attachments.filter((_, i) => i !== index));
   };
 
-  const handleLogin = (role: UserRole, name?: string) => {
+  const handleLogin = (role: UserRole, name?: string, apiUserId?: string) => {
     setUserRole(role);
     setUserName(name || '');
     
-    const currentUserId = allUsers.find(u => u.name === name && u.role === role)?.id || (role === 'admin' ? 'admin' : '');
+    const currentUserId = apiUserId || allUsers.find(u => u.name === name && u.role === role)?.id || (role === 'admin' ? 'admin' : '');
     setUserId(currentUserId);
     
     setIsAuthenticated(true);
