@@ -73,6 +73,11 @@ type UnreadInfo = { id: string; name: string; unread: number };
 let lastUnreadMap: Record<string, number> = {};
 let initialized = false;
 
+export function resetNotificationState() {
+  lastUnreadMap = {};
+  initialized = false;
+}
+
 export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
   const allItems = [...chats, ...(topics || [])];
   const currentMap: Record<string, number> = {};

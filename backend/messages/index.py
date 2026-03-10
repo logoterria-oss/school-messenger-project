@@ -40,45 +40,43 @@ def handler(event: dict, context) -> dict:
             if topic_id:
                 cur.execute("""
                     SELECT m.id, m.text, m.sender_id, m.sender_name, m.created_at,
-                           ARRAY_AGG(DISTINCT jsonb_build_object(
-                               'type', a.type,
-                               'fileUrl', a.file_url,
-                               'fileName', a.file_name,
-                               'fileSize', a.file_size
-                           )) FILTER (WHERE a.id IS NOT NULL) as attachments,
-                           ARRAY_AGG(DISTINCT jsonb_build_object(
-                               'emoji', r.emoji,
-                               'count', COUNT(r.id) OVER (PARTITION BY r.emoji),
-                               'users', ARRAY_AGG(u.name) OVER (PARTITION BY r.emoji)
-                           )) FILTER (WHERE r.id IS NOT NULL) as reactions
+                           (SELECT ARRAY_AGG(DISTINCT jsonb_build_object(
+                               'type', a.type, 'fileUrl', a.file_url,
+                               'fileName', a.file_name, 'fileSize', a.file_size
+                           )) FROM attachments a WHERE a.message_id = m.id) as attachments,
+                           (SELECT ARRAY_AGG(jsonb_build_object(
+                               'emoji', rg.emoji, 'count', rg.cnt, 'users', rg.user_names
+                           )) FROM (
+                               SELECT r2.emoji, COUNT(*) as cnt,
+                                      ARRAY_AGG(u2.name) as user_names
+                               FROM reactions r2
+                               LEFT JOIN users u2 ON u2.id = r2.user_id
+                               WHERE r2.message_id = m.id
+                               GROUP BY r2.emoji
+                           ) rg) as reactions
                     FROM messages m
-                    LEFT JOIN attachments a ON a.message_id = m.id
-                    LEFT JOIN reactions r ON r.message_id = m.id
-                    LEFT JOIN users u ON u.id = r.user_id
                     WHERE m.topic_id = %s
-                    GROUP BY m.id, m.text, m.sender_id, m.sender_name, m.created_at
                     ORDER BY m.created_at ASC
                 """, (topic_id,))
             else:
                 cur.execute("""
                     SELECT m.id, m.text, m.sender_id, m.sender_name, m.created_at,
-                           ARRAY_AGG(DISTINCT jsonb_build_object(
-                               'type', a.type,
-                               'fileUrl', a.file_url,
-                               'fileName', a.file_name,
-                               'fileSize', a.file_size
-                           )) FILTER (WHERE a.id IS NOT NULL) as attachments,
-                           ARRAY_AGG(DISTINCT jsonb_build_object(
-                               'emoji', r.emoji,
-                               'count', COUNT(r.id) OVER (PARTITION BY r.emoji),
-                               'users', ARRAY_AGG(u.name) OVER (PARTITION BY r.emoji)
-                           )) FILTER (WHERE r.id IS NOT NULL) as reactions
+                           (SELECT ARRAY_AGG(DISTINCT jsonb_build_object(
+                               'type', a.type, 'fileUrl', a.file_url,
+                               'fileName', a.file_name, 'fileSize', a.file_size
+                           )) FROM attachments a WHERE a.message_id = m.id) as attachments,
+                           (SELECT ARRAY_AGG(jsonb_build_object(
+                               'emoji', rg.emoji, 'count', rg.cnt, 'users', rg.user_names
+                           )) FROM (
+                               SELECT r2.emoji, COUNT(*) as cnt,
+                                      ARRAY_AGG(u2.name) as user_names
+                               FROM reactions r2
+                               LEFT JOIN users u2 ON u2.id = r2.user_id
+                               WHERE r2.message_id = m.id
+                               GROUP BY r2.emoji
+                           ) rg) as reactions
                     FROM messages m
-                    LEFT JOIN attachments a ON a.message_id = m.id
-                    LEFT JOIN reactions r ON r.message_id = m.id
-                    LEFT JOIN users u ON u.id = r.user_id
                     WHERE m.chat_id = %s AND m.topic_id IS NULL
-                    GROUP BY m.id, m.text, m.sender_id, m.sender_name, m.created_at
                     ORDER BY m.created_at ASC
                 """, (chat_id,))
 

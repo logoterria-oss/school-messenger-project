@@ -6,7 +6,7 @@ import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
-import { checkAndPlaySound, requestNotificationPermission } from '@/utils/notificationSound';
+import { checkAndPlaySound, requestNotificationPermission, resetNotificationState } from '@/utils/notificationSound';
 import { applyAdminDefaults } from '@/utils/notificationSettings';
 
 const SUPERVISOR_ID = 'admin';
@@ -421,9 +421,10 @@ export const useChatLogic = () => {
       getChats(userId).then(chatsData => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
+          const deduped = deduplicatePrivateChats(mappedChats);
           const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
-          checkAndPlaySound(mappedChats.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
-          setChats(mappedChats);
+          checkAndPlaySound(deduped.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
+          setChats(deduped);
           setGroupTopics(mappedTopics);
         }
       }).catch(() => {});
@@ -723,6 +724,7 @@ export const useChatLogic = () => {
     localStorage.removeItem('chats');
     cachedChats = null;
     setChats([]);
+    resetNotificationState();
 
     const ensureTeachersGroup = (role: UserRole) => {
       if (role !== 'teacher' && role !== 'admin') return;
