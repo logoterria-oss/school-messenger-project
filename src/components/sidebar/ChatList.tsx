@@ -144,6 +144,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             getDisplayChat={getDisplayChat}
             isAdmin={isAdmin}
             onArchiveChat={onArchiveChat}
+            searchable
           />
         )}
 

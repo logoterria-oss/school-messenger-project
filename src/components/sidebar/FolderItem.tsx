@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { ChatItem } from './ChatItem';
@@ -16,10 +17,34 @@ type FolderItemProps = {
   onlyMentionUnread?: boolean;
   isAdmin?: boolean;
   onArchiveChat?: (chatId: string, archive: boolean) => void;
+  searchable?: boolean;
 };
 
-export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, selectedChat, onSelectChat, getDisplayChat, onlyMentionUnread, isAdmin, onArchiveChat }: FolderItemProps) => {
+const MIN_CHATS_FOR_SEARCH = 5;
+
+export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, selectedChat, onSelectChat, getDisplayChat, onlyMentionUnread, isAdmin, onArchiveChat, searchable }: FolderItemProps) => {
   const hasSelectedChat = chats.some(c => c.id === selectedChat);
+  const [folderSearch, setFolderSearch] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+  const showSearch = searchable && isOpen && chats.length >= MIN_CHATS_FOR_SEARCH;
+
+  useEffect(() => {
+    if (!isOpen) setFolderSearch('');
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (showSearch && searchRef.current) {
+      searchRef.current.focus();
+    }
+  }, [showSearch]);
+
+  const query = folderSearch.toLowerCase().trim();
+  const filteredChats = query
+    ? chats.filter(chat => {
+        const display = getDisplayChat(chat);
+        return display.name.toLowerCase().includes(query);
+      })
+    : chats;
 
   return (
     <div>
@@ -62,19 +87,46 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
 
       {isOpen && (
         <div className="ml-3 border-l-2 border-border/50 pl-1">
-          {chats.map((chat) => {
-            const displayChat = getDisplayChat(chat);
-            return (
-              <ChatItem
-                key={chat.id}
-                chat={displayChat}
-                isSelected={selectedChat === chat.id}
-                onClick={() => onSelectChat(chat.id)}
-                isAdmin={isAdmin}
-                onArchive={onArchiveChat}
-              />
-            );
-          })}
+          {showSearch && (
+            <div className="px-2 py-1.5">
+              <div className="relative">
+                <Icon name="Search" size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  placeholder="Найти контакт..."
+                  value={folderSearch}
+                  onChange={(e) => setFolderSearch(e.target.value)}
+                  className="w-full pl-7 pr-7 h-7 text-xs bg-accent/50 border-0 rounded-md placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                />
+                {folderSearch && (
+                  <button
+                    onClick={() => setFolderSearch('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
+                  >
+                    <Icon name="X" size={13} />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          {filteredChats.length === 0 && query ? (
+            <p className="text-xs text-muted-foreground/50 px-3 py-2">Ничего не найдено</p>
+          ) : (
+            filteredChats.map((chat) => {
+              const displayChat = getDisplayChat(chat);
+              return (
+                <ChatItem
+                  key={chat.id}
+                  chat={displayChat}
+                  isSelected={selectedChat === chat.id}
+                  onClick={() => onSelectChat(chat.id)}
+                  isAdmin={isAdmin}
+                  onArchive={onArchiveChat}
+                />
+              );
+            })
+          )}
         </div>
       )}
     </div>
