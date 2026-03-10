@@ -80,7 +80,6 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     if (chat.type !== 'private' || !chat.participants) return false;
     return chat.participants.some(id => {
       if (id === userId) return false;
-      if (id === SUPERVISOR_ID) return isAdmin;
       const user = allUsers.find(u => u.id === id);
       return user?.role === 'teacher' || user?.role === 'admin';
     });
