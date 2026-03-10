@@ -236,7 +236,7 @@ export const useChatLogic = () => {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   const roleLabels: Record<string, string> = {
-    admin: 'админ',
+    admin: 'руководитель',
     teacher: 'педагог',
     parent: 'родитель',
     student: 'ученик',
