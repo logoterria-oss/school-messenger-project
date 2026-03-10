@@ -789,6 +789,9 @@ export const useChatLogic = () => {
   ): Chat[] => {
     if (role !== 'teacher' && role !== 'admin') return currentChats;
 
+    const isLocalFallbackId = (id: string) => /^teacher-\d+$/.test(id);
+    const apiUsers = users.filter(u => !isLocalFallbackId(u.id));
+
     const hasPrivateChatWith = (otherId: string): boolean =>
       currentChats.some(chat =>
         chat.type === 'private' &&
@@ -804,7 +807,7 @@ export const useChatLogic = () => {
     if (role === 'teacher') {
       // LS with supervisor
       if (!hasPrivateChatWith(SUPERVISOR_ID)) {
-        const supervisorUser = users.find(u => u.id === SUPERVISOR_ID);
+        const supervisorUser = apiUsers.find(u => u.id === SUPERVISOR_ID);
         const chatId = `private-${[currentUserId, SUPERVISOR_ID].sort().join('-')}`;
         const chat: Chat = {
           id: chatId,
@@ -822,7 +825,7 @@ export const useChatLogic = () => {
       }
 
       // LS with other teachers
-      const otherTeachers = users.filter(u => u.role === 'teacher' && u.id !== currentUserId);
+      const otherTeachers = apiUsers.filter(u => u.role === 'teacher' && u.id !== currentUserId);
       otherTeachers.forEach(teacher => {
         if (!hasPrivateChatWith(teacher.id)) {
           const ids = [teacher.id, currentUserId].sort();
@@ -844,7 +847,7 @@ export const useChatLogic = () => {
       });
 
       // LS with admins (non-supervisor)
-      const admins = users.filter(u => u.role === 'admin' && u.id !== SUPERVISOR_ID);
+      const admins = apiUsers.filter(u => u.role === 'admin' && u.id !== SUPERVISOR_ID);
       admins.forEach(adm => {
         if (!hasPrivateChatWith(adm.id)) {
           const ids = [adm.id, currentUserId].sort();
@@ -870,7 +873,7 @@ export const useChatLogic = () => {
       const isSupervisor = currentUserId === SUPERVISOR_ID;
 
       // LS with all teachers
-      const teachers = users.filter(u => u.role === 'teacher');
+      const teachers = apiUsers.filter(u => u.role === 'teacher');
       teachers.forEach(teacher => {
         if (!hasPrivateChatWith(teacher.id)) {
           const chatId = `private-${[teacher.id, currentUserId].sort().join('-')}`;
@@ -892,7 +895,7 @@ export const useChatLogic = () => {
 
       // LS with supervisor (for non-supervisor admins)
       if (!isSupervisor && !hasPrivateChatWith(SUPERVISOR_ID)) {
-        const supervisorUser = users.find(u => u.id === SUPERVISOR_ID);
+        const supervisorUser = apiUsers.find(u => u.id === SUPERVISOR_ID);
         const chatId = `private-${[currentUserId, SUPERVISOR_ID].sort().join('-')}`;
         const chat: Chat = {
           id: chatId,
@@ -910,7 +913,7 @@ export const useChatLogic = () => {
       }
 
       // LS with other admins
-      const otherAdmins = users.filter(u => u.role === 'admin' && u.id !== currentUserId && u.id !== SUPERVISOR_ID);
+      const otherAdmins = apiUsers.filter(u => u.role === 'admin' && u.id !== currentUserId && u.id !== SUPERVISOR_ID);
       otherAdmins.forEach(adm => {
         if (!hasPrivateChatWith(adm.id)) {
           const ids = [adm.id, currentUserId].sort();
