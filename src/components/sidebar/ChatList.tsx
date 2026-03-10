@@ -76,9 +76,17 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     return chat.participants.includes(SUPERVISOR_ID) && userId !== SUPERVISOR_ID;
   };
 
-  const staffChats = isAdmin ? filtered.filter(c =>
-    isTeacherChat(c, allUsers, userId) || isAdminChat(c, allUsers, userId) || isSupervisorChat(c)
-  ) : [];
+  const isStaffChat = (chat: Chat) => {
+    if (chat.type !== 'private' || !chat.participants) return false;
+    return chat.participants.some(id => {
+      if (id === userId) return false;
+      if (id === SUPERVISOR_ID) return isAdmin;
+      const user = allUsers.find(u => u.id === id);
+      return user?.role === 'teacher' || user?.role === 'admin';
+    });
+  };
+
+  const staffChats = (isAdmin || isTeacher) ? filtered.filter(c => isStaffChat(c)) : [];
   const staffUnread = staffChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
   const nonLeadChats = isTeacher
@@ -89,7 +97,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
   const nonLeadUnread = nonLeadChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
   const otherChats = filtered.filter(c => {
-    if (isAdmin && (isTeacherChat(c, allUsers, userId) || isAdminChat(c, allUsers, userId) || isSupervisorChat(c))) return false;
+    if ((isAdmin || isTeacher) && isStaffChat(c)) return false;
     if (isTeacher && isNonLeadGroupForTeacher(c, userId)) return false;
     if (isAdmin && !isSupervisor && isNonLeadGroupForAdmin(c, userId)) return false;
     return true;
@@ -166,16 +174,39 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
   }
 
   if (isTeacher) {
-    const adminChatIndex = sorted.findIndex(c => 
-      c.type === 'private' && c.participants?.some(id => allUsers.find(u => u.id === id)?.role === 'admin')
-    );
-    const insertIndex = adminChatIndex >= 0 ? adminChatIndex + 1 : sorted.length;
-    const beforeNonLead = sorted.slice(0, insertIndex);
-    const afterNonLead = sorted.slice(insertIndex);
+    const teachersGroupIndex = sorted.findIndex(c => c.id === 'teachers-group');
+    const beforeFolder = teachersGroupIndex >= 0 ? sorted.slice(0, teachersGroupIndex + 1) : sorted;
+    const afterFolder = teachersGroupIndex >= 0 ? sorted.slice(teachersGroupIndex + 1) : [];
 
     return (
       <ScrollArea className="flex-1">
-        {beforeNonLead.map((chat) => {
+        {beforeFolder.map((chat) => {
+          const displayChat = getDisplayChat(chat);
+          return (
+            <ChatItem
+              key={chat.id}
+              chat={displayChat}
+              isSelected={selectedChat === chat.id}
+              onClick={() => onSelectChat(chat.id)}
+            />
+          );
+        })}
+
+        {staffChats.length > 0 && (
+          <FolderItem
+            name="ЛС с педагогами и админами"
+            icon="FolderOpen"
+            chats={staffChats}
+            unread={staffUnread}
+            isOpen={staffFolderOpen}
+            onToggle={() => setStaffFolderOpen(!staffFolderOpen)}
+            selectedChat={selectedChat}
+            onSelectChat={onSelectChat}
+            getDisplayChat={getDisplayChat}
+          />
+        )}
+
+        {afterFolder.map((chat) => {
           const displayChat = getDisplayChat(chat);
           return (
             <ChatItem
@@ -200,18 +231,6 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             getDisplayChat={getDisplayChat}
           />
         )}
-
-        {afterNonLead.map((chat) => {
-          const displayChat = getDisplayChat(chat);
-          return (
-            <ChatItem
-              key={chat.id}
-              chat={displayChat}
-              isSelected={selectedChat === chat.id}
-              onClick={() => onSelectChat(chat.id)}
-            />
-          );
-        })}
       </ScrollArea>
     );
   }
