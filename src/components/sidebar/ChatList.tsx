@@ -59,6 +59,8 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     if (chat.type === 'private' && chat.participants) {
       const otherUserIds = chat.participants.filter(id => id !== userId);
       if (otherUserIds.length === 0) return false;
+      const uniqueIds = new Set(chat.participants);
+      if (uniqueIds.size === 1 && uniqueIds.has(userId || '')) return false;
     }
     if (query) {
       const display = getDisplayChat(chat);
@@ -85,7 +87,18 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     });
   };
 
-  const staffChats = (isAdmin || isTeacher) ? filtered.filter(c => isStaffChat(c)) : [];
+  const staffChatsUnsorted = (isAdmin || isTeacher) ? filtered.filter(c => isStaffChat(c)) : [];
+  const staffChats = staffChatsUnsorted.sort((a, b) => {
+    const getOtherUser = (chat: Chat) => {
+      const otherId = chat.participants?.find(id => id !== userId);
+      return otherId ? allUsers.find(u => u.id === otherId) : undefined;
+    };
+    const userA = getOtherUser(a);
+    const userB = getOtherUser(b);
+    const rankA = userA?.id === SUPERVISOR_ID ? 0 : userA?.role === 'admin' ? 1 : 2;
+    const rankB = userB?.id === SUPERVISOR_ID ? 0 : userB?.role === 'admin' ? 1 : 2;
+    return rankA - rankB;
+  });
   const staffUnread = staffChats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
   const nonLeadChats = isTeacher

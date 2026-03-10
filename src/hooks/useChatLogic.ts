@@ -74,7 +74,7 @@ const loadUsersFromStorage = (): User[] => {
   // Если есть кэш в памяти - возвращаем мгновенно
   if (cachedUsers) return cachedUsers;
   
-  const VERSION = 'v4-fix-dynamic-teachers';
+  const VERSION = 'v5-teacher-staff-chats';
   const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
   
@@ -717,9 +717,10 @@ export const useChatLogic = () => {
     // Создание закрепленных чатов для педагогов
     if (role === 'teacher') {
       existingChats = existingChats.filter(chat => {
-        if (chat.type === 'private' && chat.participants) {
-          const isWithSelf = chat.participants.every(id => id === currentUserId);
-          if (isWithSelf) return false;
+        if (chat.type === 'private' && chat.participants && currentUserId) {
+          const others = chat.participants.filter(id => id !== currentUserId);
+          if (others.length === 0) return false;
+          if (chat.participants.length === 2 && chat.participants[0] === chat.participants[1]) return false;
         }
         return true;
       });
