@@ -306,14 +306,7 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward }: Messa
                 onClick={() => onForward?.(message)}
               >
                 <Icon name="Forward" size={16} className="text-muted-foreground" />
-                <span>Переслать в раздел</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => onForward?.(message)}
-              >
-                <Icon name="Share2" size={16} className="text-muted-foreground" />
-                <span>Переслать в чат</span>
+                <span>Переслать</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
