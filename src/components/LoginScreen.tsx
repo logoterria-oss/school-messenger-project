@@ -1,124 +1,8 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
-import { login as apiLogin } from '@/services/api';
-
-const InstallHintModal = ({ onClose }: { onClose: () => void }) => {
-  const [tab, setTab] = useState<'ios' | 'android'>('ios');
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <div 
-        className="bg-card rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] overflow-y-auto border-2 border-border max-lg:rounded-xl" 
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-5 pb-3 max-lg:p-4 max-lg:pb-2">
-          <h2 className="text-lg font-bold max-lg:text-base" style={{ color: '#3BA662' }}>
-            Добавить на главный экран
-          </h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
-            <Icon name="X" size={22} />
-          </button>
-        </div>
-
-        <div className="flex gap-2 px-5 mb-4 max-lg:px-4">
-          <button
-            onClick={() => setTab('ios')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all max-lg:text-xs max-lg:py-2 ${
-              tab === 'ios' 
-                ? 'bg-[#3BA662] text-white shadow-md' 
-                : 'bg-muted text-muted-foreground hover:bg-accent'
-            }`}
-          >
-            <Icon name="Smartphone" size={16} className="inline mr-1.5 -mt-0.5 max-lg:w-3.5 max-lg:h-3.5" />
-            iPhone / iPad
-          </button>
-          <button
-            onClick={() => setTab('android')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all max-lg:text-xs max-lg:py-2 ${
-              tab === 'android' 
-                ? 'bg-[#3BA662] text-white shadow-md' 
-                : 'bg-muted text-muted-foreground hover:bg-accent'
-            }`}
-          >
-            <Icon name="Smartphone" size={16} className="inline mr-1.5 -mt-0.5 max-lg:w-3.5 max-lg:h-3.5" />
-            Android
-          </button>
-        </div>
-
-        <div className="px-5 pb-5 max-lg:px-4 max-lg:pb-4">
-          {tab === 'ios' ? (
-            <div className="space-y-4 max-lg:space-y-3">
-              <p className="text-sm text-muted-foreground max-lg:text-xs">
-                Откройте эту страницу в браузере <strong>Safari</strong>, затем:
-              </p>
-              <div className="space-y-3 max-lg:space-y-2.5">
-                <div className="flex gap-3 items-start">
-                  <div className="w-8 h-8 rounded-full bg-[#3BA662] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 max-lg:w-6 max-lg:h-6 max-lg:text-xs">1</div>
-                  <div className="pt-1 max-lg:pt-0.5">
-                    <p className="text-sm font-medium max-lg:text-xs">Нажмите кнопку «Поделиться»</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Иконка <Icon name="Share" size={14} className="inline -mt-0.5" /> внизу экрана</p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-start">
-                  <div className="w-8 h-8 rounded-full bg-[#3BA662] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 max-lg:w-6 max-lg:h-6 max-lg:text-xs">2</div>
-                  <div className="pt-1 max-lg:pt-0.5">
-                    <p className="text-sm font-medium max-lg:text-xs">Пролистайте вниз и выберите</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">«На экран Домой» <Icon name="PlusSquare" size={14} className="inline -mt-0.5" /></p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-start">
-                  <div className="w-8 h-8 rounded-full bg-[#3BA662] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 max-lg:w-6 max-lg:h-6 max-lg:text-xs">3</div>
-                  <div className="pt-1 max-lg:pt-0.5">
-                    <p className="text-sm font-medium max-lg:text-xs">Нажмите «Добавить»</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Иконка появится на главном экране</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4 max-lg:space-y-3">
-              <p className="text-sm text-muted-foreground max-lg:text-xs">
-                Откройте эту страницу в <strong>Chrome</strong> или <strong>Яндекс Браузере</strong>, затем:
-              </p>
-              <div className="space-y-3 max-lg:space-y-2.5">
-                <div className="flex gap-3 items-start">
-                  <div className="w-8 h-8 rounded-full bg-[#3BA662] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 max-lg:w-6 max-lg:h-6 max-lg:text-xs">1</div>
-                  <div className="pt-1 max-lg:pt-0.5">
-                    <p className="text-sm font-medium max-lg:text-xs">Нажмите меню браузера</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Три точки <Icon name="MoreVertical" size={14} className="inline -mt-0.5" /> в правом верхнем углу</p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-start">
-                  <div className="w-8 h-8 rounded-full bg-[#3BA662] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 max-lg:w-6 max-lg:h-6 max-lg:text-xs">2</div>
-                  <div className="pt-1 max-lg:pt-0.5">
-                    <p className="text-sm font-medium max-lg:text-xs">Выберите «Добавить на главный экран»</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Или «Установить приложение»</p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-start">
-                  <div className="w-8 h-8 rounded-full bg-[#3BA662] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 max-lg:w-6 max-lg:h-6 max-lg:text-xs">3</div>
-                  <div className="pt-1 max-lg:pt-0.5">
-                    <p className="text-sm font-medium max-lg:text-xs">Подтвердите добавление</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Иконка появится на главном экране</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="mt-5 p-3 bg-[#3BA662]/10 rounded-xl max-lg:mt-4 max-lg:p-2.5">
-            <p className="text-xs text-[#2D6A4F] max-lg:text-[10px]">
-              <Icon name="Info" size={14} className="inline mr-1 -mt-0.5" />
-              После добавления мессенджер будет открываться как приложение — в полноэкранном режиме, без адресной строки.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import FloatingDecor from '@/components/login/FloatingDecor';
+import InstallHintModal from '@/components/login/InstallHintModal';
+import LoginForm from '@/components/login/LoginForm';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -133,178 +17,17 @@ const ROLES = [
   { id: 'admin' as UserRole, name: 'админ', image: 'https://cdn.poehali.dev/files/Админ.jpg', color: 'from-[#2D6A4F] to-[#1B4332]' },
 ];
 
-const FloatingDecor = () => (
-  <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <svg className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] opacity-[0.12]" viewBox="0 0 400 400" fill="none" style={{ animation: 'floatA 18s ease-in-out infinite' }}>
-      <path d="M50 200 Q100 50 200 100 Q300 150 250 250 Q200 350 100 300 Q0 250 50 200Z" fill="#52B788" />
-      <path d="M120 180 Q160 80 220 130 Q280 180 240 260 Q200 340 140 290 Q80 240 120 180Z" fill="#74C69D" />
-    </svg>
-
-    <svg className="absolute top-[10%] right-[-3%] w-[25%] h-[25%] opacity-[0.1]" viewBox="0 0 300 300" fill="none" style={{ animation: 'floatB 22s ease-in-out infinite' }}>
-      <path d="M150 20 Q250 60 230 150 Q210 240 120 260 Q30 280 50 180 Q70 80 150 20Z" fill="#40916C" />
-    </svg>
-
-    <svg className="absolute bottom-[-5%] left-[5%] w-[30%] h-[30%] opacity-[0.1]" viewBox="0 0 350 350" fill="none" style={{ animation: 'floatC 20s ease-in-out infinite' }}>
-      <path d="M175 30 Q300 80 280 175 Q260 280 160 300 Q60 310 40 210 Q20 110 175 30Z" fill="#74C69D" />
-      <circle cx="80" cy="250" r="40" fill="#95D5B2" opacity="0.5" />
-    </svg>
-
-    <svg className="absolute bottom-[10%] right-[2%] w-[20%] h-[20%] opacity-[0.08]" viewBox="0 0 200 200" fill="none" style={{ animation: 'floatD 16s ease-in-out infinite' }}>
-      <path d="M30 100 Q60 20 120 40 Q180 60 170 130 Q160 190 90 180 Q20 170 30 100Z" fill="#52B788" />
-    </svg>
-
-    <svg className="absolute top-[40%] left-[2%] w-[15%] h-[15%] opacity-[0.07]" viewBox="0 0 200 200" fill="none" style={{ animation: 'floatE 25s ease-in-out infinite' }}>
-      <circle cx="100" cy="100" r="80" fill="#95D5B2" />
-    </svg>
-
-    <svg className="absolute top-[60%] right-[10%] w-[12%] h-[12%] opacity-[0.09]" viewBox="0 0 150 150" fill="none" style={{ animation: 'floatA 19s ease-in-out infinite reverse' }}>
-      <path d="M75 10 Q140 40 130 90 Q120 140 65 140 Q10 140 15 85 Q20 30 75 10Z" fill="#52B788" />
-    </svg>
-
-    {/* Маленькие точки-листочки */}
-    {[
-      { top: '15%', left: '20%', size: 6, delay: '0s', dur: '14s' },
-      { top: '25%', left: '75%', size: 8, delay: '2s', dur: '18s' },
-      { top: '70%', left: '15%', size: 5, delay: '4s', dur: '16s' },
-      { top: '80%', left: '60%', size: 7, delay: '1s', dur: '20s' },
-      { top: '45%', left: '85%', size: 4, delay: '3s', dur: '15s' },
-      { top: '55%', left: '40%', size: 5, delay: '5s', dur: '17s' },
-    ].map((dot, i) => (
-      <div
-        key={i}
-        className="absolute rounded-full bg-[#74C69D]"
-        style={{
-          top: dot.top,
-          left: dot.left,
-          width: dot.size,
-          height: dot.size,
-          opacity: 0.15,
-          animation: `floatDot ${dot.dur} ease-in-out ${dot.delay} infinite`,
-        }}
-      />
-    ))}
-
-    <style>{`
-      @keyframes floatA {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        25% { transform: translate(15px, -20px) rotate(3deg); }
-        50% { transform: translate(-10px, 15px) rotate(-2deg); }
-        75% { transform: translate(20px, 10px) rotate(4deg); }
-      }
-      @keyframes floatB {
-        0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-        33% { transform: translate(-20px, 15px) rotate(-5deg) scale(1.05); }
-        66% { transform: translate(15px, -10px) rotate(3deg) scale(0.95); }
-      }
-      @keyframes floatC {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        30% { transform: translate(20px, -15px) rotate(4deg); }
-        60% { transform: translate(-15px, -25px) rotate(-3deg); }
-      }
-      @keyframes floatD {
-        0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-        50% { transform: translate(-12px, -18px) rotate(6deg) scale(1.1); }
-      }
-      @keyframes floatE {
-        0%, 100% { transform: translate(0, 0) scale(1); }
-        40% { transform: translate(10px, -12px) scale(1.15); }
-        70% { transform: translate(-8px, 8px) scale(0.9); }
-      }
-      @keyframes floatDot {
-        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.15; }
-        50% { transform: translate(8px, -10px) scale(1.5); opacity: 0.25; }
-      }
-    `}</style>
-  </div>
-);
-
 export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [login, setLogin] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showInstallHint, setShowInstallHint] = useState(false);
 
-  const TEST_ACCOUNTS: Record<UserRole, { name: string; phone: string }[]> = {
-    admin: [
-      { name: 'Тест Админ 2', phone: '70000000001' },
-      { name: 'Тест Админ 3', phone: '70000000002' },
-      { name: 'Тест Админ 4', phone: '70000000003' },
-      { name: 'Тест Админ 5', phone: '70000000004' },
-    ],
-    teacher: [
-      { name: 'тест учитель', phone: '73333333333' },
-      { name: 'Тест Педагог 2', phone: '70000000011' },
-      { name: 'Тест Педагог 3', phone: '70000000012' },
-      { name: 'Тест Педагог 4', phone: '70000000013' },
-      { name: 'Тест Педагог 5', phone: '70000000014' },
-    ],
-    parent: [
-      { name: 'Тест Родитель', phone: '72222222222' },
-      { name: 'Тест Родитель 2', phone: '70000000021' },
-      { name: 'Тест Родитель 3', phone: '70000000022' },
-      { name: 'Тест Родитель 4', phone: '70000000023' },
-      { name: 'Тест Родитель 5', phone: '70000000024' },
-    ],
-    student: [
-      { name: 'Тестовый Ученик', phone: '71111111111' },
-      { name: 'Тест Ученик 2', phone: '70000000031' },
-      { name: 'Тест Ученик 3', phone: '70000000032' },
-      { name: 'Тест Ученик 4', phone: '70000000033' },
-      { name: 'Тест Ученик 5', phone: '70000000034' },
-    ],
-  };
-
-  const handleQuickLogin = async (phone: string) => {
-    setError('');
-    setIsLoggingIn(true);
-    try {
-      const user = await apiLogin(phone, 'test123');
-      setTimeout(() => onLogin(user.role, user.name, user.id), 500);
-    } catch {
-      setIsLoggingIn(false);
-      setError('Ошибка быстрого входа');
-    }
-  };
-
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
-    setError('');
-    setLogin('');
-    setPassword('');
   };
 
   const handleBack = () => {
     setSelectedRole(null);
-    setError('');
-    setLogin('');
-    setPassword('');
-  };
-
-  const handleLogin = async () => {
-    setError('');
-
-    if (!login.trim() || !password.trim()) {
-      setError('Заполните все поля');
-      return;
-    }
-
-    setIsLoggingIn(true);
-
-    try {
-      // Пытаемся войти через API
-      const user = await apiLogin(login.trim(), password);
-      
-      setTimeout(() => {
-        onLogin(user.role, user.name, user.id);
-      }, 500);
-    } catch (err) {
-      console.error('Login error:', err);
-      setIsLoggingIn(false);
-      setError('Неверный логин или пароль');
-    }
   };
 
   if (!selectedRole) {
@@ -422,102 +145,15 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         </div>
       </div>
 
-      <div className={`w-full max-w-2xl max-lg:max-w-[340px] animate-in fade-in zoom-in duration-500 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="bg-card rounded-xl shadow-xl p-8 border-2 border-border relative max-lg:p-4 max-lg:rounded-lg">
-          <button
-            onClick={handleBack}
-            className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors z-10 max-lg:top-2.5 max-lg:left-2.5"
-          >
-            <Icon name="ArrowLeft" size={20} className="max-lg:w-3.5 max-lg:h-3.5" />
-            <span className="text-sm font-medium max-lg:text-[10px]">Назад</span>
-          </button>
-
-          <div className="flex items-start gap-8 mt-8 max-lg:flex-col max-lg:items-center max-lg:gap-3 max-lg:mt-8">
-            <div className="w-40 h-40 rounded-full shadow-lg flex-shrink-0 overflow-hidden animate-in zoom-in duration-700 max-lg:w-16 max-lg:h-16">
-              <img src={currentRole.image} alt={currentRole.name} className="w-full h-full object-cover" loading="eager" />
-            </div>
-
-            <div className="flex-1 space-y-4 animate-in fade-in slide-in-from-right duration-700 max-lg:w-full max-lg:space-y-2.5">
-              <div>
-              <label className="block text-sm font-medium mb-2 max-lg:text-[10px] max-lg:mb-1">
-                Логин (телефон или email)
-              </label>
-              <div className="relative">
-                <Icon name="User" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground max-lg:left-2.5 max-lg:w-3.5 max-lg:h-3.5" />
-                <Input
-                  type="text"
-                  placeholder="Введите логин"
-                  value={login}
-                  onChange={(e) => setLogin(e.target.value)}
-                  className="pl-11 h-12 rounded-xl max-lg:pl-8 max-lg:h-9 max-lg:text-xs max-lg:rounded-lg"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') handleLogin();
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2 max-lg:text-[10px] max-lg:mb-1">
-                Пароль
-              </label>
-              <div className="relative">
-                <Icon name="Lock" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground max-lg:left-2.5 max-lg:w-3.5 max-lg:h-3.5" />
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Введите пароль"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-11 pr-11 h-12 rounded-xl max-lg:pl-8 max-lg:pr-8 max-lg:h-9 max-lg:text-xs max-lg:rounded-lg"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') handleLogin();
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors max-lg:right-2.5"
-                >
-                  <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={18} className="max-lg:w-3.5 max-lg:h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-3 flex items-start gap-2 max-lg:p-1.5 max-lg:gap-1 max-lg:rounded-lg">
-                <Icon name="AlertCircle" size={18} className="text-destructive flex-shrink-0 mt-0.5 max-lg:w-3.5 max-lg:h-3.5" />
-                <p className="text-sm text-destructive max-lg:text-[10px]">{error}</p>
-              </div>
-            )}
-
-              <Button
-                onClick={handleLogin}
-                className="w-full h-12 rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-lg text-white max-lg:h-9 max-lg:text-xs max-lg:rounded-lg"
-                style={{ backgroundColor: '#3BA662' }}
-              >
-                Войти
-              </Button>
-
-              {selectedRole && TEST_ACCOUNTS[selectedRole] && (
-                <div className="pt-3 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-2 max-lg:text-[9px]">Быстрый вход (тест):</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {TEST_ACCOUNTS[selectedRole].map((acc) => (
-                      <button
-                        key={acc.phone}
-                        onClick={() => handleQuickLogin(acc.phone)}
-                        className="px-3 py-2 text-xs rounded-lg border border-border hover:border-primary/50 hover:bg-accent transition-colors text-left truncate max-lg:px-2 max-lg:py-1.5 max-lg:text-[10px]"
-                      >
-                        {acc.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <LoginForm
+        selectedRole={selectedRole}
+        roleImage={currentRole.image}
+        roleName={currentRole.name}
+        onLogin={onLogin}
+        onBack={handleBack}
+        isLoggingIn={isLoggingIn}
+        setIsLoggingIn={setIsLoggingIn}
+      />
     </div>
   );
 };
