@@ -115,7 +115,7 @@ const LoginForm = ({ selectedRole, roleImage, roleName, onLogin, onBack, isLoggi
                 placeholder="Введите логин"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
-                className="pl-11 h-12 rounded-xl max-lg:pl-8 max-lg:h-9 max-lg:text-xs max-lg:rounded-lg"
+                className="pl-11 h-12 rounded-xl max-lg:pl-8 max-lg:h-9 max-lg:rounded-lg text-base"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') handleLogin();
                 }}
@@ -134,7 +134,7 @@ const LoginForm = ({ selectedRole, roleImage, roleName, onLogin, onBack, isLoggi
                 placeholder="Введите пароль"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-11 pr-11 h-12 rounded-xl max-lg:pl-8 max-lg:pr-8 max-lg:h-9 max-lg:text-xs max-lg:rounded-lg"
+                className="pl-11 pr-11 h-12 rounded-xl max-lg:pl-8 max-lg:pr-8 max-lg:h-9 max-lg:rounded-lg text-base"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') handleLogin();
                 }}
