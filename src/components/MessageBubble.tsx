@@ -94,16 +94,77 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward }: Messa
           </div>
 
           {message.forwardedFrom && (
-            <div className="mb-1.5 flex items-start gap-2 px-3 py-2 bg-accent/50 rounded-lg border-l-2 border-primary max-w-[calc(100vw-80px)] md:max-w-sm">
-              <Icon name="Forward" size={14} className="text-primary mt-0.5 flex-shrink-0" />
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-1.5 flex-wrap">
-                  <span className="text-xs font-semibold text-primary">{message.forwardedFrom.sender}</span>
-                  <span className="text-[10px] text-muted-foreground">{message.forwardedFrom.chatName}</span>
-                  <span className="text-[10px] text-muted-foreground/60">{message.forwardedFrom.date}</span>
+            <div className="mb-1.5 px-3 py-2 bg-accent/50 rounded-lg border-l-2 border-primary max-w-[calc(100vw-80px)] md:max-w-sm">
+              <div className="flex items-start gap-2">
+                <Icon name="Forward" size={14} className="text-primary mt-0.5 flex-shrink-0" />
+                <div className="min-w-0">
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-xs font-semibold text-primary">{message.forwardedFrom.sender}</span>
+                    <span className="text-[10px] text-muted-foreground">{message.forwardedFrom.chatName}</span>
+                    <span className="text-[10px] text-muted-foreground/60">{message.forwardedFrom.date}</span>
+                  </div>
+                  {message.forwardedFrom.text && (
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{message.forwardedFrom.text}</p>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">{message.forwardedFrom.text}</p>
               </div>
+              {images.length > 0 && (
+                <div className="mt-2">
+                  <div className={`grid gap-1.5 ${getGridLayout(Math.min(images.length, 4))}`}>
+                    {images.slice(0, 4).map((img, idx) => (
+                      <div
+                        key={idx}
+                        className={`${getImageSize(Math.min(images.length, 4), idx)} overflow-hidden rounded-lg cursor-pointer relative group/img`}
+                        onClick={() => openImage(idx)}
+                      >
+                        <img
+                          src={img.fileUrl}
+                          alt={`Изображение ${idx + 1}`}
+                          className="w-full h-full object-cover group-hover/img:brightness-90 transition-all"
+                          loading="lazy"
+                        />
+                        {images.length > 4 && idx === 3 && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <span className="text-white text-3xl font-medium">+{images.length - 4}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {files.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {files.map((file, idx) => (
+                    <div key={idx} className="flex items-center gap-3 p-2 bg-background/60 rounded-lg">
+                      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Icon name="FileText" size={16} className="text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{file.fileName}</p>
+                        <p className="text-[10px] text-muted-foreground">{file.fileSize}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="flex-shrink-0 h-7 w-7"
+                        onClick={() => {
+                          if (file.fileUrl) {
+                            const a = document.createElement('a');
+                            a.href = file.fileUrl;
+                            a.download = file.fileName || 'file';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }
+                        }}
+                      >
+                        <Icon name="Download" size={14} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -128,7 +189,7 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward }: Messa
             </p>
           )}
 
-          {images.length > 0 && (
+          {!message.forwardedFrom && images.length > 0 && (
             <div className="mt-2">
               <div className={`grid gap-1.5 ${getGridLayout(Math.min(images.length, 4))} max-w-[calc(100vw-80px)] md:max-w-sm`}>
                 {images.slice(0, 4).map((img, idx) => (
@@ -154,7 +215,7 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward }: Messa
             </div>
           )}
 
-          {files.length > 0 && (
+          {!message.forwardedFrom && files.length > 0 && (
             <div className="mt-2 space-y-1">
               {files.map((file, idx) => (
                 <div key={idx} className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm">
