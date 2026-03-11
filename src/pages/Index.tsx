@@ -190,6 +190,11 @@ const Index = () => {
           if (forwardMessage) {
             handleForwardMessage(forwardMessage, targetChatId, targetTopicId, comment);
             setForwardMessage(null);
+            handleSelectChat(targetChatId);
+            if (targetTopicId) {
+              handleSelectTopic(targetTopicId);
+            }
+            setMobileShowChat(true);
           }
         }}
       />
