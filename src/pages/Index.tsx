@@ -186,9 +186,9 @@ const Index = () => {
         topics={groupTopics}
         currentChatId={selectedChat}
         currentTopicId={selectedTopic}
-        onForward={(targetChatId, targetTopicId) => {
+        onForward={(targetChatId, targetTopicId, comment) => {
           if (forwardMessage) {
-            handleForwardMessage(forwardMessage, targetChatId, targetTopicId);
+            handleForwardMessage(forwardMessage, targetChatId, targetTopicId, comment);
             setForwardMessage(null);
           }
         }}

@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { Message } from '@/types/chat.types';
 
@@ -17,7 +18,7 @@ type ForwardMessageDialogProps = {
   topics: Record<string, Array<{ id: string; name: string; icon: string }>>;
   currentChatId: string | null;
   currentTopicId: string | null;
-  onForward: (targetChatId: string, targetTopicId?: string) => void;
+  onForward: (targetChatId: string, targetTopicId?: string, comment?: string) => void;
 };
 
 const ForwardMessageDialog = ({
@@ -31,6 +32,7 @@ const ForwardMessageDialog = ({
   onForward,
 }: ForwardMessageDialogProps) => {
   const [activeTab, setActiveTab] = useState('topics');
+  const [comment, setComment] = useState('');
 
   if (!message) return null;
 
@@ -40,18 +42,25 @@ const ForwardMessageDialog = ({
 
   const handleForwardToTopic = (topicId: string) => {
     if (currentChatId) {
-      onForward(currentChatId, topicId);
+      onForward(currentChatId, topicId, comment.trim() || undefined);
     }
+    setComment('');
     onClose();
   };
 
   const handleForwardToChat = (chatId: string) => {
-    onForward(chatId);
+    onForward(chatId, undefined, comment.trim() || undefined);
+    setComment('');
+    onClose();
+  };
+
+  const handleClose = () => {
+    setComment('');
     onClose();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Переслать сообщение</DialogTitle>
@@ -67,7 +76,16 @@ const ForwardMessageDialog = ({
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
+        <div className="mt-1">
+          <Textarea
+            placeholder="Добавить подпись (необязательно)"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="min-h-[60px] max-h-[100px] resize-none text-sm"
+          />
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-1">
           <TabsList className="w-full">
             <TabsTrigger value="topics" className="flex-1" disabled={!hasTopics}>
               В раздел

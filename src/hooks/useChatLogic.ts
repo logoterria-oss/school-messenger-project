@@ -1426,7 +1426,7 @@ export const useChatLogic = () => {
     setReplyTo(null);
   };
 
-  const handleForwardMessage = async (message: Message, targetChatId: string, targetTopicId?: string) => {
+  const handleForwardMessage = async (message: Message, targetChatId: string, targetTopicId?: string, comment?: string) => {
     const messageId = Date.now().toString();
     const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Пользователь');
     const targetId = targetTopicId || targetChatId;
@@ -1439,7 +1439,7 @@ export const useChatLogic = () => {
 
     const forwardedMsg: Message = {
       id: messageId,
-      text: message.text,
+      text: comment || undefined,
       sender: senderName,
       senderId: userId,
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
@@ -1467,7 +1467,7 @@ export const useChatLogic = () => {
         topicId: targetTopicId,
         senderId: userId,
         senderName,
-        text: message.text,
+        text: comment || undefined,
         attachments: message.attachments?.map(att => ({
           type: att.type,
           fileUrl: att.fileUrl,
