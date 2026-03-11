@@ -35,6 +35,7 @@ const ForwardMessageDialog = ({
   const [activeTab, setActiveTab] = useState('topics');
   const [comment, setComment] = useState('');
   const [selectedTarget, setSelectedTarget] = useState<{ chatId: string; topicId?: string; label: string } | null>(null);
+  const [expandedChatId, setExpandedChatId] = useState<string | null>(null);
 
   if (!message) return null;
 
@@ -53,6 +54,7 @@ const ForwardMessageDialog = ({
   const handleClose = () => {
     setComment('');
     setSelectedTarget(null);
+    setExpandedChatId(null);
     onClose();
   };
 
@@ -130,30 +132,73 @@ const ForwardMessageDialog = ({
           <TabsContent value="chats">
             <div className="space-y-1 max-h-52 overflow-y-auto">
               {chats.map(chat => {
-                const isSelected = selectedTarget?.chatId === chat.id && !selectedTarget?.topicId;
+                const isGroup = chat.type === 'group';
+                const chatTopics = topics[chat.id] || [];
+                const hasGroupTopics = isGroup && chatTopics.length > 0;
+                const isExpanded = expandedChatId === chat.id;
+                const isChatSelected = selectedTarget?.chatId === chat.id;
+                const isDirectSelected = isChatSelected && !selectedTarget?.topicId;
+
                 return (
-                  <button
-                    key={chat.id}
-                    onClick={() => setSelectedTarget({ chatId: chat.id, label: chat.name })}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                      isSelected ? 'bg-primary/10 ring-1 ring-primary' : 'hover:bg-accent'
-                    }`}
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Icon
-                        name={chat.type === 'group' ? 'Users' : 'User'}
-                        size={16}
-                        className="text-primary"
-                      />
-                    </div>
-                    <span className="font-medium truncate">{chat.name}</span>
-                    {chat.id === currentChatId && (
-                      <span className="ml-auto text-[10px] text-muted-foreground">текущий</span>
+                  <div key={chat.id}>
+                    <button
+                      onClick={() => {
+                        if (hasGroupTopics) {
+                          setExpandedChatId(isExpanded ? null : chat.id);
+                        } else {
+                          setSelectedTarget({ chatId: chat.id, label: chat.name });
+                          setExpandedChatId(null);
+                        }
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                        isDirectSelected ? 'bg-primary/10 ring-1 ring-primary' : 'hover:bg-accent'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Icon
+                          name={isGroup ? 'Users' : 'User'}
+                          size={16}
+                          className="text-primary"
+                        />
+                      </div>
+                      <span className="font-medium truncate">{chat.name}</span>
+                      {chat.id === currentChatId && (
+                        <span className="ml-auto text-[10px] text-muted-foreground">текущий</span>
+                      )}
+                      {isDirectSelected && (
+                        <Icon name="Check" size={16} className="ml-auto text-primary" />
+                      )}
+                      {hasGroupTopics && (
+                        <Icon
+                          name={isExpanded ? 'ChevronUp' : 'ChevronDown'}
+                          size={14}
+                          className="ml-auto text-muted-foreground"
+                        />
+                      )}
+                    </button>
+                    {hasGroupTopics && isExpanded && (
+                      <div className="ml-6 mt-1 space-y-0.5 border-l-2 border-primary/20 pl-3">
+                        {chatTopics.map(topic => {
+                          const isTopicSelected = isChatSelected && selectedTarget?.topicId === topic.id;
+                          return (
+                            <button
+                              key={topic.id}
+                              onClick={() => setSelectedTarget({ chatId: chat.id, topicId: topic.id, label: `${chat.name} → ${topic.name}` })}
+                              className={`w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm transition-colors ${
+                                isTopicSelected ? 'bg-primary/10 ring-1 ring-primary' : 'hover:bg-accent'
+                              }`}
+                            >
+                              <Icon name={topic.icon} size={14} className="text-primary flex-shrink-0" />
+                              <span className="text-sm truncate">{topic.name}</span>
+                              {isTopicSelected && (
+                                <Icon name="Check" size={14} className="ml-auto text-primary" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     )}
-                    {isSelected && (
-                      <Icon name="Check" size={16} className="ml-auto text-primary" />
-                    )}
-                  </button>
+                  </div>
                 );
               })}
               {chats.length === 0 && (
