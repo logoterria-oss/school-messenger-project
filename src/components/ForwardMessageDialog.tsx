@@ -36,12 +36,22 @@ const ForwardMessageDialog = ({
   const [comment, setComment] = useState('');
   const [selectedTarget, setSelectedTarget] = useState<{ chatId: string; topicId?: string; label: string } | null>(null);
   const [expandedChatId, setExpandedChatId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   if (!message) return null;
 
   const currentChat = chats.find(c => c.id === currentChatId);
   const currentTopics = currentChatId ? (topics[currentChatId] || []) : [];
   const hasTopics = currentChat?.type === 'group' && currentTopics.length > 0;
+
+  const q = searchQuery.toLowerCase().trim();
+  const filteredChats = q
+    ? chats.filter(chat => {
+        if (chat.name.toLowerCase().includes(q)) return true;
+        const chatTopics = topics[chat.id] || [];
+        return chatTopics.some(t => t.name.toLowerCase().includes(q));
+      })
+    : chats;
 
   const handleSend = () => {
     if (!selectedTarget) return;
@@ -55,6 +65,7 @@ const ForwardMessageDialog = ({
     setComment('');
     setSelectedTarget(null);
     setExpandedChatId(null);
+    setSearchQuery('');
     onClose();
   };
 
@@ -130,8 +141,18 @@ const ForwardMessageDialog = ({
           </TabsContent>
 
           <TabsContent value="chats">
+            <div className="relative mb-2">
+              <Icon name="Search" size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Поиск по имени или группе..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
             <div className="space-y-1 max-h-52 overflow-y-auto">
-              {chats.map(chat => {
+              {filteredChats.map(chat => {
                 const isGroup = chat.type === 'group';
                 const chatTopics = topics[chat.id] || [];
                 const hasGroupTopics = isGroup && chatTopics.length > 0;
@@ -201,10 +222,10 @@ const ForwardMessageDialog = ({
                   </div>
                 );
               })}
-              {chats.length === 0 && (
+              {filteredChats.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                  <Icon name="MessageSquare" size={32} className="mb-2 opacity-40" />
-                  <p className="text-sm">Нет доступных чатов</p>
+                  <Icon name={q ? 'SearchX' : 'MessageSquare'} size={32} className="mb-2 opacity-40" />
+                  <p className="text-sm">{q ? 'Ничего не найдено' : 'Нет доступных чатов'}</p>
                 </div>
               )}
             </div>
