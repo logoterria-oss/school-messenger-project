@@ -32,7 +32,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
   if (!selectedRole) {
     return (
-      <div className="h-[100dvh] overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4 max-lg:p-4 relative touch-none">
+      <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4 max-lg:p-4">
         <FloatingDecor />
         <div className="w-full max-w-2xl max-lg:max-w-[min(340px,calc(100vw-32px))] relative z-10">
           <div className="flex items-center justify-center gap-6 mb-8 max-lg:gap-2.5 max-lg:mb-8">
@@ -94,7 +94,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const currentRole = ROLES.find(r => r.id === selectedRole)!;
 
   return (
-    <div className="h-[100dvh] overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col items-center justify-center p-4 relative touch-none">
+    <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col items-center justify-center p-4">
       <FloatingDecor />
       {isLoggingIn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
