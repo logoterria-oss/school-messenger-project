@@ -58,8 +58,8 @@ const InstallHintModal = ({ onClose }: InstallHintModalProps) => {
                 <div className="flex gap-3 items-start">
                   <div className="w-8 h-8 rounded-full bg-[#3BA662] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 max-lg:w-6 max-lg:h-6 max-lg:text-xs">1</div>
                   <div className="pt-1 max-lg:pt-0.5">
-                    <p className="text-sm font-medium max-lg:text-xs">Нажмите кнопку «Поделиться»</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Иконка <Icon name="Share" size={14} className="inline -mt-0.5" /> внизу экрана</p>
+                    <p className="text-sm font-medium max-lg:text-xs">Нажмите <Icon name="Ellipsis" size={14} className="inline -mt-0.5" /> внизу справа, затем «Поделиться» <Icon name="Share" size={14} className="inline -mt-0.5" /></p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Или сразу <Icon name="Share" size={14} className="inline -mt-0.5" />, если кнопка видна на панели</p>
                   </div>
                 </div>
                 <div className="flex gap-3 items-start">
