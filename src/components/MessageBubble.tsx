@@ -179,9 +179,9 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward }: Messa
 
           {message.text && (
             <p className="text-[14px] leading-relaxed break-words whitespace-pre-wrap text-foreground/90">
-              {message.text.split(/(@[А-Яа-яёЁA-Za-z]+(?:\s[А-Яа-яёЁA-Za-z]+)?)/).map((part, i) =>
-                part.startsWith('@') ? (
-                  <span key={i} className="text-primary font-semibold">{part}</span>
+              {message.text.split(/(@\[[^\]]+\])/).map((part, i) =>
+                /^@\[.+\]$/.test(part) ? (
+                  <span key={i} className="text-primary font-semibold">@{part.slice(2, -1)}</span>
                 ) : (
                   <span key={i}>{part}</span>
                 )

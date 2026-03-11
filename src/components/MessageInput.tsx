@@ -21,6 +21,7 @@ export type MentionableUser = {
   id: string;
   name: string;
   avatar?: string;
+  role?: string;
 };
 
 type MessageInputProps = {
@@ -96,7 +97,11 @@ export const MessageInput = ({
     const cursorPos = textarea.selectionStart;
     const textBefore = value.slice(0, cursorPos);
 
-    const atMatch = textBefore.match(/@([^\s@]*)$/);
+    const completedBefore = textBefore.lastIndexOf('@[');
+    const closedBefore = textBefore.lastIndexOf(']');
+    const insideCompleted = completedBefore !== -1 && completedBefore > closedBefore;
+
+    const atMatch = !insideCompleted ? textBefore.match(/@([^\s@[\]]*)$/) : null;
     if (atMatch) {
       setShowMentions(true);
       setMentionQuery(atMatch[1]);
@@ -111,7 +116,9 @@ export const MessageInput = ({
   const insertMention = useCallback((user: MentionableUser) => {
     const before = messageText.slice(0, mentionStartPos);
     const after = messageText.slice(textareaRef.current?.selectionStart || messageText.length);
-    const newText = `${before}@${user.name} ${after}`;
+    const label = user.role ? `${user.name} (${user.role})` : user.name;
+    const mention = `@[${label}]`;
+    const newText = `${before}${mention} ${after}`;
     onMessageChange(newText);
     setShowMentions(false);
     setMentionQuery('');
@@ -119,7 +126,7 @@ export const MessageInput = ({
 
     setTimeout(() => {
       if (textareaRef.current) {
-        const pos = before.length + user.name.length + 2;
+        const pos = before.length + mention.length + 1;
         textareaRef.current.selectionStart = pos;
         textareaRef.current.selectionEnd = pos;
         textareaRef.current.focus();
@@ -256,7 +263,10 @@ export const MessageInput = ({
                     <span className="text-xs font-semibold text-muted-foreground">{user.name.charAt(0)}</span>
                   )}
                 </div>
-                <span className="font-medium truncate text-sm">{user.name}</span>
+                <span className="font-medium truncate text-sm">
+                  {user.name}
+                  {user.role && <span className="text-muted-foreground font-normal"> ({user.role})</span>}
+                </span>
               </button>
             ))}
           </div>

@@ -18,6 +18,13 @@ import { AddAdminDialog } from '@/components/AddAdminDialog';
 import ForwardMessageDialog from '@/components/ForwardMessageDialog';
 import { Message } from '@/types/chat.types';
 
+const roleLabels: Record<string, string> = {
+  admin: 'руководитель',
+  teacher: 'педагог',
+  parent: 'родитель',
+  student: 'ученик',
+};
+
 const Index = () => {
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showAddParent, setShowAddParent] = useState(false);
@@ -196,11 +203,11 @@ const Index = () => {
                 (c.participants || [])
                   .filter(pid => pid !== userId)
                   .map(pid => {
-                    if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко (руководитель)', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
+                    if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: roleLabels['admin'], avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
                     const u = allUsers.find(u => u.id === pid);
-                    return u ? { id: u.id, name: u.name, avatar: u.avatar } : null;
+                    return u ? { id: u.id, name: u.name, role: roleLabels[u.role] || u.role, avatar: u.avatar } : null;
                   })
-                  .filter(Boolean) as { id: string; name: string; avatar?: string }[]
+                  .filter(Boolean) as { id: string; name: string; role?: string; avatar?: string }[]
               ])
           )
         }
@@ -276,11 +283,11 @@ const Index = () => {
                     ? (selectedChatData.participants || [])
                         .filter(pid => pid !== userId)
                         .map(pid => {
-                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко (руководитель)', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
+                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: roleLabels['admin'], avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
                           const u = allUsers.find(u => u.id === pid);
-                          return u ? { id: u.id, name: u.name, avatar: u.avatar } : null;
+                          return u ? { id: u.id, name: u.name, role: roleLabels[u.role] || u.role, avatar: u.avatar } : null;
                         })
-                        .filter(Boolean) as { id: string; name: string; avatar?: string }[]
+                        .filter(Boolean) as { id: string; name: string; role?: string; avatar?: string }[]
                     : undefined
                 }
               />
