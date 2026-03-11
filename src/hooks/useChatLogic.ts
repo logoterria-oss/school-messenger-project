@@ -1426,7 +1426,7 @@ export const useChatLogic = () => {
     setReplyTo(null);
   };
 
-  const handleForwardMessage = async (message: Message, targetChatId: string, targetTopicId?: string, comment?: string) => {
+  const handleForwardMessage = async (message: Message, targetChatId: string, targetTopicId?: string, comment?: string): Promise<string> => {
     const messageId = Date.now().toString();
     const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Пользователь');
     const targetId = targetTopicId || targetChatId;
@@ -1492,6 +1492,7 @@ export const useChatLogic = () => {
     } catch (error) {
       console.error('Failed to forward message:', error);
     }
+    return messageId;
   };
 
   const handleUpdateGroupInfo = (chatId: string, updates: { schedule?: string; conclusionLink?: string; name?: string }) => {

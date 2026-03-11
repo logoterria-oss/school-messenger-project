@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { MessageBubble } from './MessageBubble';
@@ -48,6 +48,8 @@ type ChatAreaProps = {
   onAddAdmin?: () => void;
   onReply?: (message: Message) => void;
   onForward?: (message: Message) => void;
+  scrollToMessageId?: string | null;
+  onScrollComplete?: () => void;
 };
 
 const TopicMuteButton = ({ topicId }: { topicId: string }) => {
@@ -75,7 +77,8 @@ const TopicMuteButton = ({ topicId }: { topicId: string }) => {
   );
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, scrollToMessageId, onScrollComplete }: ChatAreaProps) => {
+  const scrollTargetRef = useRef<HTMLDivElement>(null);
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
   const isTeachersGroup = chatId === 'teachers-group';
 
@@ -90,6 +93,15 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
   })();
 
   const shouldShowTopics = filteredTopics.length > 0;
+
+  useEffect(() => {
+    if (scrollToMessageId && scrollTargetRef.current) {
+      setTimeout(() => {
+        scrollTargetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        onScrollComplete?.();
+      }, 150);
+    }
+  }, [scrollToMessageId]);
 
   return (
     <>
@@ -174,13 +186,17 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
       <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
         <div className="max-w-4xl mx-auto py-4 space-y-0.5">
           {messages.map((message) => (
-            <MessageBubble
+            <div
               key={message.id}
-              message={message}
-              onReaction={onReaction}
-              onReply={onReply}
-              onForward={onForward}
-            />
+              ref={message.id === scrollToMessageId ? scrollTargetRef : undefined}
+            >
+              <MessageBubble
+                message={message}
+                onReaction={onReaction}
+                onReply={onReply}
+                onForward={onForward}
+              />
+            </div>
           ))}
           {isGroup && typingUsers && typingUsers.length > 0 && (
             <div className="flex items-center gap-2 px-4 py-2">

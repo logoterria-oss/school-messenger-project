@@ -27,6 +27,7 @@ const Index = () => {
   const [showChatInfo, setShowChatInfo] = useState(false);
   const [mobileShowChat, setMobileShowChat] = useState(false);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
+  const [scrollToMessageId, setScrollToMessageId] = useState<string | null>(null);
 
   const {
     isAuthenticated,
@@ -186,15 +187,16 @@ const Index = () => {
         topics={groupTopics}
         currentChatId={selectedChat}
         currentTopicId={selectedTopic}
-        onForward={(targetChatId, targetTopicId, comment) => {
+        onForward={async (targetChatId, targetTopicId, comment) => {
           if (forwardMessage) {
-            handleForwardMessage(forwardMessage, targetChatId, targetTopicId, comment);
+            const msgId = await handleForwardMessage(forwardMessage, targetChatId, targetTopicId, comment);
             setForwardMessage(null);
             handleSelectChat(targetChatId);
             if (targetTopicId) {
               handleSelectTopic(targetTopicId);
             }
             setMobileShowChat(true);
+            setScrollToMessageId(msgId);
           }
         }}
       />
@@ -228,6 +230,8 @@ const Index = () => {
                 onAddAdmin={() => setShowAddAdmin(true)}
                 onReply={handleReply}
                 onForward={(msg) => setForwardMessage(msg)}
+                scrollToMessageId={scrollToMessageId}
+                onScrollComplete={() => setScrollToMessageId(null)}
                 participantsCount={(() => {
                   const c = chats.find(c => c.id === selectedChat);
                   if (!c?.participants) return 0;
