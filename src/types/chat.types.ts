@@ -14,6 +14,20 @@ export type AttachedFile = {
   fileSize?: string;
 };
 
+export type ReplyInfo = {
+  id: string;
+  sender: string;
+  text: string;
+};
+
+export type ForwardInfo = {
+  id: string;
+  sender: string;
+  text: string;
+  date: string;
+  chatName: string;
+};
+
 export type Message = {
   id: string;
   text?: string;
@@ -25,6 +39,8 @@ export type Message = {
   attachments?: AttachedFile[];
   reactions?: { emoji: string; count: number; users: string[] }[];
   status?: 'sending' | 'sent' | 'delivered' | 'read';
+  replyTo?: ReplyInfo;
+  forwardedFrom?: ForwardInfo;
 };
 
 export type Chat = {

@@ -34,6 +34,8 @@ type MessageInputProps = {
   disabled?: boolean;
   disabledMessage?: string;
   mentionableUsers?: MentionableUser[];
+  replyTo?: { id: string; sender: string; text: string } | null;
+  onCancelReply?: () => void;
 };
 
 export const MessageInput = ({
@@ -47,6 +49,8 @@ export const MessageInput = ({
   disabled,
   disabledMessage,
   mentionableUsers,
+  replyTo,
+  onCancelReply,
 }: MessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -166,6 +170,22 @@ export const MessageInput = ({
 
   return (
     <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-3 md:px-5 py-3">
+      {replyTo && (
+        <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-accent/50 rounded-lg border-l-2 border-primary">
+          <Icon name="Reply" size={16} className="text-primary flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-semibold text-primary block">{replyTo.sender}</span>
+            <p className="text-xs text-muted-foreground truncate">{replyTo.text}</p>
+          </div>
+          <button
+            onClick={onCancelReply}
+            className="flex-shrink-0 w-6 h-6 rounded-md hover:bg-accent flex items-center justify-center transition-colors"
+          >
+            <Icon name="X" size={14} className="text-muted-foreground" />
+          </button>
+        </div>
+      )}
+
       {attachments.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
           {attachments.map((attachment, idx) => (

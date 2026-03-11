@@ -7,35 +7,24 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-
-type AttachedFile = {
-  type: 'image' | 'file';
-  fileUrl?: string;
-  fileName?: string;
-  fileSize?: string;
-};
-
-type Message = {
-  id: string;
-  text?: string;
-  sender: string;
-  senderId?: string;
-  senderAvatar?: string;
-  timestamp: string;
-  isOwn: boolean;
-  attachments?: AttachedFile[];
-  reactions?: { emoji: string; count: number; users: string[] }[];
-  status?: 'sending' | 'sent' | 'delivered' | 'read';
-};
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Message } from '@/types/chat.types';
 
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 type MessageBubbleProps = {
   message: Message;
   onReaction: (messageId: string, emoji: string) => void;
+  onReply?: (message: Message) => void;
+  onForward?: (message: Message) => void;
 };
 
-export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
+export const MessageBubble = ({ message, onReaction, onReply, onForward }: MessageBubbleProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const images = message.attachments?.filter(a => a.type === 'image') || [];
@@ -103,6 +92,29 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
               </span>
             )}
           </div>
+
+          {message.forwardedFrom && (
+            <div className="mb-1.5 flex items-start gap-2 px-3 py-2 bg-accent/50 rounded-lg border-l-2 border-primary max-w-[calc(100vw-80px)] md:max-w-sm">
+              <Icon name="Forward" size={14} className="text-primary mt-0.5 flex-shrink-0" />
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-xs font-semibold text-primary">{message.forwardedFrom.sender}</span>
+                  <span className="text-[10px] text-muted-foreground">{message.forwardedFrom.chatName}</span>
+                  <span className="text-[10px] text-muted-foreground/60">{message.forwardedFrom.date}</span>
+                </div>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{message.forwardedFrom.text}</p>
+              </div>
+            </div>
+          )}
+
+          {message.replyTo && (
+            <div className="mb-1.5 flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-lg border-l-2 border-primary cursor-pointer hover:bg-primary/10 transition-colors max-w-[calc(100vw-80px)] md:max-w-sm">
+              <div className="min-w-0">
+                <span className="text-xs font-semibold text-primary block">{message.replyTo.sender}</span>
+                <p className="text-xs text-muted-foreground truncate">{message.replyTo.text}</p>
+              </div>
+            </div>
+          )}
 
           {message.text && (
             <p className="text-[14px] leading-relaxed break-words whitespace-pre-wrap text-foreground/90">
@@ -192,7 +204,7 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
           )}
         </div>
 
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5 flex items-center gap-0.5">
           <Popover>
             <PopoverTrigger asChild>
               <button className="w-7 h-7 rounded-md hover:bg-accent flex items-center justify-center">
@@ -213,6 +225,37 @@ export const MessageBubble = ({ message, onReaction }: MessageBubbleProps) => {
               </div>
             </PopoverContent>
           </Popover>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-7 h-7 rounded-md hover:bg-accent flex items-center justify-center">
+                <Icon name="MoreHorizontal" size={15} className="text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="min-w-[180px]">
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => onReply?.(message)}
+              >
+                <Icon name="Reply" size={16} className="text-muted-foreground" />
+                <span>Ответить</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => onForward?.(message)}
+              >
+                <Icon name="Forward" size={16} className="text-muted-foreground" />
+                <span>Переслать в раздел</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => onForward?.(message)}
+              >
+                <Icon name="Share2" size={16} className="text-muted-foreground" />
+                <span>Переслать в чат</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

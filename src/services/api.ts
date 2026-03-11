@@ -50,6 +50,14 @@ export type Message = {
     count: number;
     users: string[];
   }>;
+  reply_to_id?: string;
+  reply_to_sender?: string;
+  reply_to_text?: string;
+  forwarded_from_id?: string;
+  forwarded_from_sender?: string;
+  forwarded_from_text?: string;
+  forwarded_from_date?: string;
+  forwarded_from_chat_name?: string;
 };
 
 // Аутентификация
@@ -236,6 +244,14 @@ export async function sendMessage(message: {
     fileName?: string;
     fileSize?: string;
   }>;
+  replyToId?: string;
+  replyToSender?: string;
+  replyToText?: string;
+  forwardedFromId?: string;
+  forwardedFromSender?: string;
+  forwardedFromText?: string;
+  forwardedFromDate?: string;
+  forwardedFromChatName?: string;
 }): Promise<Message> {
   const response = await fetch(API_URLS.messages, {
     method: 'POST',

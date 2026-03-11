@@ -40,6 +40,9 @@ def handler(event: dict, context) -> dict:
             if topic_id:
                 cur.execute("""
                     SELECT m.id, m.text, m.sender_id, m.sender_name, m.created_at,
+                           m.reply_to_id, m.reply_to_sender, m.reply_to_text,
+                           m.forwarded_from_id, m.forwarded_from_sender, m.forwarded_from_text,
+                           m.forwarded_from_date, m.forwarded_from_chat_name,
                            (SELECT ARRAY_AGG(DISTINCT jsonb_build_object(
                                'type', a.type, 'fileUrl', a.file_url,
                                'fileName', a.file_name, 'fileSize', a.file_size
@@ -61,6 +64,9 @@ def handler(event: dict, context) -> dict:
             else:
                 cur.execute("""
                     SELECT m.id, m.text, m.sender_id, m.sender_name, m.created_at,
+                           m.reply_to_id, m.reply_to_sender, m.reply_to_text,
+                           m.forwarded_from_id, m.forwarded_from_sender, m.forwarded_from_text,
+                           m.forwarded_from_date, m.forwarded_from_chat_name,
                            (SELECT ARRAY_AGG(DISTINCT jsonb_build_object(
                                'type', a.type, 'fileUrl', a.file_url,
                                'fileName', a.file_name, 'fileSize', a.file_size
@@ -103,6 +109,14 @@ def handler(event: dict, context) -> dict:
             sender_name = data.get('senderName')
             text = data.get('text')
             attachments = data.get('attachments', [])
+            reply_to_id = data.get('replyToId')
+            reply_to_sender = data.get('replyToSender')
+            reply_to_text = data.get('replyToText')
+            forwarded_from_id = data.get('forwardedFromId')
+            forwarded_from_sender = data.get('forwardedFromSender')
+            forwarded_from_text = data.get('forwardedFromText')
+            forwarded_from_date = data.get('forwardedFromDate')
+            forwarded_from_chat_name = data.get('forwardedFromChatName')
 
             if not message_id or not chat_id or not sender_id or not sender_name:
                 return {
@@ -111,12 +125,17 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Missing required fields'})
                 }
 
-            # Вставка сообщения
             cur.execute("""
-                INSERT INTO messages (id, chat_id, topic_id, sender_id, sender_name, text, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, NOW())
+                INSERT INTO messages (id, chat_id, topic_id, sender_id, sender_name, text, created_at,
+                    reply_to_id, reply_to_sender, reply_to_text,
+                    forwarded_from_id, forwarded_from_sender, forwarded_from_text,
+                    forwarded_from_date, forwarded_from_chat_name)
+                VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, created_at
-            """, (message_id, chat_id, topic_id, sender_id, sender_name, text))
+            """, (message_id, chat_id, topic_id, sender_id, sender_name, text,
+                  reply_to_id, reply_to_sender, reply_to_text,
+                  forwarded_from_id, forwarded_from_sender, forwarded_from_text,
+                  forwarded_from_date, forwarded_from_chat_name))
             
             result = cur.fetchone()
 

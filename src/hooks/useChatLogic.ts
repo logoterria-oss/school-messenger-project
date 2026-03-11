@@ -22,6 +22,18 @@ const mapApiMessages = (msgs: ApiMessage[]): Message[] =>
     attachments: m.attachments,
     reactions: m.reactions,
     status: 'delivered' as const,
+    replyTo: m.reply_to_id ? {
+      id: m.reply_to_id,
+      sender: m.reply_to_sender || '',
+      text: m.reply_to_text || '',
+    } : undefined,
+    forwardedFrom: m.forwarded_from_id ? {
+      id: m.forwarded_from_id,
+      sender: m.forwarded_from_sender || '',
+      text: m.forwarded_from_text || '',
+      date: m.forwarded_from_date || '',
+      chatName: m.forwarded_from_chat_name || '',
+    } : undefined,
   }));
 
 const mergeMessages = (existing: Message[], fromApi: Message[]): Message[] => {
@@ -149,6 +161,7 @@ export const useChatLogic = () => {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
+  const [replyTo, setReplyTo] = useState<{ id: string; sender: string; text: string } | null>(null);
   
   // МИГРАЦИЯ V6: убираем закрепления педагог↔педагог СРАЗУ при инициализации
   const [chats, setChats] = useState<Chat[]>(() => {
@@ -581,7 +594,9 @@ export const useChatLogic = () => {
       isOwn: true,
       attachments: attachments.length > 0 ? attachments : undefined,
       status: 'sending',
+      replyTo: replyTo || undefined,
     };
+    const currentReplyTo = replyTo;
     
     setChatMessages(prev => ({
       ...prev,
@@ -619,9 +634,9 @@ export const useChatLogic = () => {
 
     setMessageText('');
     setAttachments([]);
+    setReplyTo(null);
 
     try {
-      // Отправляем сообщение в API
       const { sendMessage } = await import('@/services/api');
       await sendMessage({
         id: messageId,
@@ -636,6 +651,9 @@ export const useChatLogic = () => {
           fileName: att.fileName,
           fileSize: att.fileSize,
         })),
+        replyToId: currentReplyTo?.id,
+        replyToSender: currentReplyTo?.sender,
+        replyToText: currentReplyTo?.text,
       });
 
       // Уведомляем через WebSocket
@@ -1396,6 +1414,86 @@ export const useChatLogic = () => {
     updateChat(chatId, { leadAdmin: leadAdmin || null }).catch(() => {});
   };
 
+  const handleReply = (message: Message) => {
+    setReplyTo({
+      id: message.id,
+      sender: message.sender,
+      text: message.text || 'Вложение',
+    });
+  };
+
+  const handleCancelReply = () => {
+    setReplyTo(null);
+  };
+
+  const handleForwardMessage = async (message: Message, targetChatId: string, targetTopicId?: string) => {
+    const messageId = Date.now().toString();
+    const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Пользователь');
+    const targetId = targetTopicId || targetChatId;
+
+    const sourceChatName = chats.find(c => c.id === selectedChat)?.name || '';
+    const sourceTopicName = selectedTopic && selectedGroup
+      ? groupTopics[selectedGroup]?.find(t => t.id === selectedTopic)?.name
+      : undefined;
+    const fullSourceName = sourceTopicName ? `${sourceChatName} → ${sourceTopicName}` : sourceChatName;
+
+    const forwardedMsg: Message = {
+      id: messageId,
+      text: message.text,
+      sender: senderName,
+      senderId: userId,
+      timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      isOwn: true,
+      attachments: message.attachments,
+      status: 'sending',
+      forwardedFrom: {
+        id: message.id,
+        sender: message.sender,
+        text: message.text || 'Вложение',
+        date: message.timestamp,
+        chatName: fullSourceName,
+      },
+    };
+
+    setChatMessages(prev => ({
+      ...prev,
+      [targetId]: [...(prev[targetId] || []), forwardedMsg],
+    }));
+
+    try {
+      await apiSendMessage({
+        id: messageId,
+        chatId: targetChatId,
+        topicId: targetTopicId,
+        senderId: userId,
+        senderName,
+        text: message.text,
+        attachments: message.attachments?.map(att => ({
+          type: att.type,
+          fileUrl: att.fileUrl,
+          fileName: att.fileName,
+          fileSize: att.fileSize,
+        })),
+        forwardedFromId: message.id,
+        forwardedFromSender: message.sender,
+        forwardedFromText: message.text || 'Вложение',
+        forwardedFromDate: message.timestamp,
+        forwardedFromChatName: fullSourceName,
+      });
+
+      wsService.notifyNewMessage(messageId, targetChatId, targetTopicId);
+
+      setChatMessages(prev => ({
+        ...prev,
+        [targetId]: (prev[targetId] || []).map(msg =>
+          msg.id === messageId ? { ...msg, status: 'sent' } : msg
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to forward message:', error);
+    }
+  };
+
   const handleUpdateGroupInfo = (chatId: string, updates: { schedule?: string; conclusionLink?: string; name?: string }) => {
     setChats(prev => {
       const updated = prev.map(chat =>
@@ -1453,5 +1551,9 @@ export const useChatLogic = () => {
     handleUpdateParticipants,
     handleUpdateGroupInfo,
     handleAddAdmin,
+    replyTo,
+    handleReply,
+    handleCancelReply,
+    handleForwardMessage,
   };
 };

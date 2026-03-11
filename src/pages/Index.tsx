@@ -15,6 +15,8 @@ import CreateGroupDialog from '@/components/CreateGroupDialog';
 import { ChatInfoSidebar } from '@/components/ChatInfoSidebar';
 import { TeacherAdminChatInfo } from '@/components/TeacherAdminChatInfo';
 import { AddAdminDialog } from '@/components/AddAdminDialog';
+import ForwardMessageDialog from '@/components/ForwardMessageDialog';
+import { Message } from '@/types/chat.types';
 
 const Index = () => {
   const [showAddStudent, setShowAddStudent] = useState(false);
@@ -24,6 +26,7 @@ const Index = () => {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showChatInfo, setShowChatInfo] = useState(false);
   const [mobileShowChat, setMobileShowChat] = useState(false);
+  const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
 
   const {
     isAuthenticated,
@@ -69,6 +72,10 @@ const Index = () => {
     handleUpdateParticipants,
     handleUpdateGroupInfo,
     handleAddAdmin,
+    replyTo,
+    handleReply,
+    handleCancelReply,
+    handleForwardMessage,
   } = useChatLogic();
 
   const selectedChatData = chats.find(c => c.id === selectedChat);
@@ -171,6 +178,22 @@ const Index = () => {
         onAdd={handleAddAdmin}
       />
 
+      <ForwardMessageDialog
+        open={forwardMessage !== null}
+        onClose={() => setForwardMessage(null)}
+        message={forwardMessage}
+        chats={chats.map(c => ({ id: c.id, name: c.name, type: c.type }))}
+        topics={groupTopics}
+        currentChatId={selectedChat}
+        currentTopicId={selectedTopic}
+        onForward={(targetChatId, targetTopicId) => {
+          if (forwardMessage) {
+            handleForwardMessage(forwardMessage, targetChatId, targetTopicId);
+            setForwardMessage(null);
+          }
+        }}
+      />
+
       <div className={`flex-1 flex min-w-0 ${!mobileShowChat ? 'hidden md:flex' : 'flex'}`}>
         <div className="flex-1 flex flex-col min-w-0">
           {selectedChat && selectedChatData ? (
@@ -198,6 +221,8 @@ const Index = () => {
                 onAddTeacher={() => setShowAddTeacher(true)}
                 onCreateGroup={() => setShowCreateGroup(true)}
                 onAddAdmin={() => setShowAddAdmin(true)}
+                onReply={handleReply}
+                onForward={(msg) => setForwardMessage(msg)}
                 participantsCount={(() => {
                   const c = chats.find(c => c.id === selectedChat);
                   if (!c?.participants) return 0;
@@ -216,6 +241,8 @@ const Index = () => {
                 onFileUpload={handleFileUpload}
                 onImageUpload={handleImageUpload}
                 onRemoveAttachment={removeAttachment}
+                replyTo={replyTo}
+                onCancelReply={handleCancelReply}
                 disabled={selectedTopic?.endsWith('-important') && userRole !== 'admin'}
                 disabledMessage="Только админ может писать в раздел «Важное»"
                 mentionableUsers={

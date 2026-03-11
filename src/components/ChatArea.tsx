@@ -11,24 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-type AttachedFile = {
-  type: 'image' | 'file';
-  fileUrl?: string;
-  fileName?: string;
-  fileSize?: string;
-};
-
-type Message = {
-  id: string;
-  text?: string;
-  sender: string;
-  senderId?: string;
-  senderAvatar?: string;
-  timestamp: string;
-  isOwn: boolean;
-  attachments?: AttachedFile[];
-  reactions?: { emoji: string; count: number; users: string[] }[];
-};
+import { Message } from '@/types/chat.types';
 
 type Topic = {
   id: string;
@@ -63,6 +46,8 @@ type ChatAreaProps = {
   onAddTeacher?: () => void;
   onCreateGroup?: () => void;
   onAddAdmin?: () => void;
+  onReply?: (message: Message) => void;
+  onForward?: (message: Message) => void;
 };
 
 const TopicMuteButton = ({ topicId }: { topicId: string }) => {
@@ -90,7 +75,7 @@ const TopicMuteButton = ({ topicId }: { topicId: string }) => {
   );
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward }: ChatAreaProps) => {
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
   const isTeachersGroup = chatId === 'teachers-group';
 
@@ -193,6 +178,8 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
               key={message.id}
               message={message}
               onReaction={onReaction}
+              onReply={onReply}
+              onForward={onForward}
             />
           ))}
           {isGroup && typingUsers && typingUsers.length > 0 && (
