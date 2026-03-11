@@ -1444,6 +1444,7 @@ export const useChatLogic = () => {
       senderId: userId,
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
       isOwn: true,
+      attachments: message.attachments,
       status: 'sending',
       forwardedFrom: {
         id: message.id,
@@ -1451,7 +1452,6 @@ export const useChatLogic = () => {
         text: message.text || 'Вложение',
         date: message.timestamp,
         chatName: fullSourceName,
-        attachments: message.attachments,
       },
     };
 
@@ -1468,6 +1468,12 @@ export const useChatLogic = () => {
         senderId: userId,
         senderName,
         text: comment || undefined,
+        attachments: message.attachments?.map(att => ({
+          type: att.type,
+          fileUrl: att.fileUrl,
+          fileName: att.fileName,
+          fileSize: att.fileSize,
+        })),
         forwardedFromId: message.id,
         forwardedFromSender: message.sender,
         forwardedFromText: message.text || 'Вложение',
