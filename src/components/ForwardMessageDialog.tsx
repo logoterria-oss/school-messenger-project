@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { Message } from '@/types/chat.types';
+import { MentionableUser } from '@/components/MessageInput';
 
 type ForwardMessageDialogProps = {
   open: boolean;
@@ -20,6 +21,7 @@ type ForwardMessageDialogProps = {
   currentChatId: string | null;
   currentTopicId: string | null;
   onForward: (targetChatId: string, targetTopicId?: string, comment?: string) => void;
+  mentionableUsers?: MentionableUser[];
 };
 
 const ForwardMessageDialog = ({
@@ -31,12 +33,19 @@ const ForwardMessageDialog = ({
   currentChatId,
   currentTopicId,
   onForward,
+  mentionableUsers,
 }: ForwardMessageDialogProps) => {
   const [activeTab, setActiveTab] = useState('topics');
   const [comment, setComment] = useState('');
   const [selectedTarget, setSelectedTarget] = useState<{ chatId: string; topicId?: string; label: string } | null>(null);
   const [expandedChatId, setExpandedChatId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionStartPos, setMentionStartPos] = useState(-1);
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const commentRef = useRef<HTMLTextAreaElement>(null);
 
   if (!message) return null;
 
@@ -53,6 +62,73 @@ const ForwardMessageDialog = ({
       })
     : chats;
 
+  const filteredMentionUsers = (mentionableUsers || []).filter(u =>
+    u.name.toLowerCase().includes(mentionQuery.toLowerCase())
+  );
+
+  const handleCommentChange = (value: string) => {
+    setComment(value);
+    if (!mentionableUsers || mentionableUsers.length === 0) return;
+    const textarea = commentRef.current;
+    if (!textarea) return;
+    const cursorPos = textarea.selectionStart;
+    const textBefore = value.slice(0, cursorPos);
+    const atMatch = textBefore.match(/@([^\s@]*)$/);
+    if (atMatch) {
+      setShowMentions(true);
+      setMentionQuery(atMatch[1]);
+      setMentionStartPos(cursorPos - atMatch[0].length);
+      setSelectedMentionIndex(0);
+    } else {
+      setShowMentions(false);
+      setMentionQuery('');
+      setMentionStartPos(-1);
+    }
+  };
+
+  const insertMention = (user: MentionableUser) => {
+    const before = comment.slice(0, mentionStartPos);
+    const after = comment.slice(commentRef.current?.selectionStart || comment.length);
+    const newText = `${before}@${user.name} ${after}`;
+    setComment(newText);
+    setShowMentions(false);
+    setMentionQuery('');
+    setMentionStartPos(-1);
+    setTimeout(() => {
+      if (commentRef.current) {
+        const pos = before.length + user.name.length + 2;
+        commentRef.current.selectionStart = pos;
+        commentRef.current.selectionEnd = pos;
+        commentRef.current.focus();
+      }
+    }, 0);
+  };
+
+  const handleCommentKeyDown = (e: React.KeyboardEvent) => {
+    if (showMentions && filteredMentionUsers.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => Math.min(prev + 1, filteredMentionUsers.length - 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedMentionIndex(prev => Math.max(prev - 1, 0));
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        insertMention(filteredMentionUsers[selectedMentionIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowMentions(false);
+        return;
+      }
+    }
+  };
+
   const handleSend = () => {
     if (!selectedTarget) return;
     onForward(selectedTarget.chatId, selectedTarget.topicId, comment.trim() || undefined);
@@ -66,6 +142,7 @@ const ForwardMessageDialog = ({
     setSelectedTarget(null);
     setExpandedChatId(null);
     setSearchQuery('');
+    setShowMentions(false);
     onClose();
   };
 
@@ -86,11 +163,39 @@ const ForwardMessageDialog = ({
           </div>
         </div>
 
-        <div className="mt-1">
+        <div className="mt-1 relative">
+          {showMentions && filteredMentionUsers.length > 0 && (
+            <div className="absolute bottom-full left-0 right-0 mb-1 bg-card border border-border rounded-xl shadow-lg max-h-36 overflow-y-auto z-50">
+              {filteredMentionUsers.map((user, idx) => (
+                <button
+                  key={user.id}
+                  className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors ${
+                    idx === selectedMentionIndex ? 'bg-primary/10' : 'hover:bg-accent'
+                  }`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    insertMention(user);
+                  }}
+                  onMouseEnter={() => setSelectedMentionIndex(idx)}
+                >
+                  <div className="w-6 h-6 rounded-lg bg-accent flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-semibold text-muted-foreground">{user.name.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span className="font-medium truncate text-sm">{user.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <Textarea
-            placeholder="Добавить подпись (необязательно)"
+            ref={commentRef}
+            placeholder={mentionableUsers?.length ? "Добавить подпись... (@ — упомянуть)" : "Добавить подпись (необязательно)"}
             value={comment}
-            onChange={(e) => setComment(e.target.value)}
+            onChange={(e) => handleCommentChange(e.target.value)}
+            onKeyDown={handleCommentKeyDown}
             className="min-h-[60px] max-h-[100px] resize-none text-sm"
           />
         </div>

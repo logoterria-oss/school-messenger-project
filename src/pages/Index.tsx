@@ -187,6 +187,18 @@ const Index = () => {
         topics={groupTopics}
         currentChatId={selectedChat}
         currentTopicId={selectedTopic}
+        mentionableUsers={
+          selectedChatData?.type === 'group'
+            ? (selectedChatData.participants || [])
+                .filter(pid => pid !== userId)
+                .map(pid => {
+                  if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко (руководитель)', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
+                  const u = allUsers.find(u => u.id === pid);
+                  return u ? { id: u.id, name: u.name, avatar: u.avatar } : null;
+                })
+                .filter(Boolean) as { id: string; name: string; avatar?: string }[]
+            : undefined
+        }
         onForward={async (targetChatId, targetTopicId, comment) => {
           if (forwardMessage) {
             const msgId = await handleForwardMessage(forwardMessage, targetChatId, targetTopicId, comment);
