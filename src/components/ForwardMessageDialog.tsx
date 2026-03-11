@@ -21,7 +21,7 @@ type ForwardMessageDialogProps = {
   currentChatId: string | null;
   currentTopicId: string | null;
   onForward: (targetChatId: string, targetTopicId?: string, comment?: string) => void;
-  mentionableUsers?: MentionableUser[];
+  chatMentionableUsers?: Record<string, MentionableUser[]>;
 };
 
 const ForwardMessageDialog = ({
@@ -33,7 +33,7 @@ const ForwardMessageDialog = ({
   currentChatId,
   currentTopicId,
   onForward,
-  mentionableUsers,
+  chatMentionableUsers,
 }: ForwardMessageDialogProps) => {
   const [activeTab, setActiveTab] = useState('topics');
   const [comment, setComment] = useState('');
@@ -62,7 +62,12 @@ const ForwardMessageDialog = ({
       })
     : chats;
 
-  const filteredMentionUsers = (mentionableUsers || []).filter(u =>
+  const targetChatId = selectedTarget?.chatId || currentChatId;
+  const targetChat = targetChatId ? chats.find(c => c.id === targetChatId) : null;
+  const mentionableUsers = targetChat?.type === 'group' && targetChatId && chatMentionableUsers
+    ? (chatMentionableUsers[targetChatId] || [])
+    : [];
+  const filteredMentionUsers = mentionableUsers.filter(u =>
     u.name.toLowerCase().includes(mentionQuery.toLowerCase())
   );
 
