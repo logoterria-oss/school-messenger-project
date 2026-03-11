@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { Message } from '@/types/chat.types';
 
@@ -33,6 +34,7 @@ const ForwardMessageDialog = ({
 }: ForwardMessageDialogProps) => {
   const [activeTab, setActiveTab] = useState('topics');
   const [comment, setComment] = useState('');
+  const [selectedTarget, setSelectedTarget] = useState<{ chatId: string; topicId?: string; label: string } | null>(null);
 
   if (!message) return null;
 
@@ -40,22 +42,17 @@ const ForwardMessageDialog = ({
   const currentTopics = currentChatId ? (topics[currentChatId] || []) : [];
   const hasTopics = currentChat?.type === 'group' && currentTopics.length > 0;
 
-  const handleForwardToTopic = (topicId: string) => {
-    if (currentChatId) {
-      onForward(currentChatId, topicId, comment.trim() || undefined);
-    }
+  const handleSend = () => {
+    if (!selectedTarget) return;
+    onForward(selectedTarget.chatId, selectedTarget.topicId, comment.trim() || undefined);
     setComment('');
-    onClose();
-  };
-
-  const handleForwardToChat = (chatId: string) => {
-    onForward(chatId, undefined, comment.trim() || undefined);
-    setComment('');
+    setSelectedTarget(null);
     onClose();
   };
 
   const handleClose = () => {
     setComment('');
+    setSelectedTarget(null);
     onClose();
   };
 
@@ -97,21 +94,30 @@ const ForwardMessageDialog = ({
 
           <TabsContent value="topics">
             {hasTopics ? (
-              <div className="space-y-1 max-h-64 overflow-y-auto">
-                {currentTopics.map(topic => (
-                  <button
-                    key={topic.id}
-                    disabled={topic.id === currentTopicId}
-                    onClick={() => handleForwardToTopic(topic.id)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <Icon name={topic.icon} size={16} className="text-primary flex-shrink-0" />
-                    <span className="font-medium truncate">{topic.name}</span>
-                    {topic.id === currentTopicId && (
-                      <span className="ml-auto text-[10px] text-muted-foreground">текущий</span>
-                    )}
-                  </button>
-                ))}
+              <div className="space-y-1 max-h-52 overflow-y-auto">
+                {currentTopics.map(topic => {
+                  const isCurrent = topic.id === currentTopicId;
+                  const isSelected = selectedTarget?.topicId === topic.id;
+                  return (
+                    <button
+                      key={topic.id}
+                      disabled={isCurrent}
+                      onClick={() => setSelectedTarget({ chatId: currentChatId!, topicId: topic.id, label: topic.name })}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                        isSelected ? 'bg-primary/10 ring-1 ring-primary' : 'hover:bg-accent'
+                      }`}
+                    >
+                      <Icon name={topic.icon} size={16} className="text-primary flex-shrink-0" />
+                      <span className="font-medium truncate">{topic.name}</span>
+                      {isCurrent && (
+                        <span className="ml-auto text-[10px] text-muted-foreground">текущий</span>
+                      )}
+                      {isSelected && (
+                        <Icon name="Check" size={16} className="ml-auto text-primary" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
@@ -122,26 +128,34 @@ const ForwardMessageDialog = ({
           </TabsContent>
 
           <TabsContent value="chats">
-            <div className="space-y-1 max-h-64 overflow-y-auto">
-              {chats.map(chat => (
-                <button
-                  key={chat.id}
-                  onClick={() => handleForwardToChat(chat.id)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors hover:bg-accent"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Icon
-                      name={chat.type === 'group' ? 'Users' : 'User'}
-                      size={16}
-                      className="text-primary"
-                    />
-                  </div>
-                  <span className="font-medium truncate">{chat.name}</span>
-                  {chat.id === currentChatId && (
-                    <span className="ml-auto text-[10px] text-muted-foreground">текущий</span>
-                  )}
-                </button>
-              ))}
+            <div className="space-y-1 max-h-52 overflow-y-auto">
+              {chats.map(chat => {
+                const isSelected = selectedTarget?.chatId === chat.id && !selectedTarget?.topicId;
+                return (
+                  <button
+                    key={chat.id}
+                    onClick={() => setSelectedTarget({ chatId: chat.id, label: chat.name })}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                      isSelected ? 'bg-primary/10 ring-1 ring-primary' : 'hover:bg-accent'
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Icon
+                        name={chat.type === 'group' ? 'Users' : 'User'}
+                        size={16}
+                        className="text-primary"
+                      />
+                    </div>
+                    <span className="font-medium truncate">{chat.name}</span>
+                    {chat.id === currentChatId && (
+                      <span className="ml-auto text-[10px] text-muted-foreground">текущий</span>
+                    )}
+                    {isSelected && (
+                      <Icon name="Check" size={16} className="ml-auto text-primary" />
+                    )}
+                  </button>
+                );
+              })}
               {chats.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                   <Icon name="MessageSquare" size={32} className="mb-2 opacity-40" />
@@ -151,6 +165,18 @@ const ForwardMessageDialog = ({
             </div>
           </TabsContent>
         </Tabs>
+
+        <Button
+          onClick={handleSend}
+          disabled={!selectedTarget}
+          className="w-full mt-2 text-white"
+          style={{ backgroundColor: '#3BA662' }}
+        >
+          <Icon name="Forward" size={16} className="mr-2" />
+          {selectedTarget
+            ? `Переслать в «${selectedTarget.label}»`
+            : 'Выберите куда переслать'}
+        </Button>
       </DialogContent>
     </Dialog>
   );
