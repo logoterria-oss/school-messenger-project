@@ -26,6 +26,7 @@ export type ForwardInfo = {
   text: string;
   date: string;
   chatName: string;
+  attachments?: AttachedFile[];
 };
 
 export type Message = {

@@ -93,19 +93,47 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward }: Messa
             )}
           </div>
 
-          {message.forwardedFrom && (
-            <div className="mb-1.5 flex items-start gap-2 px-3 py-2 bg-accent/50 rounded-lg border-l-2 border-primary max-w-[calc(100vw-80px)] md:max-w-sm">
-              <Icon name="Forward" size={14} className="text-primary mt-0.5 flex-shrink-0" />
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-1.5 flex-wrap">
-                  <span className="text-xs font-semibold text-primary">{message.forwardedFrom.sender}</span>
-                  <span className="text-[10px] text-muted-foreground">{message.forwardedFrom.chatName}</span>
-                  <span className="text-[10px] text-muted-foreground/60">{message.forwardedFrom.date}</span>
+          {message.forwardedFrom && (() => {
+            const fwdImages = message.forwardedFrom.attachments?.filter(a => a.type === 'image') || [];
+            const fwdFiles = message.forwardedFrom.attachments?.filter(a => a.type === 'file') || [];
+            return (
+              <div className="mb-1.5 px-3 py-2 bg-accent/50 rounded-lg border-l-2 border-primary max-w-[calc(100vw-80px)] md:max-w-sm">
+                <div className="flex items-start gap-2">
+                  <Icon name="Forward" size={14} className="text-primary mt-0.5 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <span className="text-xs font-semibold text-primary">{message.forwardedFrom.sender}</span>
+                      <span className="text-[10px] text-muted-foreground">{message.forwardedFrom.chatName}</span>
+                      <span className="text-[10px] text-muted-foreground/60">{message.forwardedFrom.date}</span>
+                    </div>
+                    {message.forwardedFrom.text && message.forwardedFrom.text !== 'Вложение' && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{message.forwardedFrom.text}</p>
+                    )}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">{message.forwardedFrom.text}</p>
+                {fwdImages.length > 0 && (
+                  <div className="mt-2 grid gap-1.5 grid-cols-2">
+                    {fwdImages.slice(0, 4).map((img, idx) => (
+                      <div key={idx} className="aspect-square overflow-hidden rounded-md">
+                        <img src={img.fileUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {fwdFiles.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {fwdFiles.map((file, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-1.5 bg-background/50 rounded-md">
+                        <Icon name="FileText" size={14} className="text-primary flex-shrink-0" />
+                        <span className="text-xs truncate">{file.fileName}</span>
+                        <span className="text-[10px] text-muted-foreground ml-auto">{file.fileSize}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {message.replyTo && (
             <div className="mb-1.5 flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-lg border-l-2 border-primary cursor-pointer hover:bg-primary/10 transition-colors max-w-[calc(100vw-80px)] md:max-w-sm">
