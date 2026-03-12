@@ -340,6 +340,7 @@ export const useChatLogic = () => {
           lastMessage: '',
           timestamp: '',
           unread: (t.unread || 0) as number,
+          unreadMentions: (t.unread_mentions || 0) as number,
         }));
       }
       return { mappedChats, mappedTopics };
@@ -409,13 +410,19 @@ export const useChatLogic = () => {
       try {
         const msgs = await getMessages(data.chatId, data.topicId);
         const targetId = data.topicId || data.chatId;
+        const prevMsgs = chatMessages[targetId] || [];
+        const newMsgs = mapApiMessages(msgs);
         setChatMessages(prev => ({
           ...prev,
-          [targetId]: mergeMessages(prev[targetId] || [], mapApiMessages(msgs))
+          [targetId]: mergeMessages(prev[targetId] || [], newMsgs)
         }));
 
         const isCurrentChat = data.chatId === selectedChat && (!data.topicId || data.topicId === selectedTopic);
         if (!isCurrentChat) {
+          const mentionTag = userName ? `@[${userName}` : null;
+          const addedMsgs = newMsgs.filter(m => !prevMsgs.some(pm => pm.id === m.id) && !m.isOwn);
+          const hasMention = mentionTag ? addedMsgs.some(m => m.text?.includes(mentionTag)) : false;
+
           if (data.topicId) {
             setGroupTopics(prev => {
               const groupTopicsList = prev[data.chatId];
@@ -423,14 +430,22 @@ export const useChatLogic = () => {
               return {
                 ...prev,
                 [data.chatId]: groupTopicsList.map(t =>
-                  t.id === data.topicId ? { ...t, unread: t.unread + 1 } : t
+                  t.id === data.topicId ? {
+                    ...t,
+                    unread: t.unread + 1,
+                    unreadMentions: (t.unreadMentions || 0) + (hasMention ? 1 : 0)
+                  } : t
                 )
               };
             });
           } else {
             setChats(prev => {
               const updated = prev.map(c =>
-                c.id === data.chatId ? { ...c, unread: c.unread + 1 } : c
+                c.id === data.chatId ? {
+                  ...c,
+                  unread: c.unread + 1,
+                  unreadMentions: (c.unreadMentions || 0) + (hasMention ? 1 : 0)
+                } : c
               );
               const idx = updated.findIndex(c => c.id === data.chatId);
               if (idx > 0) {
@@ -481,29 +496,22 @@ export const useChatLogic = () => {
   }, [allUsers, chats, groupTopics, chatMessages]);
 
   useEffect(() => {
-    setChats(prevChats => {
-      let demoIndex = 0;
-      return prevChats.map(chat => {
+    setChats(prevChats =>
+      prevChats.map(chat => {
         if (chat.type === 'group' && groupTopics[chat.id]) {
           const totalUnread = groupTopics[chat.id].reduce(
             (sum, topic) => sum + topic.unread,
             0
           );
-          if (chat.id !== 'teachers-group' && totalUnread === 0) {
-            demoIndex++;
-            if (demoIndex <= 3) {
-              return {
-                ...chat,
-                unread: demoIndex === 1 ? 5 : demoIndex === 2 ? 12 : 1,
-                unreadMentions: demoIndex === 3 ? 1 : 0,
-              };
-            }
-          }
-          return { ...chat, unread: totalUnread };
+          const totalMentions = groupTopics[chat.id].reduce(
+            (sum, topic) => sum + (topic.unreadMentions || 0),
+            0
+          );
+          return { ...chat, unread: totalUnread, unreadMentions: totalMentions };
         }
         return chat;
-      });
-    });
+      })
+    );
   }, [groupTopics]);
 
   const handleSelectChat = (chatId: string) => {
@@ -530,7 +538,7 @@ export const useChatLogic = () => {
     
     setChats(prevChats => 
       prevChats.map(chat => 
-        chat.id === chatId ? { ...chat, unread: 0 } : chat
+        chat.id === chatId ? { ...chat, unread: 0, unreadMentions: 0 } : chat
       )
     );
 
@@ -542,7 +550,7 @@ export const useChatLogic = () => {
           return {
             ...prev,
             [chatId]: prev[chatId].map(t =>
-              t.id === firstTopicId ? { ...t, unread: 0 } : t
+              t.id === firstTopicId ? { ...t, unread: 0, unreadMentions: 0 } : t
             )
           };
         });
@@ -565,7 +573,7 @@ export const useChatLogic = () => {
       setGroupTopics(prev => ({
         ...prev,
         [selectedGroup]: prev[selectedGroup].map(topic =>
-          topic.id === topicId ? { ...topic, unread: 0 } : topic
+          topic.id === topicId ? { ...topic, unread: 0, unreadMentions: 0 } : topic
         )
       }));
 

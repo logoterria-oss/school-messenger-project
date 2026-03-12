@@ -94,19 +94,31 @@ def handler(event: dict, context) -> dict:
             group_ids = [c['id'] for c in chats if c['type'] == 'group']
             topics_dict = {}
 
+            user_name = None
             if group_ids:
+                cur.execute("SELECT name FROM users WHERE id = %s", (user_id,))
+                user_row = cur.fetchone()
+                if user_row:
+                    user_name = user_row['name']
+
+                mention_pattern = '@[' + user_name if user_name else None
+
                 cur.execute("""
                     SELECT t.id, t.chat_id, t.name, t.icon,
                            COALESCE(COUNT(DISTINCT m.id) FILTER (
                                WHERE (ms.status IS NULL OR ms.status != 'read') AND m.sender_id != %s
-                           ), 0) as unread
+                           ), 0) as unread,
+                           COALESCE(COUNT(DISTINCT m.id) FILTER (
+                               WHERE (ms.status IS NULL OR ms.status != 'read') AND m.sender_id != %s
+                               AND m.text LIKE %s
+                           ), 0) as unread_mentions
                     FROM topics t
                     LEFT JOIN messages m ON m.topic_id = t.id
                     LEFT JOIN message_status ms ON ms.message_id = m.id AND ms.user_id = %s
                     WHERE t.chat_id = ANY(%s)
                     GROUP BY t.id, t.chat_id, t.name, t.icon
                     ORDER BY t.created_at
-                """, (user_id, user_id, group_ids))
+                """, (user_id, user_id, '%' + (mention_pattern or '') + '%' if mention_pattern else '%%%NOMATCH%%%', user_id, group_ids))
 
                 for topic in cur.fetchall():
                     cid = topic['chat_id']
@@ -116,7 +128,8 @@ def handler(event: dict, context) -> dict:
                         'id': topic['id'],
                         'name': topic['name'],
                         'icon': topic['icon'],
-                        'unread': topic['unread']
+                        'unread': topic['unread'],
+                        'unread_mentions': topic['unread_mentions']
                     })
 
             cur.close()
