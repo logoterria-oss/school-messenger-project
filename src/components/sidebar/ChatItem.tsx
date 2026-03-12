@@ -10,9 +10,10 @@ type ChatItemProps = {
   onClick: () => void;
   isAdmin?: boolean;
   onArchive?: (chatId: string, archive: boolean) => void;
+  topicIds?: string[];
 };
 
-export const ChatItem = memo(({ chat, isSelected, onClick, isAdmin, onArchive }: ChatItemProps) => {
+export const ChatItem = memo(({ chat, isSelected, onClick, isAdmin, onArchive, topicIds }: ChatItemProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [settings, setSettings] = useState(() => getChatSettings(chat.id));
@@ -35,7 +36,10 @@ export const ChatItem = memo(({ chat, isSelected, onClick, isAdmin, onArchive }:
     setSettings(prev => ({ ...prev, push: newVal }));
   }, [chat.id, settings.push]);
 
-  const isMuted = !settings.sound && !settings.push;
+  const chatMuted = !settings.sound && !settings.push;
+  const isMuted = topicIds && topicIds.length > 0
+    ? topicIds.every(id => { const s = getChatSettings(id); return !s.sound && !s.push; })
+    : chatMuted;
   const initial = chat.name ? chat.name.charAt(0).toUpperCase() : '?';
 
   return (

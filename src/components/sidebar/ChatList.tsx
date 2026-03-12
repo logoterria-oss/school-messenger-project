@@ -29,9 +29,10 @@ type ChatListProps = {
   getDisplayChat: (chat: Chat) => Chat;
   searchQuery?: string;
   onArchiveChat?: (chatId: string, archive: boolean) => void;
+  groupTopics?: Record<string, Topic[]>;
 };
 
-export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectChat, getDisplayChat, searchQuery = '', onArchiveChat }: ChatListProps) => {
+export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSelectChat, getDisplayChat, searchQuery = '', onArchiveChat, groupTopics }: ChatListProps) => {
   const [staffFolderOpen, setStaffFolderOpen] = useState(false);
   const [nonLeadFolderOpen, setNonLeadFolderOpen] = useState(false);
   const [archiveFolderOpen, setArchiveFolderOpen] = useState(false);
@@ -127,6 +128,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
               onClick={() => onSelectChat(chat.id)}
               isAdmin={isAdmin}
               onArchive={onArchiveChat}
+              topicIds={groupTopics?.[chat.id]?.map(t => t.id)}
             />
           );
         })}
@@ -145,6 +147,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             isAdmin={isAdmin}
             onArchiveChat={onArchiveChat}
             searchable
+            groupTopics={groupTopics}
           />
         )}
 
@@ -162,6 +165,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             onlyMentionUnread
             isAdmin={isAdmin}
             onArchiveChat={onArchiveChat}
+            groupTopics={groupTopics}
           />
         )}
 
@@ -175,6 +179,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
               onClick={() => onSelectChat(chat.id)}
               isAdmin={isAdmin}
               onArchive={onArchiveChat}
+              topicIds={groupTopics?.[chat.id]?.map(t => t.id)}
             />
           );
         })}
@@ -192,6 +197,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             getDisplayChat={getDisplayChat}
             isAdmin={isAdmin}
             onArchiveChat={onArchiveChat}
+            groupTopics={groupTopics}
           />
         )}
       </ScrollArea>
@@ -208,6 +214,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             chat={displayChat}
             isSelected={selectedChat === chat.id}
             onClick={() => onSelectChat(chat.id)}
+            topicIds={groupTopics?.[chat.id]?.map(t => t.id)}
           />
         );
       })}

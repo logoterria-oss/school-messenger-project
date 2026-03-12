@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { ChatItem } from './ChatItem';
 import { getChatSettings } from '@/utils/notificationSettings';
-import type { Chat } from './types';
+import type { Chat, Topic } from './types';
 
 type FolderItemProps = {
   name: string;
@@ -19,11 +19,12 @@ type FolderItemProps = {
   isAdmin?: boolean;
   onArchiveChat?: (chatId: string, archive: boolean) => void;
   searchable?: boolean;
+  groupTopics?: Record<string, Topic[]>;
 };
 
 const MIN_CHATS_FOR_SEARCH = 5;
 
-export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, selectedChat, onSelectChat, getDisplayChat, onlyMentionUnread, isAdmin, onArchiveChat, searchable }: FolderItemProps) => {
+export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, selectedChat, onSelectChat, getDisplayChat, onlyMentionUnread, isAdmin, onArchiveChat, searchable, groupTopics }: FolderItemProps) => {
   const hasSelectedChat = chats.some(c => c.id === selectedChat);
   const [folderSearch, setFolderSearch] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
@@ -69,6 +70,10 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
                 {(() => {
                   if (isOpen) return null;
                   const isChatMuted = (c: Chat) => {
+                    const topics = groupTopics?.[c.id];
+                    if (topics && topics.length > 0) {
+                      return topics.every(t => { const s = getChatSettings(t.id); return !s.sound && !s.push; });
+                    }
                     const s = getChatSettings(c.id);
                     return !s.sound && !s.push;
                   };
@@ -134,6 +139,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
                   onClick={() => onSelectChat(chat.id)}
                   isAdmin={isAdmin}
                   onArchive={onArchiveChat}
+                  topicIds={groupTopics?.[chat.id]?.map(t => t.id)}
                 />
               );
             })

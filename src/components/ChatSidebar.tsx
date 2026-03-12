@@ -211,6 +211,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           getDisplayChat={getDisplayChat}
           searchQuery={searchQuery}
           onArchiveChat={onArchiveChat}
+          groupTopics={groupTopics}
         />
       )}
     </div>
