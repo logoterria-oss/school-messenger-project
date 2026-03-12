@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { ChatItem } from './ChatItem';
+import { getChatSettings } from '@/utils/notificationSettings';
 import type { Chat } from './types';
 
 type FolderItemProps = {
@@ -66,14 +67,24 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
               </div>
               <div className="flex items-center gap-2">
                 {(() => {
-                  const displayUnread = onlyMentionUnread
-                    ? chats.reduce((sum, c) => sum + (c.unreadMentions || 0), 0)
-                    : unread;
-                  return displayUnread > 0 && !isOpen ? (
+                  if (isOpen) return null;
+                  const isChatMuted = (c: Chat) => {
+                    const s = getChatSettings(c.id);
+                    return !s.sound && !s.push;
+                  };
+                  const unmutedUnread = onlyMentionUnread
+                    ? chats.filter(c => !isChatMuted(c)).reduce((sum, c) => sum + (c.unreadMentions || 0), 0)
+                    : chats.filter(c => !isChatMuted(c)).reduce((sum, c) => sum + (c.unread || 0), 0);
+                  const hasMutedUnread = chats.some(c => isChatMuted(c) && (onlyMentionUnread ? (c.unreadMentions || 0) > 0 : (c.unread || 0) > 0));
+                  if (unmutedUnread > 0) return (
                     <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
-                      {displayUnread}
+                      {unmutedUnread}
                     </Badge>
-                  ) : null;
+                  );
+                  if (hasMutedUnread) return (
+                    <div className="w-[10px] h-[10px] rounded-full bg-primary/70 flex-shrink-0" />
+                  );
+                  return null;
                 })()}
                 <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={18} className="text-muted-foreground/60" />
               </div>
