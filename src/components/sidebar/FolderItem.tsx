@@ -77,10 +77,16 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
                     const s = getChatSettings(c.id);
                     return !s.sound && !s.push;
                   };
+                  const allMentions = chats.reduce((sum, c) => sum + (c.unreadMentions || 0), 0);
                   const unmutedUnread = onlyMentionUnread
                     ? chats.filter(c => !isChatMuted(c)).reduce((sum, c) => sum + (c.unreadMentions || 0), 0)
                     : chats.filter(c => !isChatMuted(c)).reduce((sum, c) => sum + (c.unread || 0), 0);
                   const hasMutedUnread = chats.some(c => isChatMuted(c) && (onlyMentionUnread ? (c.unreadMentions || 0) > 0 : (c.unread || 0) > 0));
+                  if (allMentions > 0) return (
+                    <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
+                      @
+                    </Badge>
+                  );
                   if (unmutedUnread > 0) return (
                     <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
                       {unmutedUnread}
