@@ -22,6 +22,7 @@ export type MentionableUser = {
   name: string;
   avatar?: string;
   role?: string;
+  isPrimary?: boolean;
 };
 
 type MessageInputProps = {
@@ -66,6 +67,12 @@ export const MessageInput = ({
   const filteredUsers = (mentionableUsers || []).filter(u =>
     u.name.toLowerCase().includes(mentionQuery.toLowerCase())
   );
+
+  const hasPrimaryDivision = filteredUsers.some(u => u.isPrimary) && filteredUsers.some(u => !u.isPrimary);
+  const sortedMentionUsers = hasPrimaryDivision
+    ? [...filteredUsers.filter(u => u.isPrimary), ...filteredUsers.filter(u => !u.isPrimary)]
+    : filteredUsers;
+  const primaryCount = hasPrimaryDivision ? filteredUsers.filter(u => u.isPrimary).length : 0;
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -135,10 +142,10 @@ export const MessageInput = ({
   }, [messageText, mentionStartPos, onMessageChange]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (showMentions && filteredUsers.length > 0) {
+    if (showMentions && sortedMentionUsers.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedMentionIndex(prev => Math.min(prev + 1, filteredUsers.length - 1));
+        setSelectedMentionIndex(prev => Math.min(prev + 1, sortedMentionUsers.length - 1));
         return;
       }
       if (e.key === 'ArrowUp') {
@@ -148,7 +155,7 @@ export const MessageInput = ({
       }
       if (e.key === 'Enter' || e.key === 'Tab') {
         e.preventDefault();
-        insertMention(filteredUsers[selectedMentionIndex]);
+        insertMention(sortedMentionUsers[selectedMentionIndex]);
         return;
       }
       if (e.key === 'Escape') {
@@ -162,7 +169,7 @@ export const MessageInput = ({
       e.preventDefault();
       onSendMessage();
     }
-  }, [showMentions, filteredUsers, selectedMentionIndex, insertMention, onSendMessage]);
+  }, [showMentions, sortedMentionUsers, selectedMentionIndex, insertMention, onSendMessage]);
 
   if (disabled) {
     return (
@@ -246,30 +253,34 @@ export const MessageInput = ({
             style={{ WebkitOverflowScrolling: 'touch' }}
             onTouchMove={(e) => e.stopPropagation()}
           >
-            {filteredUsers.map((user, idx) => (
-              <button
-                key={user.id}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors ${
-                  idx === selectedMentionIndex ? 'bg-primary/10' : 'hover:bg-accent'
-                }`}
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                }}
-                onClick={() => insertMention(user)}
-                onMouseEnter={() => setSelectedMentionIndex(idx)}
-              >
-                <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-xs font-semibold text-muted-foreground">{user.name.charAt(0)}</span>
-                  )}
-                </div>
-                <span className="font-medium truncate text-sm">
-                  {user.name}
-                  {user.role && <span className="text-muted-foreground font-normal"> ({user.role})</span>}
-                </span>
-              </button>
+            {sortedMentionUsers.map((user, idx) => (
+              <div key={user.id}>
+                {hasPrimaryDivision && idx === primaryCount && (
+                  <div className="border-t border-border/60 mx-3 my-1" />
+                )}
+                <button
+                  className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors ${
+                    idx === selectedMentionIndex ? 'bg-primary/10' : 'hover:bg-accent'
+                  }`}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                  }}
+                  onClick={() => insertMention(user)}
+                  onMouseEnter={() => setSelectedMentionIndex(idx)}
+                >
+                  <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-semibold text-muted-foreground">{user.name.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span className="font-medium truncate text-sm">
+                    {user.name}
+                    {user.role && <span className="text-muted-foreground font-normal"> ({user.role})</span>}
+                  </span>
+                </button>
+              </div>
             ))}
           </div>
         )}

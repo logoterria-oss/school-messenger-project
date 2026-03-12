@@ -287,14 +287,25 @@ const Index = () => {
                 disabledMessage="Только админ может писать в раздел «Важное»"
                 mentionableUsers={
                   selectedChatData?.type === 'group'
-                    ? (selectedChatData.participants || [])
-                        .filter(pid => pid !== userId)
-                        .map(pid => {
-                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: getRoleLabel('admin', 'admin'), avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
-                          const u = allUsers.find(u => u.id === pid);
-                          return u ? { id: u.id, name: u.name, role: getRoleLabel(u.role, u.id), avatar: u.avatar } : null;
-                        })
-                        .filter(Boolean) as { id: string; name: string; role?: string; avatar?: string }[]
+                    ? (() => {
+                        const leadTeachers = selectedChatData.leadTeachers || [];
+                        const leadAdminId = selectedChatData.leadAdmin;
+                        const isPrimaryUser = (pid: string, role?: string) => {
+                          if (pid === SUPERVISOR_ID) return true;
+                          if (role === 'parent' || role === 'student') return true;
+                          if (role === 'teacher' && leadTeachers.includes(pid)) return true;
+                          if (role === 'admin' && pid === leadAdminId) return true;
+                          return false;
+                        };
+                        return (selectedChatData.participants || [])
+                          .filter(pid => pid !== userId)
+                          .map(pid => {
+                            if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: getRoleLabel('admin', 'admin'), avatar: 'https://cdn.poehali.dev/files/Админ.jpg', isPrimary: true };
+                            const u = allUsers.find(u => u.id === pid);
+                            return u ? { id: u.id, name: u.name, role: getRoleLabel(u.role, u.id), avatar: u.avatar, isPrimary: isPrimaryUser(u.id, u.role) } : null;
+                          })
+                          .filter(Boolean) as { id: string; name: string; role?: string; avatar?: string; isPrimary?: boolean }[];
+                      })()
                     : undefined
                 }
               />
