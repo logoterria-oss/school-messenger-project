@@ -185,7 +185,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
                 <span className={`flex-1 text-left text-[13px] ${selectedTopic === topic.id ? 'font-semibold' : 'font-medium'}`}>{topic.name}</span>
                 {topic.unread > 0 && selectedTopic !== topic.id && (
                   <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md font-semibold">
-                    {topic.unread}
+                    {(topic.unreadMentions || 0) > 0 ? '@' : topic.unread}
                   </Badge>
                 )}
               </button>

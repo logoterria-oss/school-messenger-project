@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatItem } from './ChatItem';
 import { FolderItem } from './FolderItem';
-import type { Chat, UserRole, SimpleUser } from './types';
+import { getChatSettings } from '@/utils/notificationSettings';
+import type { Chat, Topic, UserRole, SimpleUser } from './types';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -103,11 +104,30 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     return true;
   });
 
+  const isChatEffectivelyMuted = (c: Chat) => {
+    const topics = groupTopics?.[c.id];
+    if (topics && topics.length > 0) {
+      return topics.every(t => { const s = getChatSettings(t.id); return !s.sound && !s.push; });
+    }
+    const s = getChatSettings(c.id);
+    return !s.sound && !s.push;
+  };
+
+  const hasUnmutedUnread = (c: Chat) => c.unread > 0 && !isChatEffectivelyMuted(c);
+
   const sorted = otherChats.sort((a, b) => {
     if (a.id === 'teachers-group') return -1;
     if (b.id === 'teachers-group') return 1;
     if (a.isPinned && !b.isPinned) return -1;
     if (!a.isPinned && b.isPinned) return 1;
+    const aMention = (a.unreadMentions || 0) > 0;
+    const bMention = (b.unreadMentions || 0) > 0;
+    if (aMention && !bMention) return -1;
+    if (!aMention && bMention) return 1;
+    const aUnmuted = hasUnmutedUnread(a);
+    const bUnmuted = hasUnmutedUnread(b);
+    if (aUnmuted && !bUnmuted) return -1;
+    if (!aUnmuted && bUnmuted) return 1;
     return 0;
   });
 

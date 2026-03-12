@@ -21,6 +21,7 @@ export type Topic = {
   name: string;
   icon: string;
   unread: number;
+  unreadMentions?: number;
 };
 
 export type SimpleUser = {

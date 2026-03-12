@@ -18,6 +18,7 @@ type Topic = {
   name: string;
   icon: string;
   unread: number;
+  unreadMentions?: number;
 };
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
@@ -169,9 +170,17 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
                         <Icon name="BellOff" size={11} className="text-muted-foreground/60" />
                       )}
                       {topic.unread > 0 && !isActive && (
-                        <span className={`text-[10px] px-1 py-0 rounded min-w-[16px] text-center font-semibold ${topicMuted ? 'bg-muted-foreground/30 text-foreground/60' : 'bg-primary text-white'}`}>
-                          {topic.unread}
-                        </span>
+                        (topic.unreadMentions || 0) > 0 ? (
+                          <span className="text-[10px] px-1 py-0 rounded min-w-[16px] text-center font-semibold bg-primary text-white">
+                            @
+                          </span>
+                        ) : topicMuted ? (
+                          <span className="inline-block w-[8px] h-[8px] rounded-full bg-primary/70 ml-0.5" />
+                        ) : (
+                          <span className="text-[10px] px-1 py-0 rounded min-w-[16px] text-center font-semibold bg-primary text-white">
+                            {topic.unread}
+                          </span>
+                        )
                       )}
                     </button>
                     {isActive && <TopicMuteButton topicId={topic.id} />}

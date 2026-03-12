@@ -69,6 +69,7 @@ export type Topic = {
   lastMessage: string;
   timestamp: string;
   unread: number;
+  unreadMentions?: number;
 };
 
 export type GroupTopics = {
