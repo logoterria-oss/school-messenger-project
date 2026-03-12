@@ -183,6 +183,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             onSelectChat={onSelectChat}
             getDisplayChat={getDisplayChat}
             onlyMentionUnread
+            showMentionBadge
             isAdmin={isAdmin}
             onArchiveChat={onArchiveChat}
             groupTopics={groupTopics}
@@ -215,6 +216,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             selectedChat={selectedChat}
             onSelectChat={onSelectChat}
             getDisplayChat={getDisplayChat}
+            showMentionBadge
             isAdmin={isAdmin}
             onArchiveChat={onArchiveChat}
             groupTopics={groupTopics}
