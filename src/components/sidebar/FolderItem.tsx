@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { ChatItem } from './ChatItem';
@@ -28,9 +28,7 @@ const MIN_CHATS_FOR_SEARCH = 5;
 export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, selectedChat, onSelectChat, getDisplayChat, onlyMentionUnread, showMentionBadge, isAdmin, onArchiveChat, searchable, groupTopics }: FolderItemProps) => {
   const hasSelectedChat = chats.some(c => c.id === selectedChat);
   const [folderSearch, setFolderSearch] = useState('');
-  const [scrollToMention, setScrollToMention] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const showSearch = searchable && isOpen && chats.length >= MIN_CHATS_FOR_SEARCH;
 
   useEffect(() => {
@@ -43,25 +41,14 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
     }
   }, [showSearch]);
 
-  useEffect(() => {
-    if (scrollToMention && isOpen && contentRef.current) {
-      requestAnimationFrame(() => {
-        const mentionEl = contentRef.current?.querySelector('[data-has-mention="true"]');
-        if (mentionEl) {
-          mentionEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        setScrollToMention(false);
-      });
+  const isChatMuted = (c: Chat) => {
+    const topics = groupTopics?.[c.id];
+    if (topics && topics.length > 0) {
+      return topics.every(t => { const s = getChatSettings(t.id); return !s.sound && !s.push; });
     }
-  }, [scrollToMention, isOpen]);
-
-  const handleMentionBadgeClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isOpen) {
-      onToggle();
-    }
-    setScrollToMention(true);
-  }, [isOpen, onToggle]);
+    const s = getChatSettings(c.id);
+    return !s.sound && !s.push;
+  };
 
   const query = folderSearch.toLowerCase().trim();
   const filteredChats = query
@@ -71,14 +58,22 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
       })
     : chats;
 
-  const isChatMuted = (c: Chat) => {
-    const topics = groupTopics?.[c.id];
-    if (topics && topics.length > 0) {
-      return topics.every(t => { const s = getChatSettings(t.id); return !s.sound && !s.push; });
-    }
-    const s = getChatSettings(c.id);
-    return !s.sound && !s.push;
-  };
+  const sortedChats = useMemo(() => {
+    return [...filteredChats].sort((a, b) => {
+      const aMuted = isChatMuted(a);
+      const bMuted = isChatMuted(b);
+      const aMentions = a.unreadMentions || 0;
+      const bMentions = b.unreadMentions || 0;
+      const aUnread = a.unread || 0;
+      const bUnread = b.unread || 0;
+
+      const aPriority = aMentions > 0 ? 0 : (!aMuted && aUnread > 0) ? 1 : 2;
+      const bPriority = bMentions > 0 ? 0 : (!bMuted && bUnread > 0) ? 1 : 2;
+
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      return 0;
+    });
+  }, [filteredChats, groupTopics]);
 
   const allMentions = showMentionBadge ? chats.reduce((sum, c) => sum + (c.unreadMentions || 0), 0) : 0;
   const unmutedUnread = onlyMentionUnread
@@ -89,10 +84,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
   const renderBadge = () => {
     if (isOpen) return null;
     if (allMentions > 0) return (
-      <Badge
-        className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold cursor-pointer hover:bg-primary/90"
-        onClick={handleMentionBadgeClick}
-      >
+      <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
         @
       </Badge>
     );
@@ -138,7 +130,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
       </button>
 
       {isOpen && (
-        <div ref={contentRef} className="ml-3 border-l-2 border-border/50 pl-1">
+        <div className="ml-3 border-l-2 border-border/50 pl-1">
           {showSearch && (
             <div className="px-2 py-1.5">
               <div className="relative">
@@ -162,23 +154,21 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
               </div>
             </div>
           )}
-          {filteredChats.length === 0 && query ? (
+          {sortedChats.length === 0 && query ? (
             <p className="text-xs text-muted-foreground/50 px-3 py-2">Ничего не найдено</p>
           ) : (
-            filteredChats.map((chat) => {
+            sortedChats.map((chat) => {
               const displayChat = getDisplayChat(chat);
-              const hasMention = (chat.unreadMentions || 0) > 0;
               return (
-                <div key={chat.id} data-has-mention={hasMention ? 'true' : 'false'}>
-                  <ChatItem
-                    chat={displayChat}
-                    isSelected={selectedChat === chat.id}
-                    onClick={() => onSelectChat(chat.id)}
-                    isAdmin={isAdmin}
-                    onArchive={onArchiveChat}
-                    topicIds={groupTopics?.[chat.id]?.map(t => t.id)}
-                  />
-                </div>
+                <ChatItem
+                  key={chat.id}
+                  chat={displayChat}
+                  isSelected={selectedChat === chat.id}
+                  onClick={() => onSelectChat(chat.id)}
+                  isAdmin={isAdmin}
+                  onArchive={onArchiveChat}
+                  topicIds={groupTopics?.[chat.id]?.map(t => t.id)}
+                />
               );
             })
           )}
