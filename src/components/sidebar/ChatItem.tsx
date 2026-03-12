@@ -79,16 +79,13 @@ export const ChatItem = memo(({ chat, isSelected, onClick, isAdmin, onArchive }:
                 {chat.timestamp}
               </span>
             </div>
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground truncate flex-1">
-                {chat.lastMessage}
-              </p>
-              {chat.unread > 0 && (
+            {chat.unread > 0 && (
+              <div className="flex items-center justify-end">
                 <Badge className={`text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold ${isMuted ? 'bg-muted-foreground/30 text-foreground/60' : 'bg-primary text-white'}`}>
                   {chat.unread}
                 </Badge>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </button>
