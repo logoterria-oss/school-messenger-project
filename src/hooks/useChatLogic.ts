@@ -492,7 +492,11 @@ export const useChatLogic = () => {
           if (chat.id !== 'teachers-group' && totalUnread === 0) {
             demoIndex++;
             if (demoIndex <= 3) {
-              return { ...chat, unread: demoIndex === 1 ? 5 : demoIndex === 2 ? 12 : 1 };
+              return {
+                ...chat,
+                unread: demoIndex === 1 ? 5 : demoIndex === 2 ? 12 : 1,
+                unreadMentions: demoIndex === 3 ? 1 : 0,
+              };
             }
           }
           return { ...chat, unread: totalUnread };
