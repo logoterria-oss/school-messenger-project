@@ -481,18 +481,25 @@ export const useChatLogic = () => {
   }, [allUsers, chats, groupTopics, chatMessages]);
 
   useEffect(() => {
-    setChats(prevChats =>
-      prevChats.map(chat => {
+    setChats(prevChats => {
+      let demoIndex = 0;
+      return prevChats.map(chat => {
         if (chat.type === 'group' && groupTopics[chat.id]) {
           const totalUnread = groupTopics[chat.id].reduce(
             (sum, topic) => sum + topic.unread,
             0
           );
+          if (chat.id !== 'teachers-group' && totalUnread === 0) {
+            demoIndex++;
+            if (demoIndex <= 3) {
+              return { ...chat, unread: demoIndex === 1 ? 5 : demoIndex === 2 ? 12 : 1 };
+            }
+          }
           return { ...chat, unread: totalUnread };
         }
         return chat;
-      })
-    );
+      });
+    });
   }, [groupTopics]);
 
   const handleSelectChat = (chatId: string) => {
