@@ -242,7 +242,9 @@ export const MessageInput = ({
         {showMentions && filteredUsers.length > 0 && (
           <div
             ref={mentionListRef}
-            className="absolute bottom-full left-0 right-0 mb-1 bg-card border border-border rounded-xl shadow-lg max-h-48 overflow-y-auto z-50"
+            className="absolute bottom-full left-0 right-0 mb-1 bg-card border border-border rounded-xl shadow-lg max-h-48 overflow-y-auto overscroll-contain z-50"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+            onTouchMove={(e) => e.stopPropagation()}
           >
             {filteredUsers.map((user, idx) => (
               <button
@@ -250,10 +252,10 @@ export const MessageInput = ({
                 className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors ${
                   idx === selectedMentionIndex ? 'bg-primary/10' : 'hover:bg-accent'
                 }`}
-                onMouseDown={(e) => {
+                onPointerDown={(e) => {
                   e.preventDefault();
-                  insertMention(user);
                 }}
+                onClick={() => insertMention(user)}
                 onMouseEnter={() => setSelectedMentionIndex(idx)}
               >
                 <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center overflow-hidden flex-shrink-0">

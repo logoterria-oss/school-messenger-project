@@ -256,10 +256,15 @@ export const useChatLogic = () => {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   const roleLabels: Record<string, string> = {
-    admin: 'руководитель',
+    admin: 'админ',
     teacher: 'педагог',
     parent: 'родитель',
     student: 'ученик',
+  };
+
+  const getRoleLabel = (role: string, uid?: string) => {
+    if (role === 'admin' && uid === SUPERVISOR_ID) return 'руководитель';
+    return roleLabels[role] || role;
   };
 
   const messages = useMemo(() => {
@@ -270,7 +275,7 @@ export const useChatLogic = () => {
       : [];
     return raw.map(msg => {
       const user = msg.senderId ? allUsers.find(u => u.id === msg.senderId) : undefined;
-      const roleLabel = user?.role ? roleLabels[user.role] : undefined;
+      const roleLabel = user?.role ? getRoleLabel(user.role, user.id) : undefined;
       const displayName = roleLabel ? `${msg.sender} (${roleLabel})` : msg.sender;
       return {
         ...msg,

@@ -18,11 +18,18 @@ import { AddAdminDialog } from '@/components/AddAdminDialog';
 import ForwardMessageDialog from '@/components/ForwardMessageDialog';
 import { Message } from '@/types/chat.types';
 
+const SUPERVISOR_ID = 'admin';
+
 const roleLabels: Record<string, string> = {
-  admin: 'руководитель',
+  admin: 'админ',
   teacher: 'педагог',
   parent: 'родитель',
   student: 'ученик',
+};
+
+const getRoleLabel = (role: string, userId?: string) => {
+  if (role === 'admin' && userId === SUPERVISOR_ID) return 'руководитель';
+  return roleLabels[role] || role;
 };
 
 const Index = () => {
@@ -283,9 +290,9 @@ const Index = () => {
                     ? (selectedChatData.participants || [])
                         .filter(pid => pid !== userId)
                         .map(pid => {
-                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: roleLabels['admin'], avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
+                          if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: getRoleLabel('admin', 'admin'), avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
                           const u = allUsers.find(u => u.id === pid);
-                          return u ? { id: u.id, name: u.name, role: roleLabels[u.role] || u.role, avatar: u.avatar } : null;
+                          return u ? { id: u.id, name: u.name, role: getRoleLabel(u.role, u.id), avatar: u.avatar } : null;
                         })
                         .filter(Boolean) as { id: string; name: string; role?: string; avatar?: string }[]
                     : undefined
