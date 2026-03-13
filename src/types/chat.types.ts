@@ -33,6 +33,7 @@ export type Message = {
   text?: string;
   sender: string;
   senderId?: string;
+  senderRole?: UserRole;
   senderAvatar?: string;
   timestamp: string;
   isOwn: boolean;

@@ -620,6 +620,7 @@ export const useChatLogic = () => {
       text: messageText || undefined,
       sender: senderName,
       senderId: userId,
+      senderRole: userRole || undefined,
       senderAvatar: senderAvatar,
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
       isOwn: true,
@@ -1088,6 +1089,15 @@ export const useChatLogic = () => {
     }));
   };
 
+  const handleDeleteMessage = (messageId: string) => {
+    if (!selectedChat) return;
+    const targetId = selectedTopic || selectedChat;
+    setChatMessages(prev => ({
+      ...prev,
+      [targetId]: (prev[targetId] || []).filter(msg => msg.id !== messageId)
+    }));
+  };
+
   const handleAddStudent = async (name: string, phone: string, password: string) => {
     const newUser: User = {
       id: Date.now().toString(),
@@ -1278,6 +1288,7 @@ export const useChatLogic = () => {
       text: welcomeText,
       sender: 'Виктория Абраменко',
       senderId: 'admin',
+      senderRole: 'admin' as const,
       senderAvatar: 'https://cdn.poehali.dev/files/Админ.jpg',
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
       isOwn: true,
@@ -1473,6 +1484,7 @@ export const useChatLogic = () => {
       text: comment || undefined,
       sender: senderName,
       senderId: userId,
+      senderRole: userRole || undefined,
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
       isOwn: true,
       attachments: message.attachments,
@@ -1570,6 +1582,7 @@ export const useChatLogic = () => {
     handleOpenUsers,
     handleBackToChat,
     handleReaction,
+    handleDeleteMessage,
     handleAddStudent,
     handleAddParent,
     handleAddTeacher,

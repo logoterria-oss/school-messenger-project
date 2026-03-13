@@ -11,8 +11,19 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Message } from '@/types/chat.types';
 
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -22,10 +33,13 @@ type MessageBubbleProps = {
   onReaction: (messageId: string, emoji: string) => void;
   onReply?: (message: Message) => void;
   onForward?: (message: Message) => void;
+  onDelete?: (messageId: string) => void;
+  canDelete?: boolean;
 };
 
-export const MessageBubble = ({ message, onReaction, onReply, onForward }: MessageBubbleProps) => {
+export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelete, canDelete }: MessageBubbleProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const images = message.attachments?.filter(a => a.type === 'image') || [];
   const files = message.attachments?.filter(a => a.type === 'file') || [];
@@ -308,10 +322,42 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward }: Messa
                 <Icon name="Forward" size={16} className="text-muted-foreground" />
                 <span>Переслать</span>
               </DropdownMenuItem>
+              {canDelete && onDelete && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer text-destructive focus:text-destructive"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Icon name="Trash2" size={16} />
+                    <span>Удалить</span>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить сообщение?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Сообщение будет удалено без возможности восстановления.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => onDelete?.(message.id)}
+            >
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {selectedImageIndex !== null && images[selectedImageIndex] && (
         <Dialog open={true} onOpenChange={closeImage}>

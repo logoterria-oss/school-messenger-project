@@ -74,6 +74,7 @@ const Index = () => {
     handleOpenUsers,
     handleBackToChat,
     handleReaction,
+    handleDeleteMessage,
     handleAddStudent,
     handleAddParent,
     handleAddTeacher,
@@ -261,6 +262,8 @@ const Index = () => {
                 onAddAdmin={() => setShowAddAdmin(true)}
                 onReply={handleReply}
                 onForward={(msg) => setForwardMessage(msg)}
+                onDeleteMessage={handleDeleteMessage}
+                allUsers={allUsers}
                 scrollToMessageId={scrollToMessageId}
                 onScrollComplete={() => setScrollToMessageId(null)}
                 participantsCount={(() => {

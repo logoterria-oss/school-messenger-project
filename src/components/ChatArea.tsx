@@ -49,6 +49,8 @@ type ChatAreaProps = {
   onAddAdmin?: () => void;
   onReply?: (message: Message) => void;
   onForward?: (message: Message) => void;
+  onDeleteMessage?: (messageId: string) => void;
+  allUsers?: { id: string; role: string }[];
   scrollToMessageId?: string | null;
   onScrollComplete?: () => void;
 };
@@ -78,7 +80,20 @@ const TopicMuteButton = ({ topicId }: { topicId: string }) => {
   );
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, scrollToMessageId, onScrollComplete }: ChatAreaProps) => {
+const SUPERVISOR_ID = 'admin';
+
+const canDeleteMessage = (message: Message, currentUserId?: string, currentUserRole?: UserRole, allUsers?: { id: string; role: string }[]): boolean => {
+  if (!currentUserId) return false;
+  if (currentUserId === SUPERVISOR_ID) return true;
+  if (message.isOwn || message.senderId === currentUserId) return true;
+  if (currentUserRole === 'admin') {
+    const senderRole = message.senderRole || allUsers?.find(u => u.id === message.senderId)?.role;
+    if (senderRole !== 'admin' && message.senderId !== SUPERVISOR_ID) return true;
+  }
+  return false;
+};
+
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, onDeleteMessage, allUsers, scrollToMessageId, onScrollComplete }: ChatAreaProps) => {
   const scrollTargetRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -249,6 +264,8 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
                   onReaction={onReaction}
                   onReply={onReply}
                   onForward={onForward}
+                  onDelete={onDeleteMessage}
+                  canDelete={canDeleteMessage(message, userId, userRole, allUsers)}
                 />
               </div>
             ))}
