@@ -105,7 +105,7 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
   const filteredAllParents = allParents.filter(p => p.name.toLowerCase().includes(memberSearch.toLowerCase()));
 
   return (
-    <div className="fixed right-0 top-0 h-[100dvh] w-full md:w-[380px] bg-card border-l border-border flex flex-col z-50 shadow-lg">
+    <div className="fixed right-0 top-0 w-full md:w-[380px] bg-card border-l border-border flex flex-col z-50 shadow-lg" style={{ height: 'var(--app-height, 100dvh)' }}>
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-lg">Информация о чате</h3>

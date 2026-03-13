@@ -17,7 +17,7 @@ export const AppSettings = ({ onBack }: AppSettingsProps) => {
   const [autoDownload, setAutoDownload] = useState(false);
 
   return (
-    <div className="flex-1 flex flex-col bg-background h-[100dvh]">
+    <div className="flex-1 flex flex-col bg-background" style={{ height: 'var(--app-height, 100dvh)' }}>
       <div className="bg-card border-b border-border px-4 md:px-6 py-4 shadow-sm">
         <div className="flex items-center gap-4">
           <Button

@@ -113,7 +113,7 @@ const Index = () => {
 
   if (currentView === 'profile') {
     return (
-      <div className="flex h-[100dvh] bg-background">
+      <div className="flex bg-background" style={{ height: 'var(--app-height, 100dvh)' }}>
         <ProfileSettings userRole={userRole} onBack={handleBackToChat} />
       </div>
     );
@@ -121,7 +121,7 @@ const Index = () => {
 
   if (currentView === 'settings') {
     return (
-      <div className="flex h-[100dvh] bg-background">
+      <div className="flex bg-background" style={{ height: 'var(--app-height, 100dvh)' }}>
         <AppSettings onBack={handleBackToChat} />
       </div>
     );
@@ -129,14 +129,14 @@ const Index = () => {
 
   if (currentView === 'users') {
     return (
-      <div className="flex h-[100dvh] bg-background">
+      <div className="flex bg-background" style={{ height: 'var(--app-height, 100dvh)' }}>
         <AllUsersView users={allUsers} onBack={handleBackToChat} onDeleteUser={handleDeleteUser} />
       </div>
     );
   }
 
   return (
-    <div className="flex h-[100dvh] bg-background">
+    <div className="flex bg-background" style={{ height: 'var(--app-height, 100dvh)' }}>
       <div className={`${mobileShowChat ? 'hidden' : 'flex'} md:flex flex-shrink-0 w-full md:w-auto`}>
         <ChatSidebar
           onLogout={handleLogout}
