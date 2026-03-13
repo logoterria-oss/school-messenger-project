@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatItem } from './ChatItem';
 import { FolderItem } from './FolderItem';
 import { getChatSettings } from '@/utils/notificationSettings';
@@ -137,7 +136,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     const afterFolder = teachersGroupIndex >= 0 ? sorted.slice(teachersGroupIndex + 1) : [];
 
     return (
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
         {beforeFolder.map((chat) => {
           const displayChat = getDisplayChat(chat);
           return (
@@ -222,12 +221,12 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
             groupTopics={groupTopics}
           />
         )}
-      </ScrollArea>
+      </div>
     );
   }
 
   return (
-    <ScrollArea className="flex-1">
+    <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
       {sorted.map((chat) => {
         const displayChat = getDisplayChat(chat);
         return (
@@ -240,7 +239,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
           />
         );
       })}
-    </ScrollArea>
+    </div>
   );
 };
 

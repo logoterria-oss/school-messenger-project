@@ -17,7 +17,7 @@ export const AppSettings = ({ onBack }: AppSettingsProps) => {
   const [autoDownload, setAutoDownload] = useState(false);
 
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background h-screen h-[100dvh]">
       <div className="bg-card border-b border-border px-4 md:px-6 py-4 shadow-sm">
         <div className="flex items-center gap-4">
           <Button
@@ -35,7 +35,7 @@ export const AppSettings = ({ onBack }: AppSettingsProps) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+      <div className="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
