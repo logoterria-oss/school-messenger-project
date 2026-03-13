@@ -113,7 +113,7 @@ const Index = () => {
 
   if (currentView === 'profile') {
     return (
-      <div className="flex h-screen bg-background">
+      <div className="flex h-[100dvh] bg-background">
         <ProfileSettings userRole={userRole} onBack={handleBackToChat} />
       </div>
     );
@@ -121,7 +121,7 @@ const Index = () => {
 
   if (currentView === 'settings') {
     return (
-      <div className="flex h-screen bg-background">
+      <div className="flex h-[100dvh] bg-background">
         <AppSettings onBack={handleBackToChat} />
       </div>
     );
@@ -129,7 +129,7 @@ const Index = () => {
 
   if (currentView === 'users') {
     return (
-      <div className="flex h-screen bg-background">
+      <div className="flex h-[100dvh] bg-background">
         <AllUsersView users={allUsers} onBack={handleBackToChat} onDeleteUser={handleDeleteUser} />
       </div>
     );
