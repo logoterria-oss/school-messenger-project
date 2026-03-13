@@ -267,6 +267,14 @@ export const useChatLogic = () => {
     return roleLabels[role] || role;
   };
 
+  const compressedAvatars: Record<string, string> = {
+    'https://cdn.poehali.dev/files/Админ.jpg': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/e57b1e03-89ea-4d34-867f-424c328ebc3a.png',
+    'https://cdn.poehali.dev/files/Педагог.jpg': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/0f4a037b-6f5b-471d-8d66-d95961978d35.png',
+    'https://cdn.poehali.dev/files/Родитель.jpg': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/7736a262-53fd-443f-b073-6c8e3ab5611a.png',
+    'https://cdn.poehali.dev/files/Ученик.jpg': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/e1203105-ee3a-498d-8b65-0319a091b368.png',
+  };
+  const getCompressedAvatar = (url?: string) => url ? (compressedAvatars[url] || url) : undefined;
+
   const messages = useMemo(() => {
     const raw = selectedTopic 
       ? (chatMessages[selectedTopic] || []) 
@@ -280,7 +288,7 @@ export const useChatLogic = () => {
       return {
         ...msg,
         sender: displayName,
-        senderAvatar: msg.senderAvatar || user?.avatar || undefined,
+        senderAvatar: getCompressedAvatar(msg.senderAvatar) || getCompressedAvatar(user?.avatar) || undefined,
         isOwn: msg.senderId ? msg.senderId === userId : msg.isOwn,
       };
     });
