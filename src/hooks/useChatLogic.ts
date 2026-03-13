@@ -95,7 +95,7 @@ const loadUsersFromStorage = (): User[] => {
   // Если есть кэш в памяти - возвращаем мгновенно
   if (cachedUsers) return cachedUsers;
   
-  const VERSION = 'v9-clean-private-pins';
+  const VERSION = 'v10-compressed-avatars';
   const storedVersion = localStorage.getItem('usersVersion');
   const stored = localStorage.getItem('allUsers');
   
@@ -115,7 +115,7 @@ const loadUsersFromStorage = (): User[] => {
     phone: teacher.phone,
     email: teacher.email,
     password: teacher.password,
-    avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
+    avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/0f4a037b-6f5b-471d-8d66-d95961978d35.png',
   }));
   
   const testUsers = testAccounts.map(account => ({
@@ -1126,7 +1126,7 @@ export const useChatLogic = () => {
       email,
       password,
       role: 'teacher',
-      avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
+      avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/0f4a037b-6f5b-471d-8d66-d95961978d35.png',
     };
     setAllUsers(prev => [...prev, newUser]);
 
