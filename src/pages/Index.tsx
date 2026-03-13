@@ -136,7 +136,7 @@ const Index = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden max-w-[100vw]">
+    <div className="flex h-screen h-[100dvh] bg-background overflow-hidden max-w-[100vw]">
       <div className={`${mobileShowChat ? 'hidden' : 'flex'} md:flex flex-shrink-0 w-full md:w-auto`}>
         <ChatSidebar
           onLogout={handleLogout}
