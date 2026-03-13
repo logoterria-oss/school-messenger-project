@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { MessageBubble } from './MessageBubble';
@@ -97,6 +97,27 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
   })();
 
   const shouldShowTopics = filteredTopics.length > 0;
+  const [showScrollDown, setShowScrollDown] = useState(false);
+
+  const checkIfNearBottom = useCallback(() => {
+    if (!containerRef.current) return false;
+    const el = containerRef.current;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+  }, []);
+
+  const scrollToBottom = useCallback((smooth = true) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant' });
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      setShowScrollDown(!checkIfNearBottom());
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [checkIfNearBottom]);
 
   useEffect(() => {
     if (scrollToMessageId && scrollTargetRef.current) {
@@ -113,20 +134,17 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
     if (chatKey !== prevChatKeyRef.current && messages.length > 0) {
       prevChatKeyRef.current = chatKey;
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+        scrollToBottom(false);
+        setShowScrollDown(false);
       }, 50);
     }
-  }, [chatKey, messages.length, scrollToMessageId]);
+  }, [chatKey, messages.length, scrollToMessageId, scrollToBottom]);
 
   useEffect(() => {
     if (scrollToMessageId) return;
-    if (!containerRef.current || messages.length === 0) return;
-    const el = containerRef.current;
-    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
-    if (isNearBottom) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 50);
+    if (messages.length === 0) return;
+    if (checkIfNearBottom()) {
+      setTimeout(() => scrollToBottom(true), 50);
     }
   }, [messages.length]);
 
@@ -218,37 +236,48 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
         )}
       </div>
 
-      <div ref={containerRef} className="flex-1 overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
-        <div className="max-w-4xl mx-auto py-4 space-y-0.5">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              ref={message.id === scrollToMessageId ? scrollTargetRef : undefined}
-            >
-              <MessageBubble
-                message={message}
-                onReaction={onReaction}
-                onReply={onReply}
-                onForward={onForward}
-              />
-            </div>
-          ))}
-          {isGroup && typingUsers && typingUsers.length > 0 && (
-            <div className="flex items-center gap-2 px-4 py-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/60 rounded-lg">
-                <div className="flex gap-0.5">
-                  <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {typingUsers.join(', ')} {typingUsers.length === 1 ? 'печатает' : 'печатают'}...
-                </span>
+      <div className="flex-1 min-h-0 relative">
+        <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
+          <div className="max-w-4xl mx-auto py-4 space-y-0.5">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                ref={message.id === scrollToMessageId ? scrollTargetRef : undefined}
+              >
+                <MessageBubble
+                  message={message}
+                  onReaction={onReaction}
+                  onReply={onReply}
+                  onForward={onForward}
+                />
               </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+            ))}
+            {isGroup && typingUsers && typingUsers.length > 0 && (
+              <div className="flex items-center gap-2 px-4 py-2">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/60 rounded-lg">
+                  <div className="flex gap-0.5">
+                    <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {typingUsers.join(', ')} {typingUsers.length === 1 ? 'печатает' : 'печатают'}...
+                  </span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
+
+        {showScrollDown && (
+          <button
+            onClick={() => scrollToBottom(true)}
+            className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-accent transition-all z-10 animate-in fade-in slide-in-from-bottom-2 duration-200"
+          >
+            <Icon name="ArrowDown" size={18} className="text-muted-foreground" />
+          </button>
+        )}
       </div>
     </div>
   );
