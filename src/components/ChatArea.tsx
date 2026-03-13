@@ -80,6 +80,9 @@ const TopicMuteButton = ({ topicId }: { topicId: string }) => {
 
 export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, scrollToMessageId, onScrollComplete }: ChatAreaProps) => {
   const scrollTargetRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prevChatKeyRef = useRef<string>('');
   const isParentOrStudent = userRole === 'parent' || userRole === 'student';
   const isTeachersGroup = chatId === 'teachers-group';
 
@@ -103,6 +106,29 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
       }, 150);
     }
   }, [scrollToMessageId]);
+
+  const chatKey = `${chatId || ''}_${selectedTopic || ''}`;
+  useEffect(() => {
+    if (scrollToMessageId) return;
+    if (chatKey !== prevChatKeyRef.current && messages.length > 0) {
+      prevChatKeyRef.current = chatKey;
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      }, 50);
+    }
+  }, [chatKey, messages.length, scrollToMessageId]);
+
+  useEffect(() => {
+    if (scrollToMessageId) return;
+    if (!containerRef.current || messages.length === 0) return;
+    const el = containerRef.current;
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+    if (isNearBottom) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    }
+  }, [messages.length]);
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -192,7 +218,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
+      <div ref={containerRef} className="flex-1 overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
         <div className="max-w-4xl mx-auto py-4 space-y-0.5">
           {messages.map((message) => (
             <div
@@ -221,6 +247,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </div>
     </div>
