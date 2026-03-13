@@ -105,7 +105,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
   }, [scrollToMessageId]);
 
   return (
-    <>
+    <div className="flex flex-col flex-1 min-h-0">
       <div className="bg-card/80 backdrop-blur-sm border-b border-border/60">
         <div className="flex items-center justify-between px-3 md:px-5 py-2.5">
           <div className="flex items-center gap-2.5">
@@ -223,7 +223,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
