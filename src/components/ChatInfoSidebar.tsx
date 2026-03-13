@@ -105,7 +105,7 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
   const filteredAllParents = allParents.filter(p => p.name.toLowerCase().includes(memberSearch.toLowerCase()));
 
   return (
-    <div className="fixed right-0 top-0 h-screen h-[100dvh] w-full md:w-[380px] bg-card border-l border-border flex flex-col z-50 shadow-lg">
+    <div className="fixed right-0 top-0 h-[100dvh] w-full md:w-[380px] bg-card border-l border-border flex flex-col z-50 shadow-lg">
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-lg">Информация о чате</h3>
@@ -115,7 +115,7 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6">
           {chatName && !isTeachersGroup && (
             <div>

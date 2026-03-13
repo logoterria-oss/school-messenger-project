@@ -136,7 +136,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     const afterFolder = teachersGroupIndex >= 0 ? sorted.slice(teachersGroupIndex + 1) : [];
 
     return (
-      <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex-1 overflow-y-auto">
         {beforeFolder.map((chat) => {
           const displayChat = getDisplayChat(chat);
           return (
@@ -226,7 +226,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
   }
 
   return (
-    <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div className="flex-1 overflow-y-auto">
       {sorted.map((chat) => {
         const displayChat = getDisplayChat(chat);
         return (
