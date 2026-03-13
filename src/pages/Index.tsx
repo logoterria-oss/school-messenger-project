@@ -210,7 +210,7 @@ const Index = () => {
                 (c.participants || [])
                   .filter(pid => pid !== userId)
                   .map(pid => {
-                    if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: roleLabels['admin'], avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/e57b1e03-89ea-4d34-867f-424c328ebc3a.png' };
+                    if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: roleLabels['admin'], avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
                     const u = allUsers.find(u => u.id === pid);
                     return u ? { id: u.id, name: u.name, role: roleLabels[u.role] || u.role, avatar: u.avatar } : null;
                   })
@@ -300,7 +300,7 @@ const Index = () => {
                         return (selectedChatData.participants || [])
                           .filter(pid => pid !== userId)
                           .map(pid => {
-                            if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: getRoleLabel('admin', 'admin'), avatar: 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/e57b1e03-89ea-4d34-867f-424c328ebc3a.png', isPrimary: true };
+                            if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: getRoleLabel('admin', 'admin'), avatar: 'https://cdn.poehali.dev/files/Админ.jpg', isPrimary: true };
                             const u = allUsers.find(u => u.id === pid);
                             return u ? { id: u.id, name: u.name, role: getRoleLabel(u.role, u.id), avatar: u.avatar, isPrimary: isPrimaryUser(u.id, u.role) } : null;
                           })

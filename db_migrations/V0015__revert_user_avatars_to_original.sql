@@ -1,0 +1,4 @@
+UPDATE users SET avatar = 'https://cdn.poehali.dev/files/Админ.jpg' WHERE avatar = 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/e57b1e03-89ea-4d34-867f-424c328ebc3a.png';
+UPDATE users SET avatar = 'https://cdn.poehali.dev/files/Педагог.jpg' WHERE avatar = 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/0f4a037b-6f5b-471d-8d66-d95961978d35.png';
+UPDATE users SET avatar = 'https://cdn.poehali.dev/files/Родитель.jpg' WHERE avatar = 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/7736a262-53fd-443f-b073-6c8e3ab5611a.png';
+UPDATE users SET avatar = 'https://cdn.poehali.dev/files/Ученик.jpg' WHERE avatar = 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/bucket/e1203105-ee3a-498d-8b65-0319a091b368.png';
