@@ -420,6 +420,7 @@ const Index = () => {
                   if (selectedChat) {
                     handleArchiveChat(selectedChat, !currentChat?.isArchived);
                     setShowChatInfo(false);
+                    setMobileShowChat(false);
                   }
                 }}
               />
