@@ -314,8 +314,47 @@ const Index = () => {
               />
             </>
           ) : (
-            <div className="hidden md:flex flex-1 items-center justify-center">
-              <div className="text-center space-y-4">
+            <div className="hidden md:flex flex-1 items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 pointer-events-none">
+                <svg className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] opacity-[0.08]" viewBox="0 0 400 400" fill="none" style={{ animation: 'floatA 18s ease-in-out infinite' }}>
+                  <path d="M50 200 Q100 50 200 100 Q300 150 250 250 Q200 350 100 300 Q0 250 50 200Z" fill="#52B788" />
+                  <path d="M120 180 Q160 80 220 130 Q280 180 240 260 Q200 340 140 290 Q80 240 120 180Z" fill="#74C69D" />
+                </svg>
+                <svg className="absolute top-[10%] right-[-3%] w-[25%] h-[25%] opacity-[0.07]" viewBox="0 0 300 300" fill="none" style={{ animation: 'floatB 22s ease-in-out infinite' }}>
+                  <path d="M150 20 Q250 60 230 150 Q210 240 120 260 Q30 280 50 180 Q70 80 150 20Z" fill="#40916C" />
+                </svg>
+                <svg className="absolute bottom-[-5%] left-[5%] w-[30%] h-[30%] opacity-[0.07]" viewBox="0 0 350 350" fill="none" style={{ animation: 'floatC 20s ease-in-out infinite' }}>
+                  <path d="M175 30 Q300 80 280 175 Q260 280 160 300 Q60 310 40 210 Q20 110 175 30Z" fill="#74C69D" />
+                  <circle cx="80" cy="250" r="40" fill="#95D5B2" opacity="0.5" />
+                </svg>
+                <svg className="absolute bottom-[10%] right-[2%] w-[20%] h-[20%] opacity-[0.06]" viewBox="0 0 200 200" fill="none" style={{ animation: 'floatD 16s ease-in-out infinite' }}>
+                  <path d="M30 100 Q60 20 120 40 Q180 60 170 130 Q160 190 90 180 Q20 170 30 100Z" fill="#52B788" />
+                </svg>
+                <svg className="absolute top-[40%] left-[2%] w-[15%] h-[15%] opacity-[0.05]" viewBox="0 0 200 200" fill="none" style={{ animation: 'floatE 25s ease-in-out infinite' }}>
+                  <circle cx="100" cy="100" r="80" fill="#95D5B2" />
+                </svg>
+                {[
+                  { top: '15%', left: '20%', size: 6, delay: '0s', dur: '14s' },
+                  { top: '25%', left: '75%', size: 8, delay: '2s', dur: '18s' },
+                  { top: '70%', left: '15%', size: 5, delay: '4s', dur: '16s' },
+                  { top: '80%', left: '60%', size: 7, delay: '1s', dur: '20s' },
+                  { top: '45%', left: '85%', size: 4, delay: '3s', dur: '15s' },
+                ].map((dot, i) => (
+                  <div
+                    key={i}
+                    className="absolute rounded-full bg-[#74C69D]"
+                    style={{
+                      top: dot.top,
+                      left: dot.left,
+                      width: dot.size,
+                      height: dot.size,
+                      opacity: 0.12,
+                      animation: `floatDot ${dot.dur} ease-in-out ${dot.delay} infinite`,
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="text-center space-y-4 relative z-10">
                 <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mx-auto">
                   <Icon name="MessageSquare" size={24} className="text-muted-foreground/60" />
                 </div>
