@@ -284,10 +284,10 @@ export const useChatLogic = () => {
     return raw.map(msg => {
       const user = msg.senderId ? allUsers.find(u => u.id === msg.senderId) : undefined;
       const roleLabel = user?.role ? getRoleLabel(user.role, user.id) : undefined;
-      const displayName = roleLabel ? `${msg.sender} (${roleLabel})` : msg.sender;
       return {
         ...msg,
-        sender: displayName,
+        sender: msg.sender,
+        senderRoleLabel: roleLabel,
         senderAvatar: getCompressedAvatar(msg.senderAvatar) || getCompressedAvatar(user?.avatar) || undefined,
         isOwn: msg.senderId ? msg.senderId === userId : msg.isOwn,
       };

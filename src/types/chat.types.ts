@@ -34,6 +34,7 @@ export type Message = {
   sender: string;
   senderId?: string;
   senderRole?: UserRole;
+  senderRoleLabel?: string;
   senderAvatar?: string;
   timestamp: string;
   isOwn: boolean;
