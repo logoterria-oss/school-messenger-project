@@ -147,37 +147,12 @@
 
   * {
     will-change: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.08) transparent;
+    scrollbar-width: none;
   }
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.08) !important;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover,
-::-webkit-scrollbar-thumb:active,
-::-webkit-scrollbar-thumb:window-inactive {
-  background: rgba(0, 0, 0, 0.08) !important;
-}
-
-::-webkit-scrollbar-button {
   display: none;
-}
-
-::-webkit-scrollbar-corner {
-  background: transparent;
 }
 
 @keyframes floatA {
