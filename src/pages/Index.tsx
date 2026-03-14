@@ -412,6 +412,7 @@ const Index = () => {
                   if (selectedChat && confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
                     handleDeleteGroup(selectedChat);
                     setShowChatInfo(false);
+                    setMobileShowChat(false);
                   }
                 }}
                 isArchived={currentChat?.isArchived}
