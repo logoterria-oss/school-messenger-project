@@ -286,10 +286,16 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
       <div className="flex-1 min-h-0 relative">
         <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
           <div className="max-w-4xl mx-auto py-4 space-y-0.5">
-            {messages.map((message, index) => {
-              const prevMessage = index > 0 ? messages[index - 1] : null;
+            {(() => {
+              const regular = messages.filter(m => !m.scheduledAt);
+              const scheduled = messages.filter(m => m.scheduledAt).sort((a, b) =>
+                new Date(a.scheduledAt!).getTime() - new Date(b.scheduledAt!).getTime()
+              );
+              return [...regular, ...scheduled];
+            })().map((message, index, sortedMessages) => {
+              const prevMessage = index > 0 ? sortedMessages[index - 1] : null;
               const showDate = message.date && (!prevMessage || getDateKey(prevMessage.date) !== getDateKey(message.date));
-              const isGrouped = !showDate && prevMessage && prevMessage.senderId === message.senderId && prevMessage.sender === message.sender;
+              const isGrouped = !showDate && prevMessage && prevMessage.senderId === message.senderId && prevMessage.sender === message.sender && !message.scheduledAt && !prevMessage.scheduledAt;
 
               return (
                 <div key={message.id}>

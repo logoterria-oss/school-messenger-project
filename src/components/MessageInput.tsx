@@ -63,6 +63,8 @@ export const MessageInput = ({
   const mentionListRef = useRef<HTMLDivElement>(null);
 
   const [showSchedule, setShowSchedule] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggered = useRef(false);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionStartPos, setMentionStartPos] = useState(-1);
@@ -345,7 +347,7 @@ export const MessageInput = ({
                 <PopoverTrigger asChild>
                   <button
                     disabled={!messageText.trim() && attachments.length === 0}
-                    className="w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="hidden md:flex w-8 h-8 rounded-lg hover:bg-accent items-center justify-center transition-colors text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <Icon name="Clock" size={16} />
                   </button>
@@ -361,10 +363,47 @@ export const MessageInput = ({
                 </PopoverContent>
               </Popover>
             )}
+
+            {onScheduleMessage && showSchedule && (
+              <div className="md:hidden fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowSchedule(false)}>
+                <div className="w-full max-w-sm bg-card rounded-t-2xl shadow-xl" onClick={(e) => e.stopPropagation()}>
+                  <ScheduleMessagePicker
+                    onSchedule={(date) => {
+                      onScheduleMessage(date);
+                      setShowSchedule(false);
+                    }}
+                    onClose={() => setShowSchedule(false)}
+                  />
+                </div>
+              </div>
+            )}
+
             <button
-              onClick={onSendMessage}
+              onClick={() => {
+                if (!longPressTriggered.current) onSendMessage();
+              }}
+              onTouchStart={() => {
+                if (!onScheduleMessage || (!messageText.trim() && attachments.length === 0)) return;
+                longPressTriggered.current = false;
+                longPressTimer.current = setTimeout(() => {
+                  longPressTriggered.current = true;
+                  setShowSchedule(true);
+                }, 500);
+              }}
+              onTouchEnd={() => {
+                if (longPressTimer.current) {
+                  clearTimeout(longPressTimer.current);
+                  longPressTimer.current = null;
+                }
+              }}
+              onTouchCancel={() => {
+                if (longPressTimer.current) {
+                  clearTimeout(longPressTimer.current);
+                  longPressTimer.current = null;
+                }
+              }}
               disabled={!messageText.trim() && attachments.length === 0}
-              className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed select-none"
             >
               <Icon name="ArrowUp" size={16} />
             </button>
