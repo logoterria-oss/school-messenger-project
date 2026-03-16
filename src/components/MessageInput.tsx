@@ -379,31 +379,35 @@ export const MessageInput = ({
             )}
 
             <div
-              className="select-none"
-              style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
-              onTouchStart={(e) => {
+              role="button"
+              tabIndex={0}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors select-none ${
+                messageText.trim() || attachments.length > 0
+                  ? 'bg-primary hover:bg-primary/90 text-white cursor-pointer'
+                  : 'bg-primary/30 text-white/50 cursor-not-allowed'
+              }`}
+              style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+              onTouchStart={() => {
                 const hasContent = messageText.trim() || attachments.length > 0;
-                if (!hasContent || !onScheduleMessage) return;
+                if (!hasContent) return;
                 longPressTriggered.current = false;
-                longPressTimer.current = setTimeout(() => {
-                  longPressTriggered.current = true;
-                  if (navigator.vibrate) navigator.vibrate(30);
-                  setShowSchedule(true);
-                }, 500);
+                if (onScheduleMessage) {
+                  longPressTimer.current = setTimeout(() => {
+                    longPressTriggered.current = true;
+                    if (navigator.vibrate) navigator.vibrate(30);
+                    setShowSchedule(true);
+                  }, 500);
+                }
               }}
               onTouchEnd={(e) => {
+                e.preventDefault();
                 if (longPressTimer.current) {
                   clearTimeout(longPressTimer.current);
                   longPressTimer.current = null;
                 }
                 if (!longPressTriggered.current) {
                   const hasContent = messageText.trim() || attachments.length > 0;
-                  if (hasContent) {
-                    e.preventDefault();
-                    onSendMessage();
-                  }
-                } else {
-                  e.preventDefault();
+                  if (hasContent) onSendMessage();
                 }
                 longPressTriggered.current = false;
               }}
@@ -427,13 +431,7 @@ export const MessageInput = ({
                 if (hasContent) onSendMessage();
               }}
             >
-              <button
-                type="button"
-                disabled={!messageText.trim() && attachments.length === 0}
-                className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed pointer-events-none"
-              >
-                <Icon name="ArrowUp" size={16} />
-              </button>
+              <Icon name="ArrowUp" size={16} />
             </div>
           </div>
         </div>
