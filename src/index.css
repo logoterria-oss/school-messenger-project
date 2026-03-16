@@ -147,12 +147,47 @@
 
   * {
     will-change: auto;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.08) transparent;
   }
 }
 
-::-webkit-scrollbar {
-  display: none;
+@media (max-width: 767px) {
+  * {
+    scrollbar-width: none !important;
+  }
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  .sidebar-scroll-left {
+    direction: rtl;
+    scrollbar-color: rgba(0, 0, 0, 0.08) transparent;
+  }
+
+  .sidebar-scroll-left > * {
+    direction: ltr;
+  }
 }
 
 @keyframes floatA {
