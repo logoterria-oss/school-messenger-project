@@ -281,6 +281,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
             {messages.map((message, index) => {
               const prevMessage = index > 0 ? messages[index - 1] : null;
               const showDate = message.date && (!prevMessage || getDateKey(prevMessage.date) !== getDateKey(message.date));
+              const isGrouped = !showDate && prevMessage && prevMessage.senderId === message.senderId && prevMessage.sender === message.sender;
 
               return (
                 <div key={message.id}>
@@ -299,6 +300,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
                       onForward={onForward}
                       onDelete={onDeleteMessage}
                       canDelete={canDeleteMessage(message, userId, userRole, allUsers)}
+                      isGrouped={!!isGrouped}
                     />
                   </div>
                 </div>
