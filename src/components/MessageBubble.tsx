@@ -98,7 +98,7 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
 
         <div className="flex-1 min-w-0">
           {!isGrouped && (
-            <div className="mb-0.5">
+            <div className="leading-tight">
               <div className="flex items-baseline gap-2">
                 <span className={`text-[13px] font-semibold ${message.isOwn ? 'text-primary' : 'text-foreground'}`}>
                   {message.sender}
@@ -114,7 +114,7 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
                 )}
               </div>
               {message.senderRoleLabel && (
-                <span className="text-[11px] text-muted-foreground/60">{message.senderRoleLabel}</span>
+                <span className="text-[11px] text-muted-foreground/60 -mt-px block">{message.senderRoleLabel}</span>
               )}
             </div>
           )}
