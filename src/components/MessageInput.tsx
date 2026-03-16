@@ -352,6 +352,18 @@ export const MessageInput = ({
                   <Icon name="File" size={16} />
                   <span>Файл</span>
                 </button>
+                <div className="border-t border-border/60 my-1" />
+                <div className="grid grid-cols-5 gap-0.5 px-1 py-1">
+                  {EMOJI_LIST.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => { onMessageChange(messageText + emoji); setShowAttachMenu(false); }}
+                      className="text-lg hover:scale-110 transition-transform p-1 cursor-pointer rounded-md hover:bg-accent"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
               </PopoverContent>
             </Popover>
           </div>
