@@ -378,35 +378,46 @@ export const MessageInput = ({
               </div>
             )}
 
-            <button
-              onClick={() => {
-                if (!longPressTriggered.current) onSendMessage();
-              }}
-              onTouchStart={() => {
-                if (!onScheduleMessage || (!messageText.trim() && attachments.length === 0)) return;
+            <div
+              className="select-none touch-none"
+              onPointerDown={(e) => {
+                const hasContent = messageText.trim() || attachments.length > 0;
+                if (!hasContent || !onScheduleMessage) return;
                 longPressTriggered.current = false;
                 longPressTimer.current = setTimeout(() => {
                   longPressTriggered.current = true;
+                  if (navigator.vibrate) navigator.vibrate(30);
                   setShowSchedule(true);
                 }, 500);
               }}
-              onTouchEnd={() => {
+              onPointerUp={() => {
                 if (longPressTimer.current) {
                   clearTimeout(longPressTimer.current);
                   longPressTimer.current = null;
                 }
+                if (!longPressTriggered.current) {
+                  const hasContent = messageText.trim() || attachments.length > 0;
+                  if (hasContent) onSendMessage();
+                }
+                longPressTriggered.current = false;
               }}
-              onTouchCancel={() => {
+              onPointerCancel={() => {
                 if (longPressTimer.current) {
                   clearTimeout(longPressTimer.current);
                   longPressTimer.current = null;
                 }
+                longPressTriggered.current = false;
               }}
-              disabled={!messageText.trim() && attachments.length === 0}
-              className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed select-none"
+              onContextMenu={(e) => e.preventDefault()}
             >
-              <Icon name="ArrowUp" size={16} />
-            </button>
+              <button
+                type="button"
+                disabled={!messageText.trim() && attachments.length === 0}
+                className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed pointer-events-none"
+              >
+                <Icon name="ArrowUp" size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
