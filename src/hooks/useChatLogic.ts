@@ -755,10 +755,11 @@ export const useChatLogic = () => {
   };
 
   const executeScheduledMessage = (scheduled: ScheduledMessage) => {
+    const scheduledTime = new Date(scheduled.scheduledAt);
     const msg = {
       ...scheduled.message,
-      timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-      date: new Date().toISOString(),
+      timestamp: scheduledTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      date: scheduledTime.toISOString(),
       status: 'sending' as const,
       scheduledAt: undefined,
     };
