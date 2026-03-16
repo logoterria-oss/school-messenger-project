@@ -379,28 +379,18 @@ export const MessageInput = ({
             )}
 
             <div
-              role="button"
-              tabIndex={0}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors select-none ${
-                messageText.trim() || attachments.length > 0
-                  ? 'bg-primary hover:bg-primary/90 text-white cursor-pointer'
-                  : 'bg-primary/30 text-white/50 cursor-not-allowed'
-              }`}
-              style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
-              onTouchStart={() => {
+              className="select-none touch-none"
+              onPointerDown={(e) => {
                 const hasContent = messageText.trim() || attachments.length > 0;
-                if (!hasContent) return;
+                if (!hasContent || !onScheduleMessage) return;
                 longPressTriggered.current = false;
-                if (onScheduleMessage) {
-                  longPressTimer.current = setTimeout(() => {
-                    longPressTriggered.current = true;
-                    if (navigator.vibrate) navigator.vibrate(30);
-                    setShowSchedule(true);
-                  }, 500);
-                }
+                longPressTimer.current = setTimeout(() => {
+                  longPressTriggered.current = true;
+                  if (navigator.vibrate) navigator.vibrate(30);
+                  setShowSchedule(true);
+                }, 500);
               }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
+              onPointerUp={() => {
                 if (longPressTimer.current) {
                   clearTimeout(longPressTimer.current);
                   longPressTimer.current = null;
@@ -411,27 +401,22 @@ export const MessageInput = ({
                 }
                 longPressTriggered.current = false;
               }}
-              onTouchCancel={() => {
+              onPointerCancel={() => {
                 if (longPressTimer.current) {
                   clearTimeout(longPressTimer.current);
                   longPressTimer.current = null;
                 }
                 longPressTriggered.current = false;
               }}
-              onTouchMove={() => {
-                if (longPressTimer.current) {
-                  clearTimeout(longPressTimer.current);
-                  longPressTimer.current = null;
-                }
-              }}
               onContextMenu={(e) => e.preventDefault()}
-              onClick={(e) => {
-                if ('ontouchstart' in window) return;
-                const hasContent = messageText.trim() || attachments.length > 0;
-                if (hasContent) onSendMessage();
-              }}
             >
-              <Icon name="ArrowUp" size={16} />
+              <button
+                type="button"
+                disabled={!messageText.trim() && attachments.length === 0}
+                className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed pointer-events-none"
+              >
+                <Icon name="ArrowUp" size={16} />
+              </button>
             </div>
           </div>
         </div>
