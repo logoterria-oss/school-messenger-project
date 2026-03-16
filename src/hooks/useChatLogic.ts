@@ -18,6 +18,7 @@ const mapApiMessages = (msgs: ApiMessage[]): Message[] =>
     sender: m.sender_name,
     senderId: m.sender_id,
     timestamp: new Date(m.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+    date: m.created_at,
     isOwn: false,
     attachments: m.attachments,
     reactions: m.reactions,
@@ -623,6 +624,7 @@ export const useChatLogic = () => {
       senderRole: userRole || undefined,
       senderAvatar: senderAvatar,
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date().toISOString(),
       isOwn: true,
       attachments: attachments.length > 0 ? attachments : undefined,
       status: 'sending',
@@ -1291,6 +1293,7 @@ export const useChatLogic = () => {
       senderRole: 'admin' as const,
       senderAvatar: 'https://cdn.poehali.dev/files/Админ.jpg',
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date().toISOString(),
       isOwn: true,
     };
     setChatMessages(prev => ({
@@ -1486,6 +1489,7 @@ export const useChatLogic = () => {
       senderId: userId,
       senderRole: userRole || undefined,
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date().toISOString(),
       isOwn: true,
       attachments: message.attachments,
       status: 'sending',

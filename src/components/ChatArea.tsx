@@ -13,6 +13,30 @@ import {
 
 import { Message } from '@/types/chat.types';
 
+const formatDateSeparator = (dateStr: string): string => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 86400000);
+  const msgDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (msgDay.getTime() === today.getTime()) return 'Сегодня';
+  if (msgDay.getTime() === yesterday.getTime()) return 'Вчера';
+
+  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+
+  if (date.getFullYear() === now.getFullYear()) return `${day} ${month}`;
+  return `${day} ${month} ${date.getFullYear()}`;
+};
+
+const getDateKey = (dateStr?: string): string => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+};
+
 type Topic = {
   id: string;
   name: string;
@@ -254,21 +278,32 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
       <div className="flex-1 min-h-0 relative">
         <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
           <div className="max-w-4xl mx-auto py-4 space-y-0.5">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                ref={message.id === scrollToMessageId ? scrollTargetRef : undefined}
-              >
-                <MessageBubble
-                  message={message}
-                  onReaction={onReaction}
-                  onReply={onReply}
-                  onForward={onForward}
-                  onDelete={onDeleteMessage}
-                  canDelete={canDeleteMessage(message, userId, userRole, allUsers)}
-                />
-              </div>
-            ))}
+            {messages.map((message, index) => {
+              const prevMessage = index > 0 ? messages[index - 1] : null;
+              const showDate = message.date && (!prevMessage || getDateKey(prevMessage.date) !== getDateKey(message.date));
+
+              return (
+                <div key={message.id}>
+                  {showDate && message.date && (
+                    <div className="flex justify-center py-2 sticky top-0 z-10">
+                      <span className="text-[12px] text-muted-foreground bg-card/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm border border-border/40">
+                        {formatDateSeparator(message.date)}
+                      </span>
+                    </div>
+                  )}
+                  <div ref={message.id === scrollToMessageId ? scrollTargetRef : undefined}>
+                    <MessageBubble
+                      message={message}
+                      onReaction={onReaction}
+                      onReply={onReply}
+                      onForward={onForward}
+                      onDelete={onDeleteMessage}
+                      canDelete={canDeleteMessage(message, userId, userRole, allUsers)}
+                    />
+                  </div>
+                </div>
+              );
+            })}
             {isGroup && typingUsers && typingUsers.length > 0 && (
               <div className="flex items-center gap-2 px-4 py-2">
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/60 rounded-lg">

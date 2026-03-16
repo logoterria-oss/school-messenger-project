@@ -37,6 +37,7 @@ export type Message = {
   senderRoleLabel?: string;
   senderAvatar?: string;
   timestamp: string;
+  date?: string;
   isOwn: boolean;
   attachments?: AttachedFile[];
   reactions?: { emoji: string; count: number; users: string[] }[];
