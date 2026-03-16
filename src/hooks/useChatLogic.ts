@@ -40,7 +40,14 @@ const mapApiMessages = (msgs: ApiMessage[]): Message[] =>
 const mergeMessages = (existing: Message[], fromApi: Message[]): Message[] => {
   const merged = new Map<string, Message>();
   existing.forEach(msg => merged.set(msg.id, msg));
-  fromApi.forEach(msg => merged.set(msg.id, msg));
+  fromApi.forEach(msg => {
+    const ex = merged.get(msg.id);
+    if (ex && ex.isOwn) {
+      merged.set(msg.id, { ...msg, timestamp: ex.timestamp, date: ex.date, isOwn: true, status: ex.status });
+    } else {
+      merged.set(msg.id, msg);
+    }
+  });
   return Array.from(merged.values());
 };
 
