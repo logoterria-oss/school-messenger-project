@@ -126,13 +126,20 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
   const isTeachersGroup = chatId === 'teachers-group';
 
   const studentAllowedSuffixes = ['-important', '-zoom', '-homework', '-reports', '-cancellation'];
+  const teachersGroupOrder = ['-important', '-general', '-flood', '-new-students', '-parent-reviews', '-support'];
   const filteredTopics = (() => {
     if (!isGroup || !topics || topics.length === 0) return [];
-    if (userRole === 'admin') return topics;
-    if (userRole === 'parent') return topics;
-    if (userRole === 'teacher') return topics.filter(t => !t.id.endsWith('-admin-contact'));
-    if (userRole === 'student') return topics.filter(t => studentAllowedSuffixes.some(s => t.id.endsWith(s)));
-    return topics;
+    let result = topics;
+    if (userRole === 'teacher') result = topics.filter(t => !t.id.endsWith('-admin-contact'));
+    else if (userRole === 'student') result = topics.filter(t => studentAllowedSuffixes.some(s => t.id.endsWith(s)));
+    if (isTeachersGroup) {
+      result = [...result].sort((a, b) => {
+        const aIdx = teachersGroupOrder.findIndex(s => a.id.endsWith(s));
+        const bIdx = teachersGroupOrder.findIndex(s => b.id.endsWith(s));
+        return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+      });
+    }
+    return result;
   })();
 
   const shouldShowTopics = filteredTopics.length > 0;
@@ -266,7 +273,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
                         )
                       )}
                     </button>
-                    {isActive && <TopicMuteButton topicId={topic.id} />}
+                    {isActive && !topic.id.endsWith('-important') && <TopicMuteButton topicId={topic.id} />}
                   </div>
                 );
               })}
