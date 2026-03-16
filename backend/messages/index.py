@@ -117,6 +117,7 @@ def handler(event: dict, context) -> dict:
             forwarded_from_text = data.get('forwardedFromText')
             forwarded_from_date = data.get('forwardedFromDate')
             forwarded_from_chat_name = data.get('forwardedFromChatName')
+            created_at = data.get('createdAt')
 
             if not message_id or not chat_id or not sender_id or not sender_name:
                 return {
@@ -125,17 +126,30 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Missing required fields'})
                 }
 
-            cur.execute("""
-                INSERT INTO messages (id, chat_id, topic_id, sender_id, sender_name, text, created_at,
-                    reply_to_id, reply_to_sender, reply_to_text,
-                    forwarded_from_id, forwarded_from_sender, forwarded_from_text,
-                    forwarded_from_date, forwarded_from_chat_name)
-                VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, created_at
-            """, (message_id, chat_id, topic_id, sender_id, sender_name, text,
-                  reply_to_id, reply_to_sender, reply_to_text,
-                  forwarded_from_id, forwarded_from_sender, forwarded_from_text,
-                  forwarded_from_date, forwarded_from_chat_name))
+            if created_at:
+                cur.execute("""
+                    INSERT INTO messages (id, chat_id, topic_id, sender_id, sender_name, text, created_at,
+                        reply_to_id, reply_to_sender, reply_to_text,
+                        forwarded_from_id, forwarded_from_sender, forwarded_from_text,
+                        forwarded_from_date, forwarded_from_chat_name)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id, created_at
+                """, (message_id, chat_id, topic_id, sender_id, sender_name, text, created_at,
+                      reply_to_id, reply_to_sender, reply_to_text,
+                      forwarded_from_id, forwarded_from_sender, forwarded_from_text,
+                      forwarded_from_date, forwarded_from_chat_name))
+            else:
+                cur.execute("""
+                    INSERT INTO messages (id, chat_id, topic_id, sender_id, sender_name, text, created_at,
+                        reply_to_id, reply_to_sender, reply_to_text,
+                        forwarded_from_id, forwarded_from_sender, forwarded_from_text,
+                        forwarded_from_date, forwarded_from_chat_name)
+                    VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id, created_at
+                """, (message_id, chat_id, topic_id, sender_id, sender_name, text,
+                      reply_to_id, reply_to_sender, reply_to_text,
+                      forwarded_from_id, forwarded_from_sender, forwarded_from_text,
+                      forwarded_from_date, forwarded_from_chat_name))
             
             result = cur.fetchone()
 

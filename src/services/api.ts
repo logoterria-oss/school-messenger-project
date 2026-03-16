@@ -238,6 +238,7 @@ export async function sendMessage(message: {
   senderId: string;
   senderName: string;
   text?: string;
+  createdAt?: string;
   attachments?: Array<{
     type: 'image' | 'file';
     fileUrl?: string;
