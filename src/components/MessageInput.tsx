@@ -62,7 +62,8 @@ export const MessageInput = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mentionListRef = useRef<HTMLDivElement>(null);
 
-  const [showSchedule, setShowSchedule] = useState(false);
+  const [showScheduleDesktop, setShowScheduleDesktop] = useState(false);
+  const [showScheduleMobile, setShowScheduleMobile] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
@@ -368,7 +369,7 @@ export const MessageInput = ({
           <div className="flex items-center gap-0.5 flex-shrink-0 mb-0.5">
             {onScheduleMessage && (
               <>
-                <Popover open={showSchedule} onOpenChange={setShowSchedule}>
+                <Popover open={showScheduleDesktop} onOpenChange={setShowScheduleDesktop}>
                   <PopoverTrigger asChild>
                     <button
                       disabled={!messageText.trim() && attachments.length === 0}
@@ -381,9 +382,9 @@ export const MessageInput = ({
                     <ScheduleMessagePicker
                       onSchedule={(date) => {
                         onScheduleMessage(date);
-                        setShowSchedule(false);
+                        setShowScheduleDesktop(false);
                       }}
-                      onClose={() => setShowSchedule(false)}
+                      onClose={() => setShowScheduleDesktop(false)}
                     />
                   </PopoverContent>
                 </Popover>
@@ -391,20 +392,20 @@ export const MessageInput = ({
                 <button
                   disabled={!messageText.trim() && attachments.length === 0}
                   className="md:hidden w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
-                  onClick={() => setShowSchedule(true)}
+                  onClick={() => setShowScheduleMobile(true)}
                 >
                   <Icon name="Clock" size={16} />
                 </button>
 
-                {showSchedule && (
-                  <div className="md:hidden fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowSchedule(false)}>
+                {showScheduleMobile && (
+                  <div className="md:hidden fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowScheduleMobile(false)}>
                     <div className="w-full max-w-sm bg-card rounded-t-2xl shadow-xl" onClick={(e) => e.stopPropagation()}>
                       <ScheduleMessagePicker
                         onSchedule={(date) => {
                           onScheduleMessage(date);
-                          setShowSchedule(false);
+                          setShowScheduleMobile(false);
                         }}
-                        onClose={() => setShowSchedule(false)}
+                        onClose={() => setShowScheduleMobile(false)}
                       />
                     </div>
                   </div>
