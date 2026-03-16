@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import { ru } from 'date-fns/locale';
 
 type ScheduleMessagePickerProps = {
   onSchedule: (date: Date) => void;
@@ -10,33 +8,39 @@ type ScheduleMessagePickerProps = {
 };
 
 const formatScheduleDate = (date: Date): string => {
-  const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-  const day = date.getDate();
-  const month = months[date.getMonth()];
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrowStart = new Date(todayStart.getTime() + 86400000);
+  const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
   const hours = date.getHours().toString().padStart(2, '0');
   const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${day} ${month}, ${hours}:${minutes}`;
+  const dayLabel = dateStart.getTime() === todayStart.getTime() ? 'сегодня' : 'завтра';
+  return `${dayLabel} в ${hours}:${minutes}`;
 };
 
 export const ScheduleMessagePicker = ({ onSchedule, onClose }: ScheduleMessagePickerProps) => {
-  const today = new Date();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(today);
+  const [selectedDay, setSelectedDay] = useState<'today' | 'tomorrow'>('today');
   const [hours, setHours] = useState('');
   const [minutes, setMinutes] = useState('');
 
   const canSchedule = useMemo(() => {
-    if (!selectedDate || !hours || !minutes) return false;
+    if (!hours || !minutes) return false;
     const h = parseInt(hours);
     const m = parseInt(minutes);
     if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return false;
-    const scheduled = new Date(selectedDate);
+    const now = new Date();
+    const scheduled = new Date(now);
+    if (selectedDay === 'tomorrow') scheduled.setDate(scheduled.getDate() + 1);
     scheduled.setHours(h, m, 0, 0);
-    return scheduled > new Date();
-  }, [selectedDate, hours, minutes]);
+    return scheduled > now;
+  }, [selectedDay, hours, minutes]);
 
   const handleSchedule = () => {
-    if (!selectedDate || !canSchedule) return;
-    const scheduled = new Date(selectedDate);
+    if (!canSchedule) return;
+    const now = new Date();
+    const scheduled = new Date(now);
+    if (selectedDay === 'tomorrow') scheduled.setDate(scheduled.getDate() + 1);
     scheduled.setHours(parseInt(hours), parseInt(minutes), 0, 0);
     onSchedule(scheduled);
   };
@@ -51,18 +55,28 @@ export const ScheduleMessagePicker = ({ onSchedule, onClose }: ScheduleMessagePi
         <div className="w-[18px]" />
       </div>
 
-      <Calendar
-        mode="single"
-        selected={selectedDate}
-        onSelect={setSelectedDate}
-        locale={ru}
-        disabled={(date) => {
-          const t = new Date();
-          t.setHours(0, 0, 0, 0);
-          return date < t;
-        }}
-        className="rounded-lg border border-border/40"
-      />
+      <div className="flex gap-2">
+        <button
+          onClick={() => setSelectedDay('today')}
+          className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+            selectedDay === 'today'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-accent/50 text-foreground hover:bg-accent'
+          }`}
+        >
+          Сегодня
+        </button>
+        <button
+          onClick={() => setSelectedDay('tomorrow')}
+          className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+            selectedDay === 'tomorrow'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-accent/50 text-foreground hover:bg-accent'
+          }`}
+        >
+          Завтра
+        </button>
+      </div>
 
       <div className="flex items-center gap-2">
         <div className="flex-1 flex items-center gap-1 bg-accent/50 rounded-lg px-3 py-2">
@@ -102,8 +116,8 @@ export const ScheduleMessagePicker = ({ onSchedule, onClose }: ScheduleMessagePi
         size="sm"
       >
         <Icon name="Send" size={14} className="mr-1.5" />
-        {canSchedule && selectedDate
-          ? `Отправить ${formatScheduleDate((() => { const d = new Date(selectedDate); d.setHours(parseInt(hours), parseInt(minutes), 0, 0); return d; })())}`
+        {canSchedule
+          ? `Отправить ${formatScheduleDate((() => { const d = new Date(); if (selectedDay === 'tomorrow') d.setDate(d.getDate() + 1); d.setHours(parseInt(hours), parseInt(minutes), 0, 0); return d; })())}`
           : 'Выберите время'
         }
       </Button>
