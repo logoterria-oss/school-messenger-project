@@ -92,6 +92,8 @@ const Index = () => {
     handleReply,
     handleCancelReply,
     handleForwardMessage,
+    handleScheduleMessage,
+    handleCancelScheduledMessage,
   } = useChatLogic();
 
   const selectedChatData = chats.find(c => c.id === selectedChat);
@@ -266,6 +268,7 @@ const Index = () => {
                 allUsers={allUsers}
                 scrollToMessageId={scrollToMessageId}
                 onScrollComplete={() => setScrollToMessageId(null)}
+                onCancelScheduledMessage={handleCancelScheduledMessage}
                 participantsCount={(() => {
                   const c = chats.find(c => c.id === selectedChat);
                   if (!c?.participants) return 0;
@@ -281,6 +284,7 @@ const Index = () => {
                 attachments={attachments}
                 onMessageChange={handleTyping}
                 onSendMessage={handleSendMessage}
+                onScheduleMessage={handleScheduleMessage}
                 onFileUpload={handleFileUpload}
                 onImageUpload={handleImageUpload}
                 onRemoveAttachment={removeAttachment}

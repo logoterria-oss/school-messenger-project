@@ -44,6 +44,7 @@ export type Message = {
   status?: 'sending' | 'sent' | 'delivered' | 'read';
   replyTo?: ReplyInfo;
   forwardedFrom?: ForwardInfo;
+  scheduledAt?: string;
 };
 
 export type Chat = {

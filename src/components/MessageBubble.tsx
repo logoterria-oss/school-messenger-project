@@ -36,9 +36,24 @@ type MessageBubbleProps = {
   onDelete?: (messageId: string) => void;
   canDelete?: boolean;
   isGrouped?: boolean;
+  onCancelScheduled?: (messageId: string) => void;
 };
 
-export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelete, canDelete, isGrouped }: MessageBubbleProps) => {
+const formatScheduledTime = (isoStr: string): string => {
+  const d = new Date(isoStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(today.getTime() + 86400000);
+  const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  if (msgDay.getTime() === today.getTime()) return `сегодня в ${time}`;
+  if (msgDay.getTime() === tomorrow.getTime()) return `завтра в ${time}`;
+  const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  return `${d.getDate()} ${months[d.getMonth()]} в ${time}`;
+};
+
+export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelete, canDelete, isGrouped, onCancelScheduled }: MessageBubbleProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -271,6 +286,23 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
                   </Button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {message.scheduledAt && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <div className="flex items-center gap-1 text-[11px] text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 px-2 py-0.5 rounded-md">
+                <Icon name="Clock" size={12} />
+                <span>Отправится {formatScheduledTime(message.scheduledAt)}</span>
+              </div>
+              {onCancelScheduled && (
+                <button
+                  onClick={() => onCancelScheduled(message.id)}
+                  className="text-[11px] text-destructive hover:underline"
+                >
+                  Отменить
+                </button>
+              )}
             </div>
           )}
 

@@ -256,6 +256,23 @@ export const useChatLogic = () => {
   // TODO: Интеграция с WebSocket/сервером для получения данных о печатающих пользователях
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
+  type ScheduledMessage = {
+    id: string;
+    chatId: string;
+    topicId?: string;
+    targetId: string;
+    message: Message;
+    scheduledAt: string;
+    timerId?: ReturnType<typeof setTimeout>;
+  };
+  const [scheduledMessages, setScheduledMessages] = useState<ScheduledMessage[]>(() => {
+    const stored = localStorage.getItem('scheduledMessages');
+    if (stored) {
+      try { return JSON.parse(stored); } catch { /* ignore */ }
+    }
+    return [];
+  });
+
   const roleLabels: Record<string, string> = {
     admin: 'админ',
     teacher: 'педагог',
@@ -735,6 +752,151 @@ export const useChatLogic = () => {
         )
       }));
     }, 2000);
+  };
+
+  const executeScheduledMessage = (scheduled: ScheduledMessage) => {
+    const msg = {
+      ...scheduled.message,
+      timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date().toISOString(),
+      status: 'sending' as const,
+      scheduledAt: undefined,
+    };
+
+    setChatMessages(prev => ({
+      ...prev,
+      [scheduled.targetId]: [...(prev[scheduled.targetId] || []), msg]
+    }));
+
+    const senderName = msg.sender;
+    const msgPreview = msg.text ? (msg.text.length > 40 ? msg.text.slice(0, 40) + '...' : msg.text) : 'Вложение';
+    const now = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+    setChats(prev => prev.map(chat =>
+      chat.id === scheduled.chatId
+        ? { ...chat, lastMessage: `${senderName}: ${msgPreview}`, timestamp: now }
+        : chat
+    ));
+
+    setScheduledMessages(prev => {
+      const updated = prev.filter(s => s.id !== scheduled.id);
+      localStorage.setItem('scheduledMessages', JSON.stringify(updated));
+      return updated;
+    });
+
+    apiSendMessage({
+      id: scheduled.id,
+      chatId: scheduled.chatId,
+      topicId: scheduled.topicId,
+      senderId: userId,
+      senderName: userName,
+      text: msg.text,
+      attachments: msg.attachments?.map(att => ({
+        type: att.type,
+        fileUrl: att.fileUrl,
+        fileName: att.fileName,
+        fileSize: att.fileSize,
+      })),
+    }).then(() => {
+      setChatMessages(prev => ({
+        ...prev,
+        [scheduled.targetId]: (prev[scheduled.targetId] || []).map(m =>
+          m.id === scheduled.id ? { ...m, status: 'sent' } : m
+        )
+      }));
+    }).catch(() => {
+      setChatMessages(prev => ({
+        ...prev,
+        [scheduled.targetId]: (prev[scheduled.targetId] || []).map(m =>
+          m.id === scheduled.id ? { ...m, status: 'sent' } : m
+        )
+      }));
+    });
+  };
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    scheduledMessages.forEach(scheduled => {
+      const delay = new Date(scheduled.scheduledAt).getTime() - Date.now();
+      if (delay <= 0) {
+        executeScheduledMessage(scheduled);
+      } else {
+        const timer = setTimeout(() => executeScheduledMessage(scheduled), delay);
+        timers.push(timer);
+      }
+    });
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [scheduledMessages.length]);
+
+  const handleScheduleMessage = (scheduledDate: Date) => {
+    if (!selectedChat || (!messageText.trim() && attachments.length === 0)) return;
+
+    const targetId = selectedTopic || selectedChat;
+    const messageId = `scheduled-${Date.now()}`;
+    const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Пользователь');
+    const defaultAvatars: Record<string, string> = {
+      admin: 'https://cdn.poehali.dev/files/Админ.jpg',
+      teacher: 'https://cdn.poehali.dev/files/Педагог.jpg',
+      parent: 'https://cdn.poehali.dev/files/Родитель.jpg',
+      student: 'https://cdn.poehali.dev/files/Ученик.jpg',
+    };
+    const senderAvatar = allUsers.find(u => u.id === userId)?.avatar || defaultAvatars[userRole || ''];
+
+    const msg: Message = {
+      id: messageId,
+      text: messageText || undefined,
+      sender: senderName,
+      senderId: userId,
+      senderRole: userRole || undefined,
+      senderAvatar: senderAvatar,
+      timestamp: scheduledDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      date: scheduledDate.toISOString(),
+      isOwn: true,
+      attachments: attachments.length > 0 ? [...attachments] : undefined,
+      status: 'sending',
+      replyTo: replyTo || undefined,
+      scheduledAt: scheduledDate.toISOString(),
+    };
+
+    const scheduled: ScheduledMessage = {
+      id: messageId,
+      chatId: selectedChat,
+      topicId: selectedTopic || undefined,
+      targetId,
+      message: msg,
+      scheduledAt: scheduledDate.toISOString(),
+    };
+
+    setScheduledMessages(prev => {
+      const updated = [...prev, scheduled];
+      localStorage.setItem('scheduledMessages', JSON.stringify(updated));
+      return updated;
+    });
+
+    setChatMessages(prev => ({
+      ...prev,
+      [targetId]: [...(prev[targetId] || []), msg]
+    }));
+
+    setMessageText('');
+    setAttachments([]);
+    setReplyTo(null);
+  };
+
+  const handleCancelScheduledMessage = (messageId: string) => {
+    setScheduledMessages(prev => {
+      const updated = prev.filter(s => s.id !== messageId);
+      localStorage.setItem('scheduledMessages', JSON.stringify(updated));
+      return updated;
+    });
+
+    setChatMessages(prev => {
+      const newMessages: Record<string, Message[]> = {};
+      for (const [key, msgs] of Object.entries(prev)) {
+        newMessages[key] = msgs.filter(m => m.id !== messageId);
+      }
+      return newMessages;
+    });
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1604,5 +1766,7 @@ export const useChatLogic = () => {
     handleReply,
     handleCancelReply,
     handleForwardMessage,
+    handleScheduleMessage,
+    handleCancelScheduledMessage,
   };
 };

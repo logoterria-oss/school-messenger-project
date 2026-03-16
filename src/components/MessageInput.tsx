@@ -7,6 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { ScheduleMessagePicker } from './ScheduleMessagePicker';
 
 const EMOJI_LIST = ['😊', '😂', '❤️', '👍', '👎', '🙏', '🎉', '😮', '😢', '😡', '🤔', '👋', '✅', '❌', '🔥', '⭐', '💪', '🙌', '😍', '🤗'];
 
@@ -30,6 +31,7 @@ type MessageInputProps = {
   attachments: AttachedFile[];
   onMessageChange: (text: string) => void;
   onSendMessage: () => void;
+  onScheduleMessage?: (date: Date) => void;
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAttachment: (index: number) => void;
@@ -45,6 +47,7 @@ export const MessageInput = ({
   attachments,
   onMessageChange,
   onSendMessage,
+  onScheduleMessage,
   onFileUpload,
   onImageUpload,
   onRemoveAttachment,
@@ -59,6 +62,7 @@ export const MessageInput = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mentionListRef = useRef<HTMLDivElement>(null);
 
+  const [showSchedule, setShowSchedule] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionStartPos, setMentionStartPos] = useState(-1);
@@ -335,13 +339,36 @@ export const MessageInput = ({
             rows={1}
           />
 
-          <button
-            onClick={onSendMessage}
-            disabled={!messageText.trim() && attachments.length === 0}
-            className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed mb-0.5"
-          >
-            <Icon name="ArrowUp" size={16} />
-          </button>
+          <div className="flex items-center gap-0.5 flex-shrink-0 mb-0.5">
+            {onScheduleMessage && (
+              <Popover open={showSchedule} onOpenChange={setShowSchedule}>
+                <PopoverTrigger asChild>
+                  <button
+                    disabled={!messageText.trim() && attachments.length === 0}
+                    className="w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <Icon name="Clock" size={16} />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-0" side="top" align="end">
+                  <ScheduleMessagePicker
+                    onSchedule={(date) => {
+                      onScheduleMessage(date);
+                      setShowSchedule(false);
+                    }}
+                    onClose={() => setShowSchedule(false)}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+            <button
+              onClick={onSendMessage}
+              disabled={!messageText.trim() && attachments.length === 0}
+              className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Icon name="ArrowUp" size={16} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
