@@ -379,8 +379,9 @@ export const MessageInput = ({
             )}
 
             <div
-              className="select-none touch-none"
-              onPointerDown={(e) => {
+              className="select-none"
+              style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
+              onTouchStart={(e) => {
                 const hasContent = messageText.trim() || attachments.length > 0;
                 if (!hasContent || !onScheduleMessage) return;
                 longPressTriggered.current = false;
@@ -390,25 +391,41 @@ export const MessageInput = ({
                   setShowSchedule(true);
                 }, 500);
               }}
-              onPointerUp={() => {
+              onTouchEnd={(e) => {
                 if (longPressTimer.current) {
                   clearTimeout(longPressTimer.current);
                   longPressTimer.current = null;
                 }
                 if (!longPressTriggered.current) {
                   const hasContent = messageText.trim() || attachments.length > 0;
-                  if (hasContent) onSendMessage();
+                  if (hasContent) {
+                    e.preventDefault();
+                    onSendMessage();
+                  }
+                } else {
+                  e.preventDefault();
                 }
                 longPressTriggered.current = false;
               }}
-              onPointerCancel={() => {
+              onTouchCancel={() => {
                 if (longPressTimer.current) {
                   clearTimeout(longPressTimer.current);
                   longPressTimer.current = null;
                 }
                 longPressTriggered.current = false;
               }}
+              onTouchMove={() => {
+                if (longPressTimer.current) {
+                  clearTimeout(longPressTimer.current);
+                  longPressTimer.current = null;
+                }
+              }}
               onContextMenu={(e) => e.preventDefault()}
+              onClick={(e) => {
+                if ('ontouchstart' in window) return;
+                const hasContent = messageText.trim() || attachments.length > 0;
+                if (hasContent) onSendMessage();
+              }}
             >
               <button
                 type="button"
