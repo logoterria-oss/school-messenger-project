@@ -128,7 +128,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
       </button>
 
       {isOpen && (
-        <div className="ml-3 pl-1 max-h-[60vh] overflow-y-auto scrollbar-thin">
+        <div className="ml-3 pl-1 max-h-[60vh] overflow-y-auto sidebar-scroll-left">
           {showSearch && (
             <div className="px-2 py-1.5">
               <div className="relative">
