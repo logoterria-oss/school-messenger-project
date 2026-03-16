@@ -91,11 +91,20 @@ def handler(event: dict, context) -> dict:
             cur.close()
             conn.close()
 
+            def serialize_message(m):
+                d = dict(m)
+                if d.get('created_at'):
+                    ts = str(d['created_at'])
+                    if not ts.endswith('Z') and '+' not in ts:
+                        ts = ts + 'Z'
+                    d['created_at'] = ts
+                return d
+
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({
-                    'messages': [dict(m) for m in messages]
+                    'messages': [serialize_message(m) for m in messages]
                 }, default=str)
             }
 

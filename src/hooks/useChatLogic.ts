@@ -11,13 +11,19 @@ import { applyAdminDefaults } from '@/utils/notificationSettings';
 
 const SUPERVISOR_ID = 'admin';
 
+const parseServerDate = (dateStr: string): Date => {
+  let s = dateStr;
+  if (!s.endsWith('Z') && !s.includes('+')) s += 'Z';
+  return new Date(s);
+};
+
 const mapApiMessages = (msgs: ApiMessage[], currentUserId?: string): Message[] =>
   msgs.map(m => ({
     id: m.id,
     text: m.text,
     sender: m.sender_name,
     senderId: m.sender_id,
-    timestamp: new Date(m.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+    timestamp: parseServerDate(m.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
     date: m.created_at,
     isOwn: currentUserId ? m.sender_id === currentUserId : false,
     attachments: m.attachments,
@@ -640,6 +646,8 @@ export const useChatLogic = () => {
       student: 'https://cdn.poehali.dev/files/Ученик.jpg',
     };
     const senderAvatar = allUsers.find(u => u.id === userId)?.avatar || defaultAvatars[userRole || ''];
+    const now = new Date();
+    const nowISO = now.toISOString();
     const newMessage: Message = {
       id: messageId,
       text: messageText || undefined,
@@ -647,8 +655,8 @@ export const useChatLogic = () => {
       senderId: userId,
       senderRole: userRole || undefined,
       senderAvatar: senderAvatar,
-      timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-      date: new Date().toISOString(),
+      timestamp: now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      date: nowISO,
       isOwn: true,
       attachments: attachments.length > 0 ? attachments : undefined,
       status: 'sending',
@@ -662,12 +670,12 @@ export const useChatLogic = () => {
     }));
 
     const msgPreview = messageText ? (messageText.length > 40 ? messageText.slice(0, 40) + '...' : messageText) : 'Вложение';
-    const now = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    const nowTime = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
     setChats(prev => {
       const updated = prev.map(chat =>
         chat.id === selectedChat
-          ? { ...chat, lastMessage: `${senderName}: ${msgPreview}`, timestamp: now }
+          ? { ...chat, lastMessage: `${senderName}: ${msgPreview}`, timestamp: nowTime }
           : chat
       );
       const idx = updated.findIndex(c => c.id === selectedChat);
@@ -684,7 +692,7 @@ export const useChatLogic = () => {
         ...prev,
         [selectedGroup]: prev[selectedGroup]?.map(topic =>
           topic.id === selectedTopic
-            ? { ...topic, lastMessage: msgPreview, timestamp: now }
+            ? { ...topic, lastMessage: msgPreview, timestamp: nowTime }
             : topic
         ) || []
       }));
@@ -703,7 +711,7 @@ export const useChatLogic = () => {
         senderId: userId,
         senderName: userName,
         text: messageText || undefined,
-        createdAt: new Date().toISOString(),
+        createdAt: nowISO,
         attachments: attachments.map(att => ({
           type: att.type,
           fileUrl: att.fileUrl,
