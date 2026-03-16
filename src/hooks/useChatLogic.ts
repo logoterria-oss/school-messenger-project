@@ -170,6 +170,7 @@ export const useChatLogic = () => {
     return localStorage.getItem('userId') || '';
   });
   const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'settings' | 'users'>('chat');
+  const [muteVersion, setMuteVersion] = useState(0);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -408,6 +409,7 @@ export const useChatLogic = () => {
             if (userRole === 'admin') {
               const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
               applyAdminDefaults(allTopicIds);
+              setMuteVersion(v => v + 1);
             }
           }
         }).catch(() => {});
@@ -431,6 +433,7 @@ export const useChatLogic = () => {
           if (userRole === 'admin') {
             const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
             applyAdminDefaults(allTopicIds);
+            setMuteVersion(v => v + 1);
           }
         }
       } catch (err) {
@@ -1457,6 +1460,10 @@ export const useChatLogic = () => {
       ...prev,
       [groupId]: topics.map(t => ({ ...t, lastMessage: '', timestamp: '', unread: 0 })),
     }));
+    if (userRole === 'admin') {
+      applyAdminDefaults(topics.map(t => t.id));
+      setMuteVersion(v => v + 1);
+    }
     const welcomeText = `Добро пожаловать в ЛинеяСкул!
 
 Чтобы мы все получили максимум пользы от нашего взаимодействия, а негативный опыт свели к нулю, ознакомьтесь с нашими правилами и рекомендациями:
@@ -1785,5 +1792,6 @@ export const useChatLogic = () => {
     handleForwardMessage,
     handleScheduleMessage,
     handleCancelScheduledMessage,
+    muteVersion,
   };
 };

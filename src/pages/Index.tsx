@@ -94,6 +94,7 @@ const Index = () => {
     handleForwardMessage,
     handleScheduleMessage,
     handleCancelScheduledMessage,
+    muteVersion,
   } = useChatLogic();
 
   const selectedChatData = chats.find(c => c.id === selectedChat);
@@ -269,6 +270,7 @@ const Index = () => {
                 scrollToMessageId={scrollToMessageId}
                 onScrollComplete={() => setScrollToMessageId(null)}
                 onCancelScheduledMessage={handleCancelScheduledMessage}
+                muteVersion={muteVersion}
                 participantsCount={(() => {
                   const c = chats.find(c => c.id === selectedChat);
                   if (!c?.participants) return 0;

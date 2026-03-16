@@ -78,6 +78,7 @@ type ChatAreaProps = {
   scrollToMessageId?: string | null;
   onScrollComplete?: () => void;
   onCancelScheduledMessage?: (messageId: string) => void;
+  muteVersion?: number;
 };
 
 const TopicMuteButton = ({ topicId }: { topicId: string }) => {
@@ -118,7 +119,7 @@ const canDeleteMessage = (message: Message, currentUserId?: string, currentUserR
   return false;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, onDeleteMessage, allUsers, scrollToMessageId, onScrollComplete, onCancelScheduledMessage }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, onDeleteMessage, allUsers, scrollToMessageId, onScrollComplete, onCancelScheduledMessage, muteVersion }: ChatAreaProps) => {
   const scrollTargetRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
