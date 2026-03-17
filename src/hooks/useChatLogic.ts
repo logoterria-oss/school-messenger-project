@@ -6,7 +6,7 @@ import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
-import { checkAndPlaySound, requestNotificationPermission, resetNotificationState } from '@/utils/notificationSound';
+import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle } from '@/utils/notificationSound';
 import { applyAdminDefaults } from '@/utils/notificationSettings';
 
 const SUPERVISOR_ID = 'admin';
@@ -411,6 +411,8 @@ export const useChatLogic = () => {
               applyAdminDefaults(allTopicIds);
               setMuteVersion(v => v + 1);
             }
+            const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
+            checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
           }
         }).catch(() => {});
         return;
@@ -435,6 +437,8 @@ export const useChatLogic = () => {
             applyAdminDefaults(allTopicIds);
             setMuteVersion(v => v + 1);
           }
+          const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
+          checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
         }
       } catch (err) {
         console.error('Failed to load data:', err);
@@ -584,11 +588,15 @@ export const useChatLogic = () => {
       setSelectedTopic(null);
     }
     
-    setChats(prevChats => 
-      prevChats.map(chat => 
-        chat.id === chatId ? { ...chat, unread: 0, unreadMentions: 0 } : chat
-      )
-    );
+    setChats(prevChats => {
+      const updated = prevChats.map(c => 
+        c.id === chatId ? { ...c, unread: 0, unreadMentions: 0 } : c
+      );
+      const totalUnread = updated.reduce((sum, c) => sum + c.unread, 0);
+      updateAppBadge(totalUnread);
+      updateDocumentTitle(totalUnread);
+      return updated;
+    });
 
     if (userId) {
       if (firstTopicId) {
@@ -618,12 +626,25 @@ export const useChatLogic = () => {
     setSelectedTopic(topicId);
     
     if (selectedGroup) {
-      setGroupTopics(prev => ({
-        ...prev,
-        [selectedGroup]: prev[selectedGroup].map(topic =>
-          topic.id === topicId ? { ...topic, unread: 0, unreadMentions: 0 } : topic
-        )
-      }));
+      setGroupTopics(prev => {
+        const updatedTopics = {
+          ...prev,
+          [selectedGroup]: prev[selectedGroup].map(topic =>
+            topic.id === topicId ? { ...topic, unread: 0, unreadMentions: 0 } : topic
+          )
+        };
+        const topicUnread = updatedTopics[selectedGroup].reduce((s, t) => s + t.unread, 0);
+        setChats(prevChats => {
+          const updated = prevChats.map(c =>
+            c.id === selectedGroup ? { ...c, unread: topicUnread } : c
+          );
+          const totalUnread = updated.reduce((sum, c) => sum + c.unread, 0);
+          updateAppBadge(totalUnread);
+          updateDocumentTitle(totalUnread);
+          return updated;
+        });
+        return updatedTopics;
+      });
 
       if (userId) {
         markAsRead(userId, selectedGroup, topicId).catch(() => {});

@@ -1,6 +1,7 @@
 import { shouldPlaySound, shouldShowPush } from './notificationSettings';
 
 let audioContext: AudioContext | null = null;
+let swRegistration: ServiceWorkerRegistration | null = null;
 
 function getAudioContext(): AudioContext {
   if (!audioContext) {
@@ -36,7 +37,17 @@ export function playNotificationSound() {
 
 let notificationPermission: NotificationPermission = 'default';
 
+async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    swRegistration = reg;
+  } catch { /* ignore */ }
+}
+
 export function requestNotificationPermission() {
+  registerServiceWorker();
+
   if (!('Notification' in window)) return;
   notificationPermission = Notification.permission;
   if (notificationPermission === 'default') {
@@ -54,9 +65,25 @@ function showBrowserNotification(chatName: string) {
   if (notificationPermission !== 'granted') return;
   if (!isPageHidden()) return;
 
+  const title = 'Новое сообщение';
+  const body = `Новое сообщение в "${chatName}"`;
+  const icon = 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/favicon-1773208222088.jpg';
+  const tag = `chat-${chatName}`;
+
+  if (swRegistration && swRegistration.active) {
+    swRegistration.active.postMessage({
+      type: 'SHOW_NOTIFICATION',
+      title,
+      body,
+      icon,
+      tag,
+    });
+    return;
+  }
+
   try {
-    const notification = new Notification('Новое сообщение', {
-      body: `Новое сообщение в "${chatName}"`,
+    const notification = new Notification(title, {
+      body,
       icon: '/favicon.ico',
       tag: `chat-notification-${Date.now()}`,
     });
@@ -66,6 +93,31 @@ function showBrowserNotification(chatName: string) {
     };
     setTimeout(() => notification.close(), 5000);
   } catch { /* ignore */ }
+}
+
+export function updateAppBadge(count: number) {
+  if ('setAppBadge' in navigator) {
+    try {
+      if (count > 0) {
+        (navigator as unknown as { setAppBadge: (n: number) => Promise<void> }).setAppBadge(count);
+      } else {
+        (navigator as unknown as { clearAppBadge: () => Promise<void> }).clearAppBadge();
+      }
+    } catch { /* ignore */ }
+  }
+
+  if (swRegistration && swRegistration.active) {
+    swRegistration.active.postMessage({ type: 'SET_BADGE', count });
+  }
+}
+
+export function updateDocumentTitle(totalUnread: number) {
+  const baseTitle = 'ЛинэяСкул-мессенджер';
+  if (totalUnread > 0) {
+    document.title = `(${totalUnread}) ${baseTitle}`;
+  } else {
+    document.title = baseTitle;
+  }
 }
 
 type UnreadInfo = { id: string; name: string; unread: number };
@@ -84,6 +136,10 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
   for (const c of allItems) {
     currentMap[c.id] = c.unread;
   }
+
+  const totalUnread = chats.reduce((sum, c) => sum + c.unread, 0);
+  updateAppBadge(totalUnread);
+  updateDocumentTitle(totalUnread);
 
   if (!initialized) {
     lastUnreadMap = currentMap;
