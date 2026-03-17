@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChatItem } from './ChatItem';
 import { FolderItem } from './FolderItem';
-import { PushBanner } from './PushBanner';
+
 import { getChatSettings } from '@/utils/notificationSettings';
 import type { Chat, Topic, UserRole, SimpleUser } from './types';
 
@@ -138,7 +138,6 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
 
     return (
       <div className="flex-1 overflow-y-auto sidebar-scroll-left">
-        <PushBanner userId={userId} />
         {beforeFolder.map((chat) => {
           const displayChat = getDisplayChat(chat);
           return (
@@ -229,7 +228,6 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
 
   return (
     <div className="flex-1 overflow-y-auto sidebar-scroll-left">
-      <PushBanner userId={userId} />
       {sorted.map((chat) => {
         const displayChat = getDisplayChat(chat);
         return (

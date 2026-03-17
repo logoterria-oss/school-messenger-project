@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChatList } from './sidebar/ChatList';
+import { PushBanner } from './sidebar/PushBanner';
 import type { Chat, Topic, UserRole } from './sidebar/types';
 
 type ChatSidebarProps = {
@@ -163,6 +164,8 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
             className="pl-8 h-8 bg-accent/50 border-0 text-xs rounded-lg placeholder:text-muted-foreground/40"
           />
         </div>
+
+        <PushBanner userId={userId} />
 
         {isParentOrStudent && filteredParentTopics.length > 0 && (
           <div className="mt-3 space-y-0.5">
