@@ -94,7 +94,9 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
     getPushStatus().then(setStatus);
   }, [userId]);
 
-  if (!status || status === 'subscribed') {
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (!status || status === 'subscribed' || !isMobile) {
     return null;
   }
 
