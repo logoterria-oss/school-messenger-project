@@ -91,10 +91,14 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
   const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
-    getPushStatus().then(setStatus);
+    getPushStatus().then(s => {
+      console.log('[PushBanner] status:', s, 'ua:', navigator.userAgent);
+      setStatus(s);
+    });
   }, [userId]);
 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  console.log('[PushBanner] render, status:', status, 'isMobile:', isMobile);
 
   if (!status || status === 'subscribed' || !isMobile) {
     return null;
