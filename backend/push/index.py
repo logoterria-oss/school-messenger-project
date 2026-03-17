@@ -192,10 +192,11 @@ def handler(event: dict, context) -> dict:
                     )
                     sent += 1
                 except WebPushException as e:
+                    print(f"[Push] WebPushException for {sub['endpoint'][:60]}: {e}")
                     if '410' in str(e) or '404' in str(e):
                         failed_endpoints.append(sub['endpoint'])
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"[Push] Error for {sub['endpoint'][:60]}: {e}")
 
             if failed_endpoints:
                 conn2 = psycopg2.connect(os.environ['DATABASE_URL'])

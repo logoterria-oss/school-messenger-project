@@ -190,9 +190,35 @@ export async function ensurePushSubscription(userId: string): Promise<void> {
 
   if (Notification.permission !== 'granted') return;
 
+  const vapidKey = await getVapidPublicKey();
+  if (!vapidKey) return;
+
   const existing = await reg.pushManager.getSubscription();
   if (existing) {
-    await sendSubscriptionToServer(existing, userId);
+    const currentKey = existing.options?.applicationServerKey;
+    const expectedKey = urlBase64ToUint8Array(vapidKey);
+    let keysMatch = false;
+    if (currentKey) {
+      const currentArr = new Uint8Array(currentKey);
+      keysMatch = currentArr.length === expectedKey.length && currentArr.every((v, i) => v === expectedKey[i]);
+    }
+    if (keysMatch) {
+      await sendSubscriptionToServer(existing, userId);
+      return;
+    }
+    console.log('[Push] VAPID key changed, resubscribing...');
+    await existing.unsubscribe();
+  }
+
+  try {
+    const newSub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
+    console.log('[Push] Resubscribed:', newSub.endpoint);
+    await sendSubscriptionToServer(newSub, userId);
+  } catch (err) {
+    console.error('[Push] Resubscribe failed:', err);
   }
 }
 
