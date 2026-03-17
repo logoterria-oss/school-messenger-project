@@ -7,23 +7,15 @@ type PushBannerProps = {
   userId?: string;
 };
 
-const DISMISSED_KEY = 'push-banner-dismissed';
-
 export const PushBanner = ({ userId }: PushBannerProps) => {
   const [status, setStatus] = useState<PushStatus | null>(null);
-  const [dismissed, setDismissed] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const dismissedAt = localStorage.getItem(DISMISSED_KEY);
-    if (dismissedAt && Date.now() - Number(dismissedAt) < 24 * 60 * 60 * 1000) {
-      setDismissed(true);
-      return;
-    }
     getPushStatus().then(setStatus);
   }, []);
 
-  if (dismissed || !status || status === 'subscribed' || status === 'unsupported' || status === 'denied') {
+  if (!status || status === 'subscribed' || status === 'unsupported') {
     return null;
   }
 
@@ -39,20 +31,25 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
     setLoading(false);
   };
 
-  const handleDismiss = () => {
-    setDismissed(true);
-    localStorage.setItem(DISMISSED_KEY, String(Date.now()));
-  };
+  if (status === 'denied') {
+    return (
+      <div className="mx-3 mt-2 mb-1 p-3 bg-destructive/10 border border-destructive/20 rounded-xl">
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 mt-0.5">
+            <Icon name="BellOff" size={20} className="text-destructive" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium leading-tight">Уведомления заблокированы</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Разрешите уведомления в настройках браузера, затем перезагрузите страницу</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-3 mt-2 mb-1 p-3 bg-primary/10 border border-primary/20 rounded-xl relative">
-      <button
-        onClick={handleDismiss}
-        className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
-      >
-        <Icon name="X" size={14} />
-      </button>
-      <div className="flex items-start gap-3 pr-4">
+    <div className="mx-3 mt-2 mb-1 p-3 bg-primary/10 border border-primary/20 rounded-xl">
+      <div className="flex items-start gap-3">
         <div className="shrink-0 mt-0.5">
           <Icon name="BellRing" size={20} className="text-primary" />
         </div>
