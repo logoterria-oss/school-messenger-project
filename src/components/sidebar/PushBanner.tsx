@@ -13,11 +13,52 @@ type PushBannerProps = {
   userId?: string;
 };
 
-const UnblockHelpDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => (
+const FixHelpDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle className="text-base">Как разблокировать уведомления</DialogTitle>
+        <DialogTitle className="text-base">Как включить уведомления</DialogTitle>
+      </DialogHeader>
+
+      <div className="space-y-4 mt-2">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Icon name="Smartphone" size={18} className="text-primary shrink-0" />
+            <p className="text-sm font-semibold">iPhone / iPad</p>
+          </div>
+          <ol className="text-xs text-muted-foreground space-y-1.5 ml-6 list-decimal">
+            <li>Откройте <span className="font-medium text-foreground">Настройки</span> телефона</li>
+            <li>Найдите приложение <span className="font-medium text-foreground">ЛинэяСкул</span> в списке (или Safari)</li>
+            <li>Нажмите <span className="font-medium text-foreground">Уведомления</span></li>
+            <li>Включите <span className="font-medium text-foreground">«Допуск уведомлений»</span></li>
+            <li>Вернитесь в приложение и <span className="font-medium text-foreground">перезагрузите страницу</span></li>
+          </ol>
+        </div>
+
+        <div className="border-t" />
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Icon name="Smartphone" size={18} className="text-green-600 shrink-0" />
+            <p className="text-sm font-semibold">Android</p>
+          </div>
+          <ol className="text-xs text-muted-foreground space-y-1.5 ml-6 list-decimal">
+            <li>Нажмите на <span className="font-medium text-foreground">значок замка</span> (или ⓘ) слева от адресной строки</li>
+            <li>Найдите пункт <span className="font-medium text-foreground">Уведомления</span></li>
+            <li>Переключите на <span className="font-medium text-foreground">Разрешить</span></li>
+            <li><span className="font-medium text-foreground">Перезагрузите страницу</span></li>
+          </ol>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+
+const AddToHomeDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="text-base">Как добавить на главный экран</DialogTitle>
       </DialogHeader>
 
       <div className="space-y-4 mt-2">
@@ -31,7 +72,6 @@ const UnblockHelpDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange
             <li>Выберите <span className="font-medium text-foreground">«На экран Домой»</span></li>
             <li>Нажмите <span className="font-medium text-foreground">«Добавить»</span></li>
             <li>Откройте приложение с главного экрана</li>
-            <li>Нажмите <span className="font-medium text-foreground">«Включить»</span> в баннере уведомлений</li>
           </ol>
           <div className="ml-6 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <p className="text-xs text-amber-700 dark:text-amber-400">
@@ -39,97 +79,6 @@ const UnblockHelpDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange
               На iPhone уведомления работают только из приложения, добавленного на главный экран
             </p>
           </div>
-        </div>
-
-        <div className="border-t" />
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Icon name="Smartphone" size={18} className="text-green-600 shrink-0" />
-            <p className="text-sm font-semibold">Android (Chrome)</p>
-          </div>
-          <ol className="text-xs text-muted-foreground space-y-1.5 ml-6 list-decimal">
-            <li>Нажмите на <span className="font-medium text-foreground">значок замка</span> (или иконку настроек) слева от адресной строки</li>
-            <li>Найдите пункт <span className="font-medium text-foreground">Уведомления</span></li>
-            <li>Переключите на <span className="font-medium text-foreground">Разрешить</span></li>
-            <li><span className="font-medium text-foreground">Перезагрузите страницу</span></li>
-          </ol>
-        </div>
-
-        <div className="border-t" />
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Icon name="Monitor" size={18} className="text-blue-600 shrink-0" />
-            <p className="text-sm font-semibold">Компьютер (Chrome / Edge)</p>
-          </div>
-          <ol className="text-xs text-muted-foreground space-y-1.5 ml-6 list-decimal">
-            <li>Нажмите на <span className="font-medium text-foreground">значок замка</span> слева от адреса сайта</li>
-            <li>В выпадающем меню найдите <span className="font-medium text-foreground">Уведомления</span></li>
-            <li>Измените значение на <span className="font-medium text-foreground">Разрешить</span></li>
-            <li><span className="font-medium text-foreground">Перезагрузите страницу</span></li>
-          </ol>
-        </div>
-      </div>
-    </DialogContent>
-  </Dialog>
-);
-
-const PrePermissionDialog = ({
-  open,
-  onOpenChange,
-  onConfirm,
-  loading,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  onConfirm: () => void;
-  loading: boolean;
-}) => (
-  <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="max-w-sm mx-auto">
-      <DialogHeader>
-        <DialogTitle className="text-base flex items-center gap-2">
-          <Icon name="BellRing" size={20} className="text-primary" />
-          Разрешить уведомления?
-        </DialogTitle>
-      </DialogHeader>
-
-      <div className="space-y-3 mt-1">
-        <p className="text-sm text-muted-foreground">
-          Сейчас браузер спросит разрешение на уведомления. Пожалуйста, нажмите <span className="font-semibold text-foreground">«Разрешить»</span> — иначе уведомления будут заблокированы.
-        </p>
-
-        <div className="p-3 bg-primary/5 border border-primary/15 rounded-xl">
-          <div className="flex gap-2 items-start">
-            <Icon name="MessageCircle" size={16} className="text-primary shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground">Вы будете получать уведомления о новых сообщениях, даже когда приложение закрыто</p>
-          </div>
-        </div>
-
-        <div className="flex gap-2 pt-1">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => onOpenChange(false)}
-            disabled={loading}
-          >
-            Не сейчас
-          </Button>
-          <Button
-            size="sm"
-            className="flex-1"
-            onClick={onConfirm}
-            disabled={loading}
-          >
-            {loading ? (
-              <Icon name="Loader2" size={14} className="animate-spin mr-1" />
-            ) : (
-              <Icon name="Bell" size={14} className="mr-1" />
-            )}
-            Разрешить
-          </Button>
         </div>
       </div>
     </DialogContent>
@@ -140,7 +89,6 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
   const [status, setStatus] = useState<PushStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [showPrePermission, setShowPrePermission] = useState(false);
 
   useEffect(() => {
     getPushStatus().then(setStatus);
@@ -150,7 +98,7 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
     return null;
   }
 
-  const handleConfirmPermission = async () => {
+  const handleEnable = async () => {
     if (!userId) return;
     setLoading(true);
     const ok = await subscribeToPush(userId);
@@ -160,7 +108,6 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
       setStatus(await getPushStatus());
     }
     setLoading(false);
-    setShowPrePermission(false);
   };
 
   if (status === 'unsupported') {
@@ -186,7 +133,7 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
             </div>
           </div>
         </div>
-        <UnblockHelpDialog open={showHelp} onOpenChange={setShowHelp} />
+        <AddToHomeDialog open={showHelp} onOpenChange={setShowHelp} />
       </>
     );
   }
@@ -201,52 +148,49 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium leading-tight">Уведомления заблокированы</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Разрешите уведомления в настройках браузера, затем перезагрузите страницу</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Разрешите уведомления в настройках, затем перезагрузите страницу</p>
               <Button
                 size="sm"
                 variant="outline"
-                className="mt-2 h-7 text-xs rounded-lg"
+                className="mt-2 h-7 text-xs rounded-lg border-destructive/30 text-destructive hover:bg-destructive/10"
                 onClick={() => setShowHelp(true)}
               >
                 <Icon name="HelpCircle" size={14} className="mr-1" />
-                Как разблокировать?
+                Как починить?
               </Button>
             </div>
           </div>
         </div>
-        <UnblockHelpDialog open={showHelp} onOpenChange={setShowHelp} />
+        <FixHelpDialog open={showHelp} onOpenChange={setShowHelp} />
       </>
     );
   }
 
   return (
-    <>
-      <div className="mx-3 mt-2 mb-1 p-3 bg-primary/10 border border-primary/20 rounded-xl">
-        <div className="flex items-start gap-3">
-          <div className="shrink-0 mt-0.5">
-            <Icon name="BellRing" size={20} className="text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium leading-tight">Включите уведомления</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Чтобы не пропускать новые сообщения</p>
-            <Button
-              size="sm"
-              className="mt-2 h-7 text-xs rounded-lg"
-              onClick={() => setShowPrePermission(true)}
-            >
+    <div className="mx-3 mt-2 mb-1 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 mt-0.5">
+          <Icon name="BellRing" size={20} className="text-emerald-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium leading-tight">Включите уведомления</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Чтобы не пропускать новые сообщения</p>
+          <Button
+            size="sm"
+            className="mt-2 h-7 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={handleEnable}
+            disabled={loading}
+          >
+            {loading ? (
+              <Icon name="Loader2" size={14} className="animate-spin mr-1" />
+            ) : (
               <Icon name="Bell" size={14} className="mr-1" />
-              Включить
-            </Button>
-          </div>
+            )}
+            Включить
+          </Button>
         </div>
       </div>
-      <PrePermissionDialog
-        open={showPrePermission}
-        onOpenChange={setShowPrePermission}
-        onConfirm={handleConfirmPermission}
-        loading={loading}
-      />
-    </>
+    </div>
   );
 };
 
