@@ -171,8 +171,59 @@ def handler(event: dict, context) -> dict:
                 """, (att_id, message_id, att.get('type'), att.get('fileUrl'), att.get('fileName'), att.get('fileSize')))
 
             conn.commit()
-            cur.close()
-            conn.close()
+
+            try:
+                cur2 = conn.cursor(cursor_factory=RealDictCursor)
+                cur2.execute("""
+                    SELECT DISTINCT cp.user_id FROM chat_participants cp
+                    WHERE cp.chat_id = %s AND cp.user_id != %s
+                """, (chat_id, sender_id))
+                participant_ids = [r['user_id'] for r in cur2.fetchall()]
+
+                if participant_ids:
+                    placeholders = ','.join(['%s'] * len(participant_ids))
+                    cur2.execute(
+                        "SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (%s)" % placeholders,
+                        participant_ids
+                    )
+                    subs = cur2.fetchall()
+                    cur2.close()
+                    conn.close()
+
+                    if subs:
+                        from pywebpush import webpush, WebPushException
+                        vapid_private = os.environ.get('VAPID_PRIVATE_KEY', '')
+                        vapid_claims = {'sub': 'mailto:push@lineya.school'}
+                        preview = (text or '')[:100] or 'Новое сообщение'
+                        payload = json.dumps({
+                            'title': sender_name,
+                            'body': preview,
+                            'icon': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/favicon-1773208222088.jpg',
+                            'tag': 'chat-%s' % chat_id,
+                            'data': {'chatId': chat_id, 'topicId': topic_id}
+                        })
+                        for sub in subs:
+                            try:
+                                webpush(
+                                    subscription_info={
+                                        'endpoint': sub['endpoint'],
+                                        'keys': {'p256dh': sub['p256dh'], 'auth': sub['auth']}
+                                    },
+                                    data=payload,
+                                    vapid_private_key=vapid_private,
+                                    vapid_claims=vapid_claims
+                                )
+                            except WebPushException as e:
+                                print(f"[Push] WebPushException: {e}")
+                            except Exception as e:
+                                print(f"[Push] Error: {e}")
+                else:
+                    cur2.close()
+                    conn.close()
+            except Exception as e:
+                print(f"[Push] Send error: {e}")
+                if 'conn' in dir() and conn and not conn.closed:
+                    conn.close()
 
             return {
                 'statusCode': 201,
