@@ -104,9 +104,18 @@ async function sendSubscriptionToServer(subscription: PushSubscription, userId: 
 export type PushStatus = 'unsupported' | 'denied' | 'prompt' | 'subscribed' | 'unsubscribed';
 
 export async function getPushStatus(): Promise<PushStatus> {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
     return 'unsupported';
   }
+
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || ('standalone' in navigator && (navigator as unknown as { standalone: boolean }).standalone);
+
+  if (isIOS && !isStandalone) {
+    return 'unsupported';
+  }
+
   if (Notification.permission === 'denied') return 'denied';
 
   const reg = swRegistration || await registerServiceWorker();
