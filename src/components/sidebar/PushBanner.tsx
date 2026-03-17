@@ -13,11 +13,11 @@ type PushBannerProps = {
   userId?: string;
 };
 
-const HelpDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => (
+const UnblockHelpDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle className="text-base">Как включить уведомления</DialogTitle>
+        <DialogTitle className="text-base">Как разблокировать уведомления</DialogTitle>
       </DialogHeader>
 
       <div className="space-y-4 mt-2">
@@ -75,26 +75,82 @@ const HelpDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: b
   </Dialog>
 );
 
+const PrePermissionDialog = ({
+  open,
+  onOpenChange,
+  onConfirm,
+  loading,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onConfirm: () => void;
+  loading: boolean;
+}) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="max-w-sm mx-auto">
+      <DialogHeader>
+        <DialogTitle className="text-base flex items-center gap-2">
+          <Icon name="BellRing" size={20} className="text-primary" />
+          Разрешить уведомления?
+        </DialogTitle>
+      </DialogHeader>
+
+      <div className="space-y-3 mt-1">
+        <p className="text-sm text-muted-foreground">
+          Сейчас браузер спросит разрешение на уведомления. Пожалуйста, нажмите <span className="font-semibold text-foreground">«Разрешить»</span> — иначе уведомления будут заблокированы.
+        </p>
+
+        <div className="p-3 bg-primary/5 border border-primary/15 rounded-xl">
+          <div className="flex gap-2 items-start">
+            <Icon name="MessageCircle" size={16} className="text-primary shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground">Вы будете получать уведомления о новых сообщениях, даже когда приложение закрыто</p>
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Не сейчас
+          </Button>
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={onConfirm}
+            disabled={loading}
+          >
+            {loading ? (
+              <Icon name="Loader2" size={14} className="animate-spin mr-1" />
+            ) : (
+              <Icon name="Bell" size={14} className="mr-1" />
+            )}
+            Разрешить
+          </Button>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+
 export const PushBanner = ({ userId }: PushBannerProps) => {
   const [status, setStatus] = useState<PushStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showPrePermission, setShowPrePermission] = useState(false);
 
   useEffect(() => {
-    console.log('[PushBanner] checking, userId:', userId, 'SW:', 'serviceWorker' in navigator, 'Push:', 'PushManager' in window, 'Notification:', 'Notification' in window);
-    getPushStatus().then(s => {
-      console.log('[PushBanner] status:', s);
-      setStatus(s);
-    });
+    getPushStatus().then(setStatus);
   }, [userId]);
-
-  console.log('[PushBanner] render, status:', status);
 
   if (!status || status === 'subscribed') {
     return null;
   }
 
-  const handleEnable = async () => {
+  const handleConfirmPermission = async () => {
     if (!userId) return;
     setLoading(true);
     const ok = await subscribeToPush(userId);
@@ -104,6 +160,7 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
       setStatus(await getPushStatus());
     }
     setLoading(false);
+    setShowPrePermission(false);
   };
 
   if (status === 'unsupported') {
@@ -129,7 +186,7 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
             </div>
           </div>
         </div>
-        <HelpDialog open={showHelp} onOpenChange={setShowHelp} />
+        <UnblockHelpDialog open={showHelp} onOpenChange={setShowHelp} />
       </>
     );
   }
@@ -152,41 +209,44 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
                 onClick={() => setShowHelp(true)}
               >
                 <Icon name="HelpCircle" size={14} className="mr-1" />
-                Как это сделать?
+                Как разблокировать?
               </Button>
             </div>
           </div>
         </div>
-        <HelpDialog open={showHelp} onOpenChange={setShowHelp} />
+        <UnblockHelpDialog open={showHelp} onOpenChange={setShowHelp} />
       </>
     );
   }
 
   return (
-    <div className="mx-3 mt-2 mb-1 p-3 bg-primary/10 border border-primary/20 rounded-xl">
-      <div className="flex items-start gap-3">
-        <div className="shrink-0 mt-0.5">
-          <Icon name="BellRing" size={20} className="text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium leading-tight">Включите уведомления</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Чтобы не пропускать новые сообщения</p>
-          <Button
-            size="sm"
-            className="mt-2 h-7 text-xs rounded-lg"
-            onClick={handleEnable}
-            disabled={loading}
-          >
-            {loading ? (
-              <Icon name="Loader2" size={14} className="animate-spin mr-1" />
-            ) : (
+    <>
+      <div className="mx-3 mt-2 mb-1 p-3 bg-primary/10 border border-primary/20 rounded-xl">
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 mt-0.5">
+            <Icon name="BellRing" size={20} className="text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium leading-tight">Включите уведомления</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Чтобы не пропускать новые сообщения</p>
+            <Button
+              size="sm"
+              className="mt-2 h-7 text-xs rounded-lg"
+              onClick={() => setShowPrePermission(true)}
+            >
               <Icon name="Bell" size={14} className="mr-1" />
-            )}
-            Включить
-          </Button>
+              Включить
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+      <PrePermissionDialog
+        open={showPrePermission}
+        onOpenChange={setShowPrePermission}
+        onConfirm={handleConfirmPermission}
+        loading={loading}
+      />
+    </>
   );
 };
 
