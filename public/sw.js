@@ -26,13 +26,26 @@ self.addEventListener('push', (event) => {
 
   event.waitUntil(
     self.registration.showNotification(data.title || 'Новое сообщение', options)
+      .then(() => self.registration.getNotifications())
+      .then((notifications) => {
+        if (navigator.setAppBadge) {
+          navigator.setAppBadge(notifications.length);
+        }
+      })
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+    self.registration.getNotifications().then((notifications) => {
+      if (notifications.length === 0 && navigator.clearAppBadge) {
+        navigator.clearAppBadge();
+      } else if (navigator.setAppBadge) {
+        navigator.setAppBadge(notifications.length);
+      }
+      return self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    }).then((clients) => {
       if (clients.length > 0) {
         clients[0].focus();
         return;
