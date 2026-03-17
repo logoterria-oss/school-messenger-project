@@ -6,8 +6,9 @@ import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
-import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle } from '@/utils/notificationSound';
+import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, setPushApiUrl, ensurePushSubscription, sendPushForMessage } from '@/utils/notificationSound';
 import { applyAdminDefaults } from '@/utils/notificationSettings';
+import { API_URLS } from '@/services/api';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -355,7 +356,9 @@ export const useChatLogic = () => {
   useEffect(() => {
     if (!isAuthenticated || !userId) return;
 
+    setPushApiUrl(API_URLS.push);
     requestNotificationPermission();
+    ensurePushSubscription(userId);
 
     // Временно отключаем WebSocket для ускорения загрузки
     // wsService.connect(userId);
@@ -749,6 +752,16 @@ export const useChatLogic = () => {
 
       // Уведомляем через WebSocket
       wsService.notifyNewMessage(messageId, selectedChat, selectedTopic || undefined);
+
+      const currentChat = chats.find(c => c.id === selectedChat);
+      sendPushForMessage({
+        chatId: selectedChat,
+        topicId: selectedTopic || undefined,
+        senderId: userId,
+        senderName: userName,
+        text: messageText || undefined,
+        chatName: currentChat?.name,
+      });
 
       setChatMessages(prev => ({
         ...prev,

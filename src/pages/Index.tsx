@@ -126,7 +126,7 @@ const Index = () => {
   if (currentView === 'settings') {
     return (
       <div className="flex bg-background" style={{ height: 'var(--app-height, 100dvh)' }}>
-        <AppSettings onBack={handleBackToChat} />
+        <AppSettings onBack={handleBackToChat} userId={userId} />
       </div>
     );
   }

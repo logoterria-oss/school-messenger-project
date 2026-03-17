@@ -1,7 +1,6 @@
 import { shouldPlaySound, shouldShowPush } from './notificationSettings';
 
 let audioContext: AudioContext | null = null;
-let swRegistration: ServiceWorkerRegistration | null = null;
 
 function getAudioContext(): AudioContext {
   if (!audioContext) {
@@ -35,64 +34,166 @@ export function playNotificationSound() {
   } catch { /* ignore */ }
 }
 
-let notificationPermission: NotificationPermission = 'default';
+let pushApiUrl = '';
 
-async function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) return;
+export function setPushApiUrl(url: string) {
+  pushApiUrl = url;
+}
+
+let swRegistration: ServiceWorkerRegistration | null = null;
+
+async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!('serviceWorker' in navigator)) return null;
   try {
     const reg = await navigator.serviceWorker.register('/sw.js');
     swRegistration = reg;
-  } catch { /* ignore */ }
-}
-
-export function requestNotificationPermission() {
-  registerServiceWorker();
-
-  if (!('Notification' in window)) return;
-  notificationPermission = Notification.permission;
-  if (notificationPermission === 'default') {
-    Notification.requestPermission().then(perm => {
-      notificationPermission = perm;
-    });
+    console.log('[Push] SW registered');
+    return reg;
+  } catch (err) {
+    console.error('[Push] SW registration failed:', err);
+    return null;
   }
 }
 
-function isPageHidden(): boolean {
-  return document.hidden;
+async function getVapidPublicKey(): Promise<string | null> {
+  if (!pushApiUrl) return null;
+  try {
+    const resp = await fetch(`${pushApiUrl}?action=vapid-key`);
+    const data = await resp.json();
+    return data.publicKey || null;
+  } catch {
+    return null;
+  }
 }
 
-function showBrowserNotification(chatName: string) {
-  if (notificationPermission !== 'granted') return;
-  if (!isPageHidden()) return;
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
-  const title = 'Новое сообщение';
-  const body = `Новое сообщение в "${chatName}"`;
-  const icon = 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/favicon-1773208222088.jpg';
-  const tag = `chat-${chatName}`;
+async function sendSubscriptionToServer(subscription: PushSubscription, userId: string): Promise<boolean> {
+  if (!pushApiUrl) return false;
+  const key = subscription.getKey('p256dh');
+  const auth = subscription.getKey('auth');
+  if (!key || !auth) return false;
 
-  if (swRegistration && swRegistration.active) {
-    swRegistration.active.postMessage({
-      type: 'SHOW_NOTIFICATION',
-      title,
-      body,
-      icon,
-      tag,
+  const p256dh = btoa(String.fromCharCode(...new Uint8Array(key)));
+  const authStr = btoa(String.fromCharCode(...new Uint8Array(auth)));
+
+  try {
+    const resp = await fetch(pushApiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+      body: JSON.stringify({
+        action: 'subscribe',
+        endpoint: subscription.endpoint,
+        p256dh,
+        auth: authStr,
+      }),
     });
-    return;
+    const data = await resp.json();
+    console.log('[Push] Subscription saved:', data);
+    return data.ok === true;
+  } catch (err) {
+    console.error('[Push] Failed to save subscription:', err);
+    return false;
+  }
+}
+
+export type PushStatus = 'unsupported' | 'denied' | 'prompt' | 'subscribed' | 'unsubscribed';
+
+export async function getPushStatus(): Promise<PushStatus> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return 'unsupported';
+  }
+  if (Notification.permission === 'denied') return 'denied';
+
+  const reg = swRegistration || await registerServiceWorker();
+  if (!reg) return 'unsupported';
+
+  const sub = await reg.pushManager.getSubscription();
+  if (sub) return 'subscribed';
+  if (Notification.permission === 'default') return 'prompt';
+  return 'unsubscribed';
+}
+
+export async function subscribeToPush(userId: string): Promise<boolean> {
+  console.log('[Push] Starting subscription for user:', userId);
+
+  const reg = swRegistration || await registerServiceWorker();
+  if (!reg) {
+    console.error('[Push] No SW registration');
+    return false;
+  }
+
+  const vapidKey = await getVapidPublicKey();
+  if (!vapidKey) {
+    console.error('[Push] No VAPID key');
+    return false;
   }
 
   try {
-    const notification = new Notification(title, {
-      body,
-      icon: '/favicon.ico',
-      tag: `chat-notification-${Date.now()}`,
+    const permission = await Notification.requestPermission();
+    console.log('[Push] Permission:', permission);
+    if (permission !== 'granted') return false;
+
+    const subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
     });
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
-    setTimeout(() => notification.close(), 5000);
-  } catch { /* ignore */ }
+    console.log('[Push] Subscribed:', subscription.endpoint);
+
+    return await sendSubscriptionToServer(subscription, userId);
+  } catch (err) {
+    console.error('[Push] Subscribe failed:', err);
+    return false;
+  }
+}
+
+export async function unsubscribeFromPush(userId: string): Promise<boolean> {
+  const reg = swRegistration || await registerServiceWorker();
+  if (!reg) return false;
+
+  try {
+    const subscription = await reg.pushManager.getSubscription();
+    if (!subscription) return true;
+
+    if (pushApiUrl) {
+      await fetch(pushApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+        body: JSON.stringify({
+          action: 'unsubscribe',
+          endpoint: subscription.endpoint,
+        }),
+      }).catch(() => {});
+    }
+
+    await subscription.unsubscribe();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function ensurePushSubscription(userId: string): Promise<void> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+  const reg = swRegistration || await registerServiceWorker();
+  if (!reg) return;
+
+  if (Notification.permission !== 'granted') return;
+
+  const existing = await reg.pushManager.getSubscription();
+  if (existing) {
+    await sendSubscriptionToServer(existing, userId);
+  }
 }
 
 export function updateAppBadge(count: number) {
@@ -104,10 +205,6 @@ export function updateAppBadge(count: number) {
         (navigator as unknown as { clearAppBadge: () => Promise<void> }).clearAppBadge();
       }
     } catch { /* ignore */ }
-  }
-
-  if (swRegistration && swRegistration.active) {
-    swRegistration.active.postMessage({ type: 'SET_BADGE', count });
   }
 }
 
@@ -152,10 +249,39 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
     const prev = lastUnreadMap[item.id] || 0;
     if (item.unread > prev) {
       if (shouldPlaySound(item.id)) needSound = true;
-      if (shouldShowPush(item.id)) showBrowserNotification(item.name);
     }
   }
 
   if (needSound) playNotificationSound();
   lastUnreadMap = currentMap;
+}
+
+export async function sendPushForMessage(params: {
+  chatId: string;
+  topicId?: string;
+  senderId: string;
+  senderName: string;
+  text?: string;
+  chatName?: string;
+}): Promise<void> {
+  if (!pushApiUrl) return;
+  try {
+    await fetch(pushApiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'send',
+        chatId: params.chatId,
+        topicId: params.topicId,
+        senderId: params.senderId,
+        senderName: params.senderName,
+        text: params.text || '',
+        chatName: params.chatName || '',
+      }),
+    });
+  } catch { /* ignore */ }
+}
+
+export function requestNotificationPermission() {
+  registerServiceWorker();
 }

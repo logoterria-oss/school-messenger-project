@@ -1,0 +1,1 @@
+{"tests": [{"name": "Get VAPID public key", "method": "GET", "path": "/?action=vapid-key", "expectedStatus": 200, "expectedBody": {"publicKey": "string"}, "bodyMatcher": "partial"}, {"name": "OPTIONS returns CORS", "method": "OPTIONS", "path": "/", "expectedStatus": 200}]}

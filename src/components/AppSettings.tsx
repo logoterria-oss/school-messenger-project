@@ -1,20 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { getGlobalSettings, setGlobalSound, setGlobalPush } from '@/utils/notificationSettings';
+import { getPushStatus, subscribeToPush, unsubscribeFromPush, type PushStatus } from '@/utils/notificationSound';
 
 type AppSettingsProps = {
   onBack: () => void;
+  userId?: string;
 };
 
-export const AppSettings = ({ onBack }: AppSettingsProps) => {
+export const AppSettings = ({ onBack, userId }: AppSettingsProps) => {
   const globalSettings = getGlobalSettings();
   const [notifications, setNotifications] = useState(globalSettings.push);
   const [soundEnabled, setSoundEnabled] = useState(globalSettings.sound);
   const [darkMode, setDarkMode] = useState(false);
   const [autoDownload, setAutoDownload] = useState(false);
+  const [pushStatus, setPushStatus] = useState<PushStatus>('prompt');
+  const [pushLoading, setPushLoading] = useState(false);
+
+  useEffect(() => {
+    getPushStatus().then(setPushStatus);
+  }, []);
+
+  const handlePushToggle = async () => {
+    if (!userId) return;
+    setPushLoading(true);
+
+    if (pushStatus === 'subscribed') {
+      const ok = await unsubscribeFromPush(userId);
+      if (ok) setPushStatus('unsubscribed');
+    } else {
+      const ok = await subscribeToPush(userId);
+      setPushStatus(ok ? 'subscribed' : 'denied');
+    }
+    setPushLoading(false);
+  };
+
+  const pushLabel = () => {
+    switch (pushStatus) {
+      case 'subscribed': return 'Push-уведомления включены';
+      case 'denied': return 'Push-уведомления заблокированы';
+      case 'unsupported': return 'Push-уведомления не поддерживаются';
+      default: return 'Push-уведомления отключены';
+    }
+  };
+
+  const pushDescription = () => {
+    switch (pushStatus) {
+      case 'subscribed': return 'Вы будете получать уведомления даже когда приложение свёрнуто';
+      case 'denied': return 'Разблокируйте уведомления в настройках браузера';
+      case 'unsupported': return 'Ваш браузер не поддерживает push-уведомления';
+      default: return 'Включите, чтобы получать уведомления о новых сообщениях';
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-background" style={{ height: 'var(--app-height, 100dvh)' }}>
@@ -43,13 +83,37 @@ export const AppSettings = ({ onBack }: AppSettingsProps) => {
               Уведомления
             </h3>
             <div className="space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <Label className="font-medium">{pushLabel()}</Label>
+                  <p className="text-sm text-muted-foreground">{pushDescription()}</p>
+                </div>
+                {pushStatus !== 'unsupported' && pushStatus !== 'denied' && (
+                  <Button
+                    variant={pushStatus === 'subscribed' ? 'outline' : 'default'}
+                    size="sm"
+                    className="rounded-xl shrink-0"
+                    onClick={handlePushToggle}
+                    disabled={pushLoading}
+                  >
+                    {pushLoading ? (
+                      <Icon name="Loader2" size={16} className="animate-spin" />
+                    ) : pushStatus === 'subscribed' ? (
+                      'Отключить'
+                    ) : (
+                      'Включить'
+                    )}
+                  </Button>
+                )}
+              </div>
+
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="notifications" className="font-medium">
-                    Включить уведомления
+                    Уведомления в приложении
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Получайте уведомления о новых сообщениях
+                    Показывать счётчики непрочитанных
                   </p>
                 </div>
                 <Switch

@@ -6,6 +6,7 @@ export const API_URLS = {
   users: `${API_BASE}/093c9bd4-bdb3-41c4-865c-e707f472dc3c`,
   chats: `${API_BASE}/7321ff36-8923-4d5f-ba35-61643bc89545`,
   messages: `${API_BASE}/7e041335-402a-4ff5-9199-6d3754f1d2d5`,
+  push: `${API_BASE}/6f14d956-9bae-4666-99e7-38a5840a017b`,
 };
 
 export type User = {

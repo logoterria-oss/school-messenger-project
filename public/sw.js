@@ -1,5 +1,3 @@
-const CACHE_NAME = 'lineya-v1';
-
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -8,32 +6,27 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
-    const { title, body, icon, tag, data } = event.data;
-    event.waitUntil(
-      self.registration.showNotification(title, {
-        body,
-        icon: icon || '/favicon.ico',
-        tag: tag || 'chat-notification',
-        badge: icon || '/favicon.ico',
-        vibrate: [200, 100, 200],
-        renotify: true,
-        data: data || {},
-      })
-    );
+self.addEventListener('push', (event) => {
+  let data = { title: 'Новое сообщение', body: '' };
+  try {
+    data = event.data.json();
+  } catch (e) {
+    data.body = event.data ? event.data.text() : '';
   }
 
-  if (event.data && event.data.type === 'SET_BADGE') {
-    const count = event.data.count || 0;
-    if (navigator.setAppBadge) {
-      if (count > 0) {
-        navigator.setAppBadge(count);
-      } else {
-        navigator.clearAppBadge();
-      }
-    }
-  }
+  const options = {
+    body: data.body || '',
+    icon: data.icon || '/favicon.ico',
+    badge: data.icon || '/favicon.ico',
+    tag: data.tag || 'chat-notification',
+    vibrate: [200, 100, 200],
+    renotify: true,
+    data: data.data || {},
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Новое сообщение', options)
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {
