@@ -567,7 +567,13 @@ export const useChatLogic = () => {
     );
   }, [groupTopics]);
 
-  const handleSelectChat = (chatId: string) => {
+  const handleSelectChat = (chatId: string | null) => {
+    if (!chatId) {
+      setSelectedChat(null);
+      setSelectedGroup(null);
+      setSelectedTopic(null);
+      return;
+    }
     const chat = chats.find(c => c.id === chatId);
     setSelectedChat(chatId);
     

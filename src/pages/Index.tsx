@@ -109,6 +109,7 @@ const Index = () => {
 
   const handleMobileBack = () => {
     setMobileShowChat(false);
+    handleSelectChat(null);
   };
 
   if (!isAuthenticated || !userRole) {
