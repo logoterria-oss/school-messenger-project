@@ -15,7 +15,8 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem(DISMISSED_KEY)) {
+    const dismissedAt = localStorage.getItem(DISMISSED_KEY);
+    if (dismissedAt && Date.now() - Number(dismissedAt) < 24 * 60 * 60 * 1000) {
       setDismissed(true);
       return;
     }
@@ -40,7 +41,7 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
 
   const handleDismiss = () => {
     setDismissed(true);
-    localStorage.setItem(DISMISSED_KEY, '1');
+    localStorage.setItem(DISMISSED_KEY, String(Date.now()));
   };
 
   return (
