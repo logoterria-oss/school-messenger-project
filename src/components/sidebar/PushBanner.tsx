@@ -81,8 +81,14 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
   const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
-    getPushStatus().then(setStatus);
-  }, []);
+    console.log('[PushBanner] checking, userId:', userId, 'SW:', 'serviceWorker' in navigator, 'Push:', 'PushManager' in window, 'Notification:', 'Notification' in window);
+    getPushStatus().then(s => {
+      console.log('[PushBanner] status:', s);
+      setStatus(s);
+    });
+  }, [userId]);
+
+  console.log('[PushBanner] render, status:', status);
 
   if (!status || status === 'subscribed') {
     return null;
