@@ -90,14 +90,19 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
   const [loading, setLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
   useEffect(() => {
+    console.log('[PushBanner] init, isMobile:', isMobile, 'userId:', userId, 'ua:', navigator.userAgent);
     getPushStatus().then(s => {
-      console.log('[PushBanner] status:', s, 'ua:', navigator.userAgent);
+      console.log('[PushBanner] status:', s);
       setStatus(s);
+    }).catch(err => {
+      console.error('[PushBanner] getPushStatus error:', err);
+      setStatus('unsupported');
     });
   }, [userId]);
 
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   console.log('[PushBanner] render, status:', status, 'isMobile:', isMobile);
 
   if (!status || status === 'subscribed' || !isMobile) {
