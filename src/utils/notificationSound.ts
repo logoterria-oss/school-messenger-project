@@ -1,4 +1,5 @@
 import { shouldPlaySound, shouldShowPush } from './notificationSettings';
+import { API_URLS } from '@/services/api';
 
 let audioContext: AudioContext | null = null;
 
@@ -34,12 +35,6 @@ export function playNotificationSound() {
   } catch { /* ignore */ }
 }
 
-let pushApiUrl = '';
-
-export function setPushApiUrl(url: string) {
-  pushApiUrl = url;
-}
-
 let swRegistration: ServiceWorkerRegistration | null = null;
 
 async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -56,9 +51,9 @@ async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null
 }
 
 async function getVapidPublicKey(): Promise<string | null> {
-  if (!pushApiUrl) return null;
+  if (!API_URLS.push) return null;
   try {
-    const resp = await fetch(`${pushApiUrl}?action=vapid-key`);
+    const resp = await fetch(`${API_URLS.push}?action=vapid-key`);
     const data = await resp.json();
     return data.publicKey || null;
   } catch {
@@ -78,7 +73,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 async function sendSubscriptionToServer(subscription: PushSubscription, userId: string): Promise<boolean> {
-  if (!pushApiUrl) return false;
+  if (!API_URLS.push) return false;
   const key = subscription.getKey('p256dh');
   const auth = subscription.getKey('auth');
   if (!key || !auth) return false;
@@ -87,7 +82,7 @@ async function sendSubscriptionToServer(subscription: PushSubscription, userId: 
   const authStr = btoa(String.fromCharCode(...new Uint8Array(auth)));
 
   try {
-    const resp = await fetch(pushApiUrl, {
+    const resp = await fetch(API_URLS.push, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
       body: JSON.stringify({
@@ -164,8 +159,8 @@ export async function unsubscribeFromPush(userId: string): Promise<boolean> {
     const subscription = await reg.pushManager.getSubscription();
     if (!subscription) return true;
 
-    if (pushApiUrl) {
-      await fetch(pushApiUrl, {
+    if (API_URLS.push) {
+      await fetch(API_URLS.push, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
         body: JSON.stringify({
@@ -280,32 +275,6 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
 
   if (needSound) playNotificationSound();
   lastUnreadMap = currentMap;
-}
-
-export async function sendPushForMessage(params: {
-  chatId: string;
-  topicId?: string;
-  senderId: string;
-  senderName: string;
-  text?: string;
-  chatName?: string;
-}): Promise<void> {
-  if (!pushApiUrl) return;
-  try {
-    await fetch(pushApiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'send',
-        chatId: params.chatId,
-        topicId: params.topicId,
-        senderId: params.senderId,
-        senderName: params.senderName,
-        text: params.text || '',
-        chatName: params.chatName || '',
-      }),
-    });
-  } catch { /* ignore */ }
 }
 
 export function requestNotificationPermission() {

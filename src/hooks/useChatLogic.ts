@@ -6,9 +6,8 @@ import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
-import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, setPushApiUrl, ensurePushSubscription } from '@/utils/notificationSound';
+import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
 import { applyAdminDefaults } from '@/utils/notificationSettings';
-import { API_URLS } from '@/services/api';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -356,7 +355,6 @@ export const useChatLogic = () => {
   useEffect(() => {
     if (!isAuthenticated || !userId) return;
 
-    setPushApiUrl(API_URLS.push);
     requestNotificationPermission();
     ensurePushSubscription(userId);
 
