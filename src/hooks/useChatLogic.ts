@@ -337,16 +337,6 @@ export const useChatLogic = () => {
       if (myGroup) {
         setSelectedChat(myGroup.id);
         setSelectedGroup(myGroup.id);
-        const topics = groupTopics[myGroup.id];
-        if (topics && topics.length > 0) {
-          const importantTopic = topics.find(t => t.id.endsWith('-important'));
-          const autoTopicId = importantTopic ? importantTopic.id : topics[0].id;
-          setSelectedTopic(autoTopicId);
-          markAsRead(userId, myGroup.id, autoTopicId).catch(() => {});
-          getMessages(myGroup.id, autoTopicId).then(msgs => {
-            setChatMessages(prev => ({ ...prev, [autoTopicId]: mergeMessages(prev[autoTopicId] || [], mapApiMessages(msgs)) }));
-          }).catch(() => {});
-        }
       }
     }
   }, [isAuthenticated, userRole, userId]);
