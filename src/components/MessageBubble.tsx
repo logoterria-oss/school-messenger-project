@@ -53,6 +53,30 @@ const formatScheduledTime = (isoStr: string): string => {
   return `${d.getDate()} ${months[d.getMonth()]} в ${time}`;
 };
 
+const URL_PATTERN = /(https?:\/\/[^\s<>']+|(?:www\.)[^\s<>']+)/gi;
+
+function linkify(text: string): (string | JSX.Element)[] {
+  const parts = text.split(URL_PATTERN);
+  return parts.map((part, i) => {
+    if (/^https?:\/\//i.test(part) || /^www\./i.test(part)) {
+      const href = part.startsWith('http') ? part : `https://${part}`;
+      return (
+        <a
+          key={i}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline hover:text-primary/80 break-all"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelete, canDelete, isGrouped, onCancelScheduled }: MessageBubbleProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -224,7 +248,7 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
                 /^@\[.+\]$/.test(part) ? (
                   <span key={i} className="text-primary font-semibold">@{part.slice(2, -1)}</span>
                 ) : (
-                  <span key={i}>{part}</span>
+                  <span key={i}>{linkify(part)}</span>
                 )
               )}
             </p>
