@@ -551,8 +551,8 @@ export const useChatLogic = () => {
   }, [allUsers, chats, groupTopics, chatMessages]);
 
   useEffect(() => {
-    setChats(prevChats =>
-      prevChats.map(chat => {
+    setChats(prevChats => {
+      const updated = prevChats.map(chat => {
         if (chat.type === 'group' && groupTopics[chat.id]) {
           const topics = groupTopics[chat.id];
           let unmutedUnread = 0;
@@ -578,8 +578,12 @@ export const useChatLogic = () => {
           };
         }
         return chat;
-      })
-    );
+      });
+      const totalUnread = updated.reduce((sum, c) => sum + c.unread, 0);
+      updateAppBadge(totalUnread);
+      updateDocumentTitle(totalUnread);
+      return updated;
+    });
   }, [groupTopics]);
 
   const handleSelectChat = (chatId: string | null) => {
