@@ -13,6 +13,8 @@ type PushBannerProps = {
   userId?: string;
 };
 
+const SCHEDULED_DISMISSED_KEY = 'push_scheduled_banner_dismissed';
+
 const FixHelpDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
@@ -85,12 +87,58 @@ const AddToHomeDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: 
   </Dialog>
 );
 
+const ScheduledFixDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="text-base">Как получать уведомления сразу</DialogTitle>
+      </DialogHeader>
+
+      <div className="space-y-4 mt-2">
+        <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            <Icon name="Info" size={12} className="inline mr-1 -mt-0.5" />
+            Если вы выбрали «Сводка по расписанию», уведомления приходят не сразу, а группируются и показываются в определённое время
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Icon name="Smartphone" size={18} className="text-primary shrink-0" />
+            <p className="text-sm font-semibold">iPhone / iPad</p>
+          </div>
+          <ol className="text-xs text-muted-foreground space-y-1.5 ml-6 list-decimal">
+            <li>Откройте <span className="font-medium text-foreground">Настройки</span> телефона</li>
+            <li>Перейдите в <span className="font-medium text-foreground">Уведомления</span></li>
+            <li>Найдите приложение <span className="font-medium text-foreground">ЛинэяСкул</span> (или Safari)</li>
+            <li>В разделе <span className="font-medium text-foreground">«Доставка уведомлений»</span> выберите <span className="font-medium text-foreground">«Немедленная доставка»</span></li>
+            <li>Убедитесь, что включён <span className="font-medium text-foreground">«Допуск уведомлений»</span></li>
+          </ol>
+        </div>
+
+        <div className="border-t" />
+
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            После изменения настроек вернитесь в приложение — уведомления начнут приходить мгновенно.
+          </p>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+
 export const PushBanner = ({ userId }: PushBannerProps) => {
   const [status, setStatus] = useState<PushStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showScheduledHelp, setShowScheduledHelp] = useState(false);
+  const [scheduledDismissed, setScheduledDismissed] = useState(() => {
+    try { return localStorage.getItem(SCHEDULED_DISMISSED_KEY) === '1'; } catch { return false; }
+  });
 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   useEffect(() => {
     console.log('[PushBanner] init, isMobile:', isMobile, 'userId:', userId, 'ua:', navigator.userAgent);
@@ -105,7 +153,52 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
 
   console.log('[PushBanner] render, status:', status, 'isMobile:', isMobile);
 
-  if (!status || status === 'subscribed' || !isMobile) {
+  if (!status || !isMobile) {
+    return null;
+  }
+
+  if (status === 'subscribed' && isIOS && !scheduledDismissed) {
+    return (
+      <>
+        <div className="mx-3 mt-2 mb-1 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 mt-0.5">
+              <Icon name="Clock" size={20} className="text-amber-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium leading-tight">Уведомления не приходят вовремя?</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Возможно, включена «Сводка по расписанию» — уведомления группируются и приходят с задержкой</p>
+              <div className="flex items-center gap-2 mt-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs rounded-lg border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
+                  onClick={() => setShowScheduledHelp(true)}
+                >
+                  <Icon name="HelpCircle" size={14} className="mr-1" />
+                  Как починить?
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs rounded-lg text-muted-foreground"
+                  onClick={() => {
+                    setScheduledDismissed(true);
+                    try { localStorage.setItem(SCHEDULED_DISMISSED_KEY, '1'); } catch { /* noop */ }
+                  }}
+                >
+                  Всё ок
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ScheduledFixDialog open={showScheduledHelp} onOpenChange={setShowScheduledHelp} />
+      </>
+    );
+  }
+
+  if (status === 'subscribed') {
     return null;
   }
 
