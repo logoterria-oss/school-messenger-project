@@ -1339,13 +1339,15 @@ export const useChatLogic = () => {
       role: 'student',
       avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
     };
-    setAllUsers(prev => [...prev, newUser]);
     try {
       const { createUser } = await import('@/services/api');
       await createUser({ id: newUser.id, name, phone, email: '', role: 'student', password });
     } catch (e) {
       console.error('Failed to save student to DB:', e);
+      alert('Не удалось создать ученика. Проверьте, что номер телефона не занят.');
+      return;
     }
+    setAllUsers(prev => [...prev, newUser]);
   };
 
   const handleAddParent = async (name: string, phone: string, email: string, password: string) => {
@@ -1358,13 +1360,15 @@ export const useChatLogic = () => {
       role: 'parent',
       avatar: 'https://cdn.poehali.dev/files/Родитель.jpg',
     };
-    setAllUsers(prev => [...prev, newUser]);
     try {
       const { createUser } = await import('@/services/api');
       await createUser({ id: newUser.id, name, phone, email, role: 'parent', password });
     } catch (e) {
       console.error('Failed to save parent to DB:', e);
+      alert('Не удалось создать родителя. Проверьте, что номер телефона не занят.');
+      return;
     }
+    setAllUsers(prev => [...prev, newUser]);
   };
 
   const handleAddTeacher = async (name: string, phone: string, email: string, password: string) => {
@@ -1377,14 +1381,16 @@ export const useChatLogic = () => {
       role: 'teacher',
       avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
     };
-    setAllUsers(prev => [...prev, newUser]);
-
     try {
       const { createUser } = await import('@/services/api');
       await createUser({ id: newUser.id, name, phone, email, role: 'teacher', password, avatar: newUser.avatar });
     } catch (e) {
       console.error('Failed to save teacher to DB:', e);
+      alert('Не удалось создать педагога. Проверьте, что номер телефона не занят.');
+      return;
     }
+
+    setAllUsers(prev => [...prev, newUser]);
     
     setChats(prevChats => {
       const updatedChats = prevChats.map(chat => {
@@ -1432,14 +1438,17 @@ export const useChatLogic = () => {
       role: 'admin',
       avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
     };
-    setAllUsers(prev => [...prev, newUser]);
 
     try {
       const { createUser } = await import('@/services/api');
       await createUser({ id: newAdminId, name, phone, email, role: 'admin', password, avatar: newUser.avatar });
     } catch (e) {
       console.error('Failed to save admin to DB:', e);
+      alert('Не удалось создать админа. Проверьте, что номер телефона не занят.');
+      return;
     }
+
+    setAllUsers(prev => [...prev, newUser]);
 
     setChats(prevChats => {
       const updatedChats = prevChats.map(chat => {

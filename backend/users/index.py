@@ -2,7 +2,7 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-# v2
+# v4
 
 def normalize_phone(phone_str):
     normalized = ''.join(c for c in str(phone_str) if c.isdigit())
@@ -81,10 +81,20 @@ def handler(event: dict, context) -> dict:
 
             phone_normalized = normalize_phone(data['phone'])
 
+            cur.execute("SELECT id FROM users WHERE phone = %s", (phone_normalized,))
+            existing = cur.fetchone()
+            if existing:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 409,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Пользователь с таким номером телефона уже существует'})
+                }
+
             cur.execute("""
                 INSERT INTO users (id, name, phone, email, password, role, avatar, available_slots, education_docs)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (id) DO NOTHING
                 RETURNING id, name, phone, email, role
             """, (
                 data['id'],
@@ -100,6 +110,15 @@ def handler(event: dict, context) -> dict:
 
             user = cur.fetchone()
             conn.commit()
+
+            if not user:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Не удалось создать пользователя'})
+                }
 
             return {
                 'statusCode': 201,
