@@ -123,11 +123,12 @@ export async function createUser(user: User & { password: string }): Promise<Use
     body: JSON.stringify(user),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error('Failed to create user');
+    throw new Error(data.error || 'Не удалось создать пользователя');
   }
 
-  const data = await response.json();
   return data.user;
 }
 

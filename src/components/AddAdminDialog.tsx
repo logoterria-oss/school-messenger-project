@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 type AddAdminDialogProps = {
   open: boolean;
   onClose: () => void;
-  onAdd: (name: string, phone: string, email: string, password: string) => void;
+  onAdd: (name: string, phone: string, email: string, password: string) => Promise<void> | void;
 };
 
 const generatePassword = () => {
@@ -26,17 +26,27 @@ export const AddAdminDialog = ({ open, onClose, onAdd }: AddAdminDialogProps) =>
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(generatePassword());
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!name.trim() || !phone.trim() || !email.trim()) {
       return;
     }
-    onAdd(name.trim(), phone.trim(), email.trim(), password);
-    setName('');
-    setPhone('');
-    setEmail('');
-    setPassword(generatePassword());
-    onClose();
+    setLoading(true);
+    setError('');
+    try {
+      await onAdd(name.trim(), phone.trim(), email.trim(), password);
+      setName('');
+      setPhone('');
+      setEmail('');
+      setPassword(generatePassword());
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Не удалось создать админа');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRegenerate = () => {
@@ -107,13 +117,18 @@ export const AddAdminDialog = ({ open, onClose, onAdd }: AddAdminDialogProps) =>
               </Button>
             </div>
           </div>
+          {error && (
+            <div className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
+              {error}
+            </div>
+          )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={loading}>
             Отмена
           </Button>
-          <Button onClick={handleAdd} disabled={!name.trim() || !phone.trim() || !email.trim()}>
-            Добавить
+          <Button onClick={handleAdd} disabled={!name.trim() || !phone.trim() || !email.trim() || loading}>
+            {loading ? 'Создание...' : 'Добавить'}
           </Button>
         </DialogFooter>
       </DialogContent>

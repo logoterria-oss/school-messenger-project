@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 type AddStudentDialogProps = {
   open: boolean;
   onClose: () => void;
-  onAdd: (name: string, phone: string, password: string) => void;
+  onAdd: (name: string, phone: string, password: string) => Promise<void> | void;
 };
 
 const generatePassword = () => {
@@ -25,16 +25,26 @@ export const AddStudentDialog = ({ open, onClose, onAdd }: AddStudentDialogProps
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState(generatePassword());
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!name.trim() || !phone.trim()) {
       return;
     }
-    onAdd(name.trim(), phone.trim(), password);
-    setName('');
-    setPhone('');
-    setPassword(generatePassword());
-    onClose();
+    setLoading(true);
+    setError('');
+    try {
+      await onAdd(name.trim(), phone.trim(), password);
+      setName('');
+      setPhone('');
+      setPassword(generatePassword());
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Не удалось создать ученика');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRegenerate = () => {
@@ -95,13 +105,18 @@ export const AddStudentDialog = ({ open, onClose, onAdd }: AddStudentDialogProps
               </Button>
             </div>
           </div>
+          {error && (
+            <div className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
+              {error}
+            </div>
+          )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={loading}>
             Отмена
           </Button>
-          <Button onClick={handleAdd} disabled={!name.trim() || !phone.trim()}>
-            Добавить
+          <Button onClick={handleAdd} disabled={!name.trim() || !phone.trim() || loading}>
+            {loading ? 'Создание...' : 'Добавить'}
           </Button>
         </DialogFooter>
       </DialogContent>
