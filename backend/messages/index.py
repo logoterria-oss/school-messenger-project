@@ -172,6 +172,7 @@ def handler(event: dict, context) -> dict:
 
             conn.commit()
 
+            subs = []
             try:
                 cur2 = conn.cursor(cursor_factory=RealDictCursor)
                 cur2.execute("""
@@ -187,44 +188,44 @@ def handler(event: dict, context) -> dict:
                         participant_ids
                     )
                     subs = cur2.fetchall()
-                    cur2.close()
+                cur2.close()
+            except Exception as e:
+                print(f"[Push] DB error: {e}")
+            finally:
+                if not conn.closed:
                     conn.close()
 
-                    if subs:
-                        from pywebpush import webpush, WebPushException
-                        vapid_private = os.environ.get('VAPID_PRIVATE_KEY', '')
-                        vapid_claims = {'sub': 'mailto:push@lineya.school'}
-                        preview = (text or '')[:100] or 'Новое сообщение'
-                        has_mention = '@[' in (text or '')
-                        payload = json.dumps({
-                            'title': sender_name,
-                            'body': preview,
-                            'icon': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/favicon-1773208222088.jpg',
-                            'tag': 'chat-%s' % chat_id,
-                            'data': {'chatId': chat_id, 'topicId': topic_id, 'hasMention': has_mention}
-                        })
-                        for sub in subs:
-                            try:
-                                webpush(
-                                    subscription_info={
-                                        'endpoint': sub['endpoint'],
-                                        'keys': {'p256dh': sub['p256dh'], 'auth': sub['auth']}
-                                    },
-                                    data=payload,
-                                    vapid_private_key=vapid_private,
-                                    vapid_claims=vapid_claims
-                                )
-                            except WebPushException as e:
-                                print(f"[Push] WebPushException: {e}")
-                            except Exception as e:
-                                print(f"[Push] Error: {e}")
-                else:
-                    cur2.close()
-                    conn.close()
-            except Exception as e:
-                print(f"[Push] Send error: {e}")
-                if 'conn' in dir() and conn and not conn.closed:
-                    conn.close()
+            if subs:
+                try:
+                    from pywebpush import webpush, WebPushException
+                    vapid_private = os.environ.get('VAPID_PRIVATE_KEY', '')
+                    vapid_claims = {'sub': 'mailto:push@lineya.school'}
+                    preview = (text or '')[:100] or 'Новое сообщение'
+                    has_mention = '@[' in (text or '')
+                    payload = json.dumps({
+                        'title': sender_name,
+                        'body': preview,
+                        'icon': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/favicon-1773208222088.jpg',
+                        'tag': 'chat-%s' % chat_id,
+                        'data': {'chatId': chat_id, 'topicId': topic_id, 'hasMention': has_mention}
+                    })
+                    for sub in subs:
+                        try:
+                            webpush(
+                                subscription_info={
+                                    'endpoint': sub['endpoint'],
+                                    'keys': {'p256dh': sub['p256dh'], 'auth': sub['auth']}
+                                },
+                                data=payload,
+                                vapid_private_key=vapid_private,
+                                vapid_claims=vapid_claims
+                            )
+                        except WebPushException as e:
+                            print(f"[Push] WebPushException: {e}")
+                        except Exception as e:
+                            print(f"[Push] Error: {e}")
+                except Exception as e:
+                    print(f"[Push] Send error: {e}")
 
             return {
                 'statusCode': 201,

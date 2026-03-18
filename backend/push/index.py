@@ -2,7 +2,7 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-# v2
+# v3
 
 def handler(event: dict, context) -> dict:
     '''API для управления push-подписками и отправки уведомлений'''
@@ -62,9 +62,7 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Missing fields: user_id, endpoint, p256dh, auth'})
                 }
 
-            cur.execute("""
-                DELETE FROM push_subscriptions WHERE user_id = %s AND endpoint = %s
-            """, (user_id, endpoint))
+            cur.execute("DELETE FROM push_subscriptions WHERE endpoint = %s", (endpoint,))
 
             cur.execute("""
                 INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, updated_at)
