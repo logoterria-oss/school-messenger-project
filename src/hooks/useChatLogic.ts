@@ -531,7 +531,7 @@ export const useChatLogic = () => {
           setGroupTopics(mappedTopics);
         }
       }).catch(() => {});
-    }, 15000);
+    }, 5000);
 
     return () => {
       clearInterval(pollInterval);
