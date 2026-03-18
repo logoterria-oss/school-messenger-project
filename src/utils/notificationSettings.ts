@@ -21,6 +21,28 @@ function loadSettings(): AllSettings {
 
 function saveSettings(s: AllSettings) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  syncMutedToSW(s);
+}
+
+function syncMutedToSW(s: AllSettings) {
+  try {
+    const mutedIds = Object.entries(s.perChat)
+      .filter(([, v]) => !v.sound && !v.push)
+      .map(([k]) => k);
+
+    const req = indexedDB.open('notification_settings', 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('muted_topics')) {
+        db.createObjectStore('muted_topics');
+      }
+    };
+    req.onsuccess = () => {
+      const db = req.result;
+      const tx = db.transaction('muted_topics', 'readwrite');
+      tx.objectStore('muted_topics').put(mutedIds, 'muted');
+    };
+  } catch { /* ignore */ }
 }
 
 export function getGlobalSettings(): { sound: boolean; push: boolean } {
@@ -73,6 +95,10 @@ export function shouldShowPush(chatId: string): boolean {
   const chatS = s.perChat[chatId];
   if (chatS && !chatS.push) return false;
   return true;
+}
+
+export function syncMutedSettingsToSW() {
+  syncMutedToSW(loadSettings());
 }
 
 const ADMIN_MUTED_SUFFIXES = ['-zoom', '-homework', '-reports'];

@@ -7,7 +7,7 @@ import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
-import { applyAdminDefaults, getChatSettings } from '@/utils/notificationSettings';
+import { applyAdminDefaults, getChatSettings, syncMutedSettingsToSW } from '@/utils/notificationSettings';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -412,6 +412,7 @@ export const useChatLogic = () => {
               applyAdminDefaults(allTopicIds);
               setMuteVersion(v => v + 1);
             }
+            syncMutedSettingsToSW();
             const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
             checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
           }
@@ -438,6 +439,7 @@ export const useChatLogic = () => {
             applyAdminDefaults(allTopicIds);
             setMuteVersion(v => v + 1);
           }
+          syncMutedSettingsToSW();
           const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
           checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
         }
