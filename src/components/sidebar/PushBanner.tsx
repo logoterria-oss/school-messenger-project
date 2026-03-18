@@ -45,10 +45,12 @@ const FixHelpDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v
             <p className="text-sm font-semibold">Android</p>
           </div>
           <ol className="text-xs text-muted-foreground space-y-1.5 ml-6 list-decimal">
-            <li>Нажмите на <span className="font-medium text-foreground">значок замка</span> (или ⓘ) слева от адресной строки</li>
-            <li>Найдите пункт <span className="font-medium text-foreground">Уведомления</span></li>
-            <li>Переключите на <span className="font-medium text-foreground">Разрешить</span></li>
-            <li><span className="font-medium text-foreground">Перезагрузите страницу</span></li>
+            <li>Откройте <span className="font-medium text-foreground">Настройки</span> телефона</li>
+            <li>Перейдите в <span className="font-medium text-foreground">Приложения</span> (или «Приложения и уведомления»)</li>
+            <li>Найдите <span className="font-medium text-foreground">ЛинэяСкул</span> (или браузер, через который открыто приложение)</li>
+            <li>Нажмите <span className="font-medium text-foreground">Уведомления</span></li>
+            <li>Включите <span className="font-medium text-foreground">«Показывать уведомления»</span></li>
+            <li>Вернитесь в приложение и <span className="font-medium text-foreground">перезагрузите страницу</span></li>
           </ol>
         </div>
       </div>
