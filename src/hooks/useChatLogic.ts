@@ -1428,6 +1428,7 @@ export const useChatLogic = () => {
   };
 
   const handleAddAdmin = async (name: string, phone: string, email: string, password: string) => {
+    console.log('[AddAdmin] Creating admin:', name, phone);
     const newAdminId = `admin-${Date.now()}`;
     const newUser: User = {
       id: newAdminId,
@@ -1441,9 +1442,10 @@ export const useChatLogic = () => {
 
     try {
       const { createUser } = await import('@/services/api');
-      await createUser({ id: newAdminId, name, phone, email, role: 'admin', password, avatar: newUser.avatar });
+      const result = await createUser({ id: newAdminId, name, phone, email, role: 'admin', password, avatar: newUser.avatar });
+      console.log('[AddAdmin] Created successfully:', result);
     } catch (e) {
-      console.error('Failed to save admin to DB:', e);
+      console.error('[AddAdmin] Failed to save admin to DB:', e);
       alert('Не удалось создать админа. Проверьте, что номер телефона не занят.');
       return;
     }
