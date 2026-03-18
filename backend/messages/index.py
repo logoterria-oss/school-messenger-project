@@ -195,12 +195,13 @@ def handler(event: dict, context) -> dict:
                         vapid_private = os.environ.get('VAPID_PRIVATE_KEY', '')
                         vapid_claims = {'sub': 'mailto:push@lineya.school'}
                         preview = (text or '')[:100] or 'Новое сообщение'
+                        has_mention = '@[' in (text or '')
                         payload = json.dumps({
                             'title': sender_name,
                             'body': preview,
                             'icon': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/favicon-1773208222088.jpg',
                             'tag': 'chat-%s' % chat_id,
-                            'data': {'chatId': chat_id, 'topicId': topic_id}
+                            'data': {'chatId': chat_id, 'topicId': topic_id, 'hasMention': has_mention}
                         })
                         for sub in subs:
                             try:

@@ -44,9 +44,10 @@ self.addEventListener('push', (event) => {
   }
 
   const topicId = data.data && data.data.topicId;
+  const hasMention = data.data && data.data.hasMention;
 
   const showNotif = getMutedTopics().then(mutedList => {
-    if (topicId && mutedList.includes(topicId)) {
+    if (topicId && mutedList.includes(topicId) && !hasMention) {
       return;
     }
 

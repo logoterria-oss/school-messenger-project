@@ -247,21 +247,25 @@ export function updateDocumentTitle(totalUnread: number) {
   }
 }
 
-type UnreadInfo = { id: string; name: string; unread: number };
+type UnreadInfo = { id: string; name: string; unread: number; unreadMentions?: number };
 
 let lastUnreadMap: Record<string, number> = {};
+let lastMentionsMap: Record<string, number> = {};
 let initialized = false;
 
 export function resetNotificationState() {
   lastUnreadMap = {};
+  lastMentionsMap = {};
   initialized = false;
 }
 
 export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
   const allItems = [...chats, ...(topics || [])];
   const currentMap: Record<string, number> = {};
+  const currentMentions: Record<string, number> = {};
   for (const c of allItems) {
     currentMap[c.id] = c.unread;
+    currentMentions[c.id] = c.unreadMentions || 0;
   }
 
   const totalUnread = chats.reduce((sum, c) => sum + c.unread, 0);
@@ -270,6 +274,7 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
 
   if (!initialized) {
     lastUnreadMap = currentMap;
+    lastMentionsMap = currentMentions;
     initialized = true;
     return;
   }
@@ -277,13 +282,19 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
   let needSound = false;
   for (const item of allItems) {
     const prev = lastUnreadMap[item.id] || 0;
-    if (item.unread > prev) {
+    const prevMentions = lastMentionsMap[item.id] || 0;
+    const curMentions = item.unreadMentions || 0;
+
+    if (curMentions > prevMentions) {
+      needSound = true;
+    } else if (item.unread > prev) {
       if (shouldPlaySound(item.id)) needSound = true;
     }
   }
 
   if (needSound) playNotificationSound();
   lastUnreadMap = currentMap;
+  lastMentionsMap = currentMentions;
 }
 
 export function requestNotificationPermission() {

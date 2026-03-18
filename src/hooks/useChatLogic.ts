@@ -413,8 +413,8 @@ export const useChatLogic = () => {
               setMuteVersion(v => v + 1);
             }
             syncMutedSettingsToSW();
-            const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
-            checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
+            const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
+            checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
           }
         }).catch(() => {});
         return;
@@ -525,8 +525,8 @@ export const useChatLogic = () => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
           const deduped = deduplicatePrivateChats(mappedChats);
-          const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
-          checkAndPlaySound(deduped.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
+          const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
+          checkAndPlaySound(deduped.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
           setChats(deduped);
           setGroupTopics(mappedTopics);
         }
@@ -556,24 +556,24 @@ export const useChatLogic = () => {
         if (chat.type === 'group' && groupTopics[chat.id]) {
           const topics = groupTopics[chat.id];
           let unmutedUnread = 0;
-          let unmutedMentions = 0;
+          let allMentions = 0;
           let mutedHasUnread = false;
 
           for (const topic of topics) {
             const s = getChatSettings(topic.id);
             const isMuted = !s.sound && !s.push;
+            allMentions += topic.unreadMentions || 0;
             if (isMuted) {
               if (topic.unread > 0) mutedHasUnread = true;
             } else {
               unmutedUnread += topic.unread;
-              unmutedMentions += topic.unreadMentions || 0;
             }
           }
 
           return {
             ...chat,
             unread: unmutedUnread,
-            unreadMentions: unmutedMentions,
+            unreadMentions: allMentions,
             hasMutedUnread: mutedHasUnread,
           };
         }
@@ -657,8 +657,10 @@ export const useChatLogic = () => {
         };
         let topicUnread = 0;
         let topicMutedHasUnread = false;
+        let topicAllMentions = 0;
         for (const t of updatedTopics[selectedGroup]) {
           const ts = getChatSettings(t.id);
+          topicAllMentions += t.unreadMentions || 0;
           if (!ts.sound && !ts.push) {
             if (t.unread > 0) topicMutedHasUnread = true;
           } else {
@@ -667,7 +669,7 @@ export const useChatLogic = () => {
         }
         setChats(prevChats => {
           const updated = prevChats.map(c =>
-            c.id === selectedGroup ? { ...c, unread: topicUnread, hasMutedUnread: topicMutedHasUnread } : c
+            c.id === selectedGroup ? { ...c, unread: topicUnread, unreadMentions: topicAllMentions, hasMutedUnread: topicMutedHasUnread } : c
           );
           const totalUnread = updated.reduce((sum, c) => sum + c.unread, 0);
           updateAppBadge(totalUnread);
