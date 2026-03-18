@@ -5,6 +5,12 @@ import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { getGlobalSettings, setGlobalSound, setGlobalPush } from '@/utils/notificationSettings';
 import { getPushStatus, subscribeToPush, unsubscribeFromPush, type PushStatus } from '@/utils/notificationSound';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 type AppSettingsProps = {
   onBack: () => void;
@@ -19,6 +25,8 @@ export const AppSettings = ({ onBack, userId }: AppSettingsProps) => {
   const [autoDownload, setAutoDownload] = useState(false);
   const [pushStatus, setPushStatus] = useState<PushStatus>('prompt');
   const [pushLoading, setPushLoading] = useState(false);
+  const [showScheduledHelp, setShowScheduledHelp] = useState(false);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   useEffect(() => {
     getPushStatus().then(setPushStatus);
@@ -106,6 +114,27 @@ export const AppSettings = ({ onBack, userId }: AppSettingsProps) => {
                   </Button>
                 )}
               </div>
+
+              {pushStatus === 'subscribed' && isIOS && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                  <div className="flex items-start gap-2.5">
+                    <Icon name="Clock" size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium leading-tight">Уведомления приходят с задержкой?</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Возможно, включена «Сводка по расписанию» — уведомления группируются и доставляются не сразу</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-2 h-7 text-xs rounded-lg border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
+                        onClick={() => setShowScheduledHelp(true)}
+                      >
+                        <Icon name="HelpCircle" size={14} className="mr-1" />
+                        Как починить?
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div>
@@ -233,6 +262,39 @@ export const AppSettings = ({ onBack, userId }: AppSettingsProps) => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={showScheduledHelp} onOpenChange={setShowScheduledHelp}>
+        <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">Как получать уведомления сразу</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                <Icon name="Info" size={12} className="inline mr-1 -mt-0.5" />
+                Если вы выбрали «Сводка по расписанию», уведомления приходят не сразу, а группируются и показываются в определённое время
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Icon name="Smartphone" size={18} className="text-primary shrink-0" />
+                <p className="text-sm font-semibold">iPhone / iPad</p>
+              </div>
+              <ol className="text-xs text-muted-foreground space-y-1.5 ml-6 list-decimal">
+                <li>Откройте <span className="font-medium text-foreground">Настройки</span> телефона</li>
+                <li>Перейдите в <span className="font-medium text-foreground">Уведомления</span></li>
+                <li>Найдите приложение <span className="font-medium text-foreground">ЛинэяСкул</span> (или Safari)</li>
+                <li>В разделе <span className="font-medium text-foreground">«Доставка уведомлений»</span> выберите <span className="font-medium text-foreground">«Немедленная доставка»</span></li>
+                <li>Убедитесь, что включён <span className="font-medium text-foreground">«Допуск уведомлений»</span></li>
+              </ol>
+            </div>
+            <div className="border-t" />
+            <p className="text-xs text-muted-foreground">
+              После изменения настроек вернитесь в приложение — уведомления начнут приходить мгновенно.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
