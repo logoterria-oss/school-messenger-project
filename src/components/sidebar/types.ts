@@ -7,6 +7,7 @@ export type Chat = {
   timestamp: string;
   unread: number;
   unreadMentions?: number;
+  hasMutedUnread?: boolean;
   type: 'group' | 'private';
   leadTeachers?: string[];
   leadAdmin?: string;

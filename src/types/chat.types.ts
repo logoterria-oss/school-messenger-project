@@ -54,6 +54,7 @@ export type Chat = {
   timestamp: string;
   unread: number;
   unreadMentions?: number;
+  hasMutedUnread?: boolean;
   type: 'group' | 'private';
   isPinned?: boolean;
   isArchived?: boolean;

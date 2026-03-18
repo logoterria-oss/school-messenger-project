@@ -7,7 +7,7 @@ import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
-import { applyAdminDefaults } from '@/utils/notificationSettings';
+import { applyAdminDefaults, getChatSettings } from '@/utils/notificationSettings';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -552,15 +552,28 @@ export const useChatLogic = () => {
     setChats(prevChats =>
       prevChats.map(chat => {
         if (chat.type === 'group' && groupTopics[chat.id]) {
-          const totalUnread = groupTopics[chat.id].reduce(
-            (sum, topic) => sum + topic.unread,
-            0
-          );
-          const totalMentions = groupTopics[chat.id].reduce(
-            (sum, topic) => sum + (topic.unreadMentions || 0),
-            0
-          );
-          return { ...chat, unread: totalUnread, unreadMentions: totalMentions };
+          const topics = groupTopics[chat.id];
+          let unmutedUnread = 0;
+          let unmutedMentions = 0;
+          let mutedHasUnread = false;
+
+          for (const topic of topics) {
+            const s = getChatSettings(topic.id);
+            const isMuted = !s.sound && !s.push;
+            if (isMuted) {
+              if (topic.unread > 0) mutedHasUnread = true;
+            } else {
+              unmutedUnread += topic.unread;
+              unmutedMentions += topic.unreadMentions || 0;
+            }
+          }
+
+          return {
+            ...chat,
+            unread: unmutedUnread,
+            unreadMentions: unmutedMentions,
+            hasMutedUnread: mutedHasUnread,
+          };
         }
         return chat;
       })
@@ -640,10 +653,19 @@ export const useChatLogic = () => {
             topic.id === topicId ? { ...topic, unread: 0, unreadMentions: 0 } : topic
           )
         };
-        const topicUnread = updatedTopics[selectedGroup].reduce((s, t) => s + t.unread, 0);
+        let topicUnread = 0;
+        let topicMutedHasUnread = false;
+        for (const t of updatedTopics[selectedGroup]) {
+          const ts = getChatSettings(t.id);
+          if (!ts.sound && !ts.push) {
+            if (t.unread > 0) topicMutedHasUnread = true;
+          } else {
+            topicUnread += t.unread;
+          }
+        }
         setChats(prevChats => {
           const updated = prevChats.map(c =>
-            c.id === selectedGroup ? { ...c, unread: topicUnread } : c
+            c.id === selectedGroup ? { ...c, unread: topicUnread, hasMutedUnread: topicMutedHasUnread } : c
           );
           const totalUnread = updated.reduce((sum, c) => sum + c.unread, 0);
           updateAppBadge(totalUnread);

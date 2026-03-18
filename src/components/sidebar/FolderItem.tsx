@@ -77,7 +77,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
 
   const allMentions = showMentionBadge ? chats.reduce((sum, c) => sum + (c.unreadMentions || 0), 0) : 0;
   const unmutedUnread = chats.filter(c => !isChatMuted(c)).reduce((sum, c) => sum + (c.unread || 0), 0);
-  const hasMutedUnread = chats.some(c => isChatMuted(c) && (c.unread || 0) > 0);
+  const hasMutedUnread = chats.some(c => (isChatMuted(c) && (c.unread || 0) > 0) || c.hasMutedUnread);
 
   const renderBadge = () => {
     if (isOpen) return null;
@@ -87,12 +87,17 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
       </Badge>
     );
     if (unmutedUnread > 0) return (
-      <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
-        {unmutedUnread}
-      </Badge>
+      <div className="flex items-center gap-1">
+        <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
+          {unmutedUnread}
+        </Badge>
+        {hasMutedUnread && (
+          <div className="w-[10px] h-[10px] rounded-full bg-muted-foreground/40 flex-shrink-0" />
+        )}
+      </div>
     );
     if (hasMutedUnread) return (
-      <div className="w-[10px] h-[10px] rounded-full bg-primary/70 flex-shrink-0" />
+      <div className="w-[10px] h-[10px] rounded-full bg-muted-foreground/40 flex-shrink-0" />
     );
     return null;
   };
