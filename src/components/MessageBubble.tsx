@@ -53,12 +53,14 @@ const formatScheduledTime = (isoStr: string): string => {
   return `${d.getDate()} ${months[d.getMonth()]} в ${time}`;
 };
 
-const URL_PATTERN = /(https?:\/\/[^\s<>']+|(?:www\.)[^\s<>']+)/gi;
+const URL_PATTERN = /(https?:\/\/[^\s<>']+|(?:www\.)[^\s<>']+|[a-zA-Z0-9а-яА-ЯёЁ-]+\.(?:ru|com|org|net|рф|su|io|dev|me|cc|co|info|biz|pro|shop|online|site|store|tech|app|by|ua|kz)(?:\/[^\s<>']*)?)/gi;
+
+const DOMAIN_CHECK = /^[a-zA-Z0-9а-яА-ЯёЁ-]+\.(?:ru|com|org|net|рф|su|io|dev|me|cc|co|info|biz|pro|shop|online|site|store|tech|app|by|ua|kz)(?:\/|$)/i;
 
 function linkify(text: string): (string | JSX.Element)[] {
   const parts = text.split(URL_PATTERN);
   return parts.map((part, i) => {
-    if (/^https?:\/\//i.test(part) || /^www\./i.test(part)) {
+    if (/^https?:\/\//i.test(part) || /^www\./i.test(part) || DOMAIN_CHECK.test(part)) {
       const href = part.startsWith('http') ? part : `https://${part}`;
       return (
         <a
