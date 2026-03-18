@@ -2,6 +2,7 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
+# v2
 
 def normalize_phone(phone_str):
     normalized = ''.join(c for c in str(phone_str) if c.isdigit())

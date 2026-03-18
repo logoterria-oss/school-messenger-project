@@ -2,6 +2,7 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
+# v2
 
 def handler(event: dict, context) -> dict:
     '''API для аутентификации пользователей'''
