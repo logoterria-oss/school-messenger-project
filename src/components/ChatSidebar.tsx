@@ -138,10 +138,12 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
                   <DropdownMenuSeparator />
                 </>
               )}
-              <DropdownMenuItem onClick={onOpenProfile}>
-                <Icon name="User" size={16} className="mr-2" />
-                Профиль
-              </DropdownMenuItem>
+              {(userRole === 'admin' || userRole === 'teacher') && (
+                <DropdownMenuItem onClick={onOpenProfile}>
+                  <Icon name="User" size={16} className="mr-2" />
+                  Профиль
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={onOpenSettings}>
                 <Icon name="Settings" size={16} className="mr-2" />
                 Настройки
