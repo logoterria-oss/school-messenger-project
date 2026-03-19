@@ -36,7 +36,7 @@ def handler(event: dict, context) -> dict:
             if user_id:
                 # Получить данные конкретного пользователя
                 cur.execute("""
-                    SELECT id, name, phone, email, role, avatar, available_slots, education_docs
+                    SELECT id, name, phone, role, password, avatar, available_slots, education_docs
                     FROM users WHERE id = %s
                 """, (user_id,))
                 user = cur.fetchone()
@@ -56,7 +56,7 @@ def handler(event: dict, context) -> dict:
             else:
                 # Получить всех пользователей
                 cur.execute("""
-                    SELECT id, name, phone, email, role, avatar, available_slots, education_docs
+                    SELECT id, name, phone, role, password, avatar, available_slots, education_docs
                     FROM users ORDER BY name
                 """)
                 users = cur.fetchall()
@@ -95,7 +95,7 @@ def handler(event: dict, context) -> dict:
             cur.execute("""
                 INSERT INTO users (id, name, phone, email, password, role, avatar, available_slots, education_docs)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, name, phone, email, role
+                RETURNING id, name, phone, role, password
             """, (
                 data['id'],
                 data['name'],
@@ -168,7 +168,7 @@ def handler(event: dict, context) -> dict:
             updates.append('updated_at = NOW()')
             values.append(user_id)
 
-            query = f"UPDATE users SET {', '.join(updates)} WHERE id = %s RETURNING id, name, phone, email, role, avatar, available_slots, education_docs"
+            query = f"UPDATE users SET {', '.join(updates)} WHERE id = %s RETURNING id, name, phone, role, password, avatar, available_slots, education_docs"
             cur.execute(query, values)
             
             user = cur.fetchone()

@@ -68,13 +68,13 @@ const LoginForm = ({ selectedRole, roleImage, roleName, onLogin, onBack, isLoggi
           <div className="flex-1 space-y-4 animate-in fade-in slide-in-from-right duration-700 max-lg:w-full max-lg:space-y-2.5">
             <div>
             <label className="block text-sm font-medium mb-2 max-lg:text-[10px] max-lg:mb-1">
-              Логин (телефон или email)
+              Номер телефона
             </label>
             <div className="relative">
-              <Icon name="User" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground max-lg:left-2.5 max-lg:w-3.5 max-lg:h-3.5" />
+              <Icon name="Phone" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground max-lg:left-2.5 max-lg:w-3.5 max-lg:h-3.5" />
               <Input
-                type="text"
-                placeholder="Введите логин"
+                type="tel"
+                placeholder="+7 999 999 99 99"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
                 onFocus={handleFocus}

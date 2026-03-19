@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 type AddParentDialogProps = {
   open: boolean;
   onClose: () => void;
-  onAdd: (name: string, phone: string, email: string, password: string) => Promise<void> | void;
+  onAdd: (name: string, phone: string, password: string) => Promise<void> | void;
 };
 
 const generatePassword = () => {
@@ -23,23 +23,21 @@ const generatePassword = () => {
 export const AddParentDialog = ({ open, onClose, onAdd }: AddParentDialogProps) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState(generatePassword());
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleAdd = async () => {
-    if (!name.trim() || !phone.trim() || !email.trim()) {
+    if (!name.trim() || !phone.trim()) {
       return;
     }
     setLoading(true);
     setError('');
     try {
-      await onAdd(name.trim(), phone.trim(), email.trim(), password);
+      await onAdd(name.trim(), phone.trim(), password);
       setName('');
       setPhone('');
-      setEmail('');
       setPassword(generatePassword());
       onClose();
     } catch (e) {
@@ -76,16 +74,6 @@ export const AddParentDialog = ({ open, onClose, onAdd }: AddParentDialogProps) 
               placeholder="+7 999 999 99 99"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Электронная почта</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="email@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -127,7 +115,7 @@ export const AddParentDialog = ({ open, onClose, onAdd }: AddParentDialogProps) 
           <Button variant="outline" onClick={onClose} disabled={loading}>
             Отмена
           </Button>
-          <Button onClick={handleAdd} disabled={!name.trim() || !phone.trim() || !email.trim() || loading}>
+          <Button onClick={handleAdd} disabled={!name.trim() || !phone.trim() || loading}>
             {loading ? 'Создание...' : 'Добавить'}
           </Button>
         </DialogFooter>

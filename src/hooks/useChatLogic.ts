@@ -1367,33 +1367,31 @@ export const useChatLogic = () => {
     setAllUsers(prev => [...prev, newUser]);
   };
 
-  const handleAddParent = async (name: string, phone: string, email: string, password: string) => {
+  const handleAddParent = async (name: string, phone: string, password: string) => {
     const newUser: User = {
       id: Date.now().toString(),
       name,
       phone,
-      email,
       password,
       role: 'parent',
       avatar: 'https://cdn.poehali.dev/files/Родитель.jpg',
     };
     const { createUser } = await import('@/services/api');
-    await createUser({ id: newUser.id, name, phone, email, role: 'parent', password });
+    await createUser({ id: newUser.id, name, phone, role: 'parent', password });
     setAllUsers(prev => [...prev, newUser]);
   };
 
-  const handleAddTeacher = async (name: string, phone: string, email: string, password: string) => {
+  const handleAddTeacher = async (name: string, phone: string, password: string) => {
     const newUser: User = {
       id: Date.now().toString(),
       name,
       phone,
-      email,
       password,
       role: 'teacher',
       avatar: 'https://cdn.poehali.dev/files/Педагог.jpg',
     };
     const { createUser } = await import('@/services/api');
-    await createUser({ id: newUser.id, name, phone, email, role: 'teacher', password, avatar: newUser.avatar });
+    await createUser({ id: newUser.id, name, phone, role: 'teacher', password, avatar: newUser.avatar });
 
     const updatedUsers = [...allUsers, newUser];
     setAllUsers(updatedUsers);
@@ -1415,20 +1413,19 @@ export const useChatLogic = () => {
     });
   };
 
-  const handleAddAdmin = async (name: string, phone: string, email: string, password: string) => {
+  const handleAddAdmin = async (name: string, phone: string, password: string) => {
     const newAdminId = `admin-${Date.now()}`;
     const newUser: User = {
       id: newAdminId,
       name,
       phone,
-      email,
       password,
       role: 'admin',
       avatar: 'https://cdn.poehali.dev/files/Админ.jpg',
     };
 
     const { createUser } = await import('@/services/api');
-    await createUser({ id: newAdminId, name, phone, email, role: 'admin', password, avatar: newUser.avatar });
+    await createUser({ id: newAdminId, name, phone, role: 'admin', password, avatar: newUser.avatar });
 
     const updatedUsers = [...allUsers, newUser];
     setAllUsers(updatedUsers);

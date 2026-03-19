@@ -10,7 +10,6 @@ type User = {
   name: string;
   role: 'teacher' | 'parent' | 'student' | 'admin';
   phone: string;
-  email?: string;
   password: string;
 };
 
@@ -89,13 +88,6 @@ const UserCard = ({ user, onDelete }: { user: User; onDelete?: (userId: string) 
           <span>{user.phone}</span>
         </div>
         
-        {user.email && (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Icon name="Mail" size={16} className="flex-shrink-0" />
-            <span>{user.email}</span>
-          </div>
-        )}
-
         <div className="flex items-center gap-2 text-muted-foreground">
           <Icon name="Lock" size={16} className="flex-shrink-0" />
           <span className="font-mono">{user.password}</span>

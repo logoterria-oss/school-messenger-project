@@ -43,18 +43,11 @@ def handler(event: dict, context) -> dict:
             conn = psycopg2.connect(os.environ['DATABASE_URL'])
             cur = conn.cursor(cursor_factory=RealDictCursor)
 
-            # Проверяем, это email или телефон
-            if '@' in login:
-                cur.execute(
-                    "SELECT id, name, phone, email, role, avatar, available_slots, education_docs FROM users WHERE email = %s AND password = %s",
-                    (login, password)
-                )
-            else:
-                normalized_login = normalize_phone(login)
-                cur.execute(
-                    "SELECT id, name, phone, email, role, avatar, available_slots, education_docs FROM users WHERE phone = %s AND password = %s",
-                    (normalized_login, password)
-                )
+            normalized_login = normalize_phone(login)
+            cur.execute(
+                "SELECT id, name, phone, role, password, avatar, available_slots, education_docs FROM users WHERE phone = %s AND password = %s",
+                (normalized_login, password)
+            )
             
             user = cur.fetchone()
 
@@ -77,8 +70,8 @@ def handler(event: dict, context) -> dict:
                         'id': user['id'],
                         'name': user['name'],
                         'phone': user['phone'],
-                        'email': user['email'],
                         'role': user['role'],
+                        'password': user['password'],
                         'avatar': user['avatar'],
                         'availableSlots': user['available_slots'] or [],
                         'educationDocs': user['education_docs'] or []
