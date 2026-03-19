@@ -275,24 +275,30 @@ def handler(event: dict, context) -> dict:
         elif method == 'DELETE':
             params = event.get('queryStringParameters', {}) or {}
             chat_id = params.get('chatId')
+            body_data = json.loads(event.get('body', '{}')) if event.get('body') else {}
+            chat_ids = body_data.get('chatIds', [])
 
-            if not chat_id:
-                return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'chatId is required'})}
+            if chat_id:
+                chat_ids = [chat_id]
 
-            cur.execute("DELETE FROM message_status WHERE message_id IN (SELECT id FROM messages WHERE chat_id = %s)", (chat_id,))
-            cur.execute("DELETE FROM attachments WHERE message_id IN (SELECT id FROM messages WHERE chat_id = %s)", (chat_id,))
-            cur.execute("DELETE FROM reactions WHERE message_id IN (SELECT id FROM messages WHERE chat_id = %s)", (chat_id,))
-            cur.execute("DELETE FROM messages WHERE chat_id = %s", (chat_id,))
-            cur.execute("DELETE FROM topics WHERE chat_id = %s", (chat_id,))
-            cur.execute("DELETE FROM chat_lead_teachers WHERE chat_id = %s", (chat_id,))
-            cur.execute("DELETE FROM chat_participants WHERE chat_id = %s", (chat_id,))
-            cur.execute("DELETE FROM chats WHERE id = %s", (chat_id,))
+            if not chat_ids:
+                return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'chatId or chatIds required'})}
+
+            for cid in chat_ids:
+                cur.execute("DELETE FROM message_status WHERE message_id IN (SELECT id FROM messages WHERE chat_id = %s)", (cid,))
+                cur.execute("DELETE FROM attachments WHERE message_id IN (SELECT id FROM messages WHERE chat_id = %s)", (cid,))
+                cur.execute("DELETE FROM reactions WHERE message_id IN (SELECT id FROM messages WHERE chat_id = %s)", (cid,))
+                cur.execute("DELETE FROM messages WHERE chat_id = %s", (cid,))
+                cur.execute("DELETE FROM topics WHERE chat_id = %s", (cid,))
+                cur.execute("DELETE FROM chat_lead_teachers WHERE chat_id = %s", (cid,))
+                cur.execute("DELETE FROM chat_participants WHERE chat_id = %s", (cid,))
+                cur.execute("DELETE FROM chats WHERE id = %s", (cid,))
 
             conn.commit()
             cur.close()
             conn.close()
 
-            return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
+            return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True, 'deleted': len(chat_ids)})}
 
     except Exception as e:
         import traceback
