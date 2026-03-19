@@ -172,7 +172,7 @@ def handler(event: dict, context) -> dict:
 
             conn.commit()
 
-            subs = []
+            user_subs = []
             try:
                 cur2 = conn.cursor(cursor_factory=RealDictCursor)
                 cur2.execute("""
@@ -184,10 +184,21 @@ def handler(event: dict, context) -> dict:
                 if participant_ids:
                     placeholders = ','.join(['%s'] * len(participant_ids))
                     cur2.execute(
-                        "SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (%s)" % placeholders,
+                        "SELECT id, name, role FROM users WHERE id IN (%s)" % placeholders,
                         participant_ids
                     )
-                    subs = cur2.fetchall()
+                    users_map = {r['id']: r for r in cur2.fetchall()}
+
+                    cur2.execute(
+                        "SELECT user_id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (%s)" % placeholders,
+                        participant_ids
+                    )
+                    user_subs = cur2.fetchall()
+
+                    for sub in user_subs:
+                        u = users_map.get(sub['user_id'])
+                        sub['user_name'] = u['name'] if u else None
+                        sub['user_role'] = u['role'] if u else None
                 cur2.close()
             except Exception as e:
                 print(f"[Push] DB error: {e}")
@@ -195,21 +206,29 @@ def handler(event: dict, context) -> dict:
                 if not conn.closed:
                     conn.close()
 
-            if subs:
+            if user_subs:
                 try:
                     from pywebpush import webpush, WebPushException
                     vapid_private = os.environ.get('VAPID_PRIVATE_KEY', '')
                     vapid_claims = {'sub': 'mailto:push@lineya.school'}
                     preview = (text or '')[:100] or 'Новое сообщение'
-                    has_mention = '@[' in (text or '')
-                    payload = json.dumps({
-                        'title': sender_name,
-                        'body': preview,
-                        'icon': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/favicon-1773208222088.jpg',
-                        'tag': 'chat-%s' % chat_id,
-                        'data': {'chatId': chat_id, 'topicId': topic_id, 'hasMention': has_mention}
-                    })
-                    for sub in subs:
+                    msg_text = text or ''
+                    has_admin_mention = '@[админ' in msg_text
+
+                    for sub in user_subs:
+                        personal_mention = False
+                        if sub['user_name'] and ('@[' + sub['user_name']) in msg_text:
+                            personal_mention = True
+                        if has_admin_mention and sub.get('user_role') == 'admin':
+                            personal_mention = True
+
+                        payload = json.dumps({
+                            'title': sender_name,
+                            'body': preview,
+                            'icon': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/favicon-1773208222088.jpg',
+                            'tag': 'chat-%s' % chat_id,
+                            'data': {'chatId': chat_id, 'topicId': topic_id, 'hasMention': personal_mention}
+                        })
                         try:
                             webpush(
                                 subscription_info={
