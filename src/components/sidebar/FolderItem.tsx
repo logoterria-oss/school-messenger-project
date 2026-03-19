@@ -87,14 +87,9 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
       </Badge>
     );
     if (unmutedUnread > 0) return (
-      <div className="flex items-center gap-1">
-        <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
-          {unmutedUnread}
-        </Badge>
-        {hasMutedUnread && (
-          <div className="w-[10px] h-[10px] rounded-full bg-muted-foreground/40 flex-shrink-0" />
-        )}
-      </div>
+      <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
+        {unmutedUnread}
+      </Badge>
     );
     if (hasMutedUnread) return (
       <div className="w-[10px] h-[10px] rounded-full bg-muted-foreground/40 flex-shrink-0" />
