@@ -204,10 +204,7 @@ export const SidebarMembersSection = ({
       {!isTeachersGroup && allAdmins.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
-              <Icon name="Shield" size={16} />
-              Ведущий админ
-            </h4>
+            <h4 className="font-medium text-sm text-muted-foreground">Ведущий админ</h4>
             {isAdmin && !isEditingLeadAdmin && onUpdateLeadAdmin && (
               <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setEditLeadAdmin(leadAdminId || ''); setIsEditingLeadAdmin(true); }}>
                 <Icon name="Pencil" size={14} className="mr-1" />
