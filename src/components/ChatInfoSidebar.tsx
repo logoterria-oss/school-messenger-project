@@ -72,7 +72,7 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6">
-          {chatName && !isTeachersGroup && (
+          {chatName && !isTeachersGroup && isAdminOrTeacher && (
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
