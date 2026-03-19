@@ -465,8 +465,14 @@ export const useChatLogic = () => {
         const isCurrentChat = data.chatId === selectedChat && (!data.topicId || data.topicId === selectedTopic);
         if (!isCurrentChat) {
           const mentionTag = userName ? `@[${userName}` : null;
+          const adminMentionTag = userRole === 'admin' ? '@[админ' : null;
           const addedMsgs = newMsgs.filter(m => !prevMsgs.some(pm => pm.id === m.id) && !m.isOwn);
-          const hasMention = mentionTag ? addedMsgs.some(m => m.text?.includes(mentionTag)) : false;
+          const hasMention = addedMsgs.some(m => {
+            if (!m.text) return false;
+            if (mentionTag && m.text.includes(mentionTag)) return true;
+            if (adminMentionTag && m.text.includes(adminMentionTag)) return true;
+            return false;
+          });
 
           if (data.topicId) {
             setGroupTopics(prev => {

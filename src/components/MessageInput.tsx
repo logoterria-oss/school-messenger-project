@@ -37,6 +37,7 @@ type MessageInputProps = {
   onRemoveAttachment: (index: number) => void;
   disabled?: boolean;
   disabledMessage?: string;
+  hintMessage?: string;
   mentionableUsers?: MentionableUser[];
   replyTo?: { id: string; sender: string; text: string } | null;
   onCancelReply?: () => void;
@@ -53,6 +54,7 @@ export const MessageInput = ({
   onRemoveAttachment,
   disabled,
   disabledMessage,
+  hintMessage,
   mentionableUsers,
   replyTo,
   onCancelReply,
@@ -190,6 +192,13 @@ export const MessageInput = ({
 
   return (
     <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-3 md:px-5 py-3">
+      {hintMessage && (
+        <div className="mb-2 flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-accent/40 rounded-lg">
+          <Icon name="Info" size={14} className="flex-shrink-0" />
+          <span>{hintMessage}</span>
+        </div>
+      )}
+
       {replyTo && (
         <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-accent/50 rounded-lg border-l-2 border-primary">
           <Icon name="Reply" size={16} className="text-primary flex-shrink-0" />

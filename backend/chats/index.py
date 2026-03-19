@@ -96,30 +96,51 @@ def handler(event: dict, context) -> dict:
             topics_dict = {}
 
             user_name = None
+            user_role = None
             if group_ids:
-                cur.execute("SELECT name FROM users WHERE id = %s", (user_id,))
+                cur.execute("SELECT name, role FROM users WHERE id = %s", (user_id,))
                 user_row = cur.fetchone()
                 if user_row:
                     user_name = user_row['name']
+                    user_role = user_row['role']
 
-                mention_pattern = '@[' + user_name if user_name else None
+                mention_pattern = '%@[' + user_name + '%' if user_name else None
+                admin_mention_pattern = '%@[админ%' if user_role == 'admin' else None
 
-                cur.execute("""
-                    SELECT t.id, t.chat_id, t.name, t.icon,
-                           COALESCE(COUNT(DISTINCT m.id) FILTER (
-                               WHERE (ms.status IS NULL OR ms.status != 'read') AND m.sender_id != %s
-                           ), 0) as unread,
-                           COALESCE(COUNT(DISTINCT m.id) FILTER (
-                               WHERE (ms.status IS NULL OR ms.status != 'read') AND m.sender_id != %s
-                               AND m.text LIKE %s
-                           ), 0) as unread_mentions
-                    FROM topics t
-                    LEFT JOIN messages m ON m.topic_id = t.id
-                    LEFT JOIN message_status ms ON ms.message_id = m.id AND ms.user_id = %s
-                    WHERE t.chat_id = ANY(%s)
-                    GROUP BY t.id, t.chat_id, t.name, t.icon
-                    ORDER BY t.created_at
-                """, (user_id, user_id, '%' + (mention_pattern or '') + '%' if mention_pattern else '%%%NOMATCH%%%', user_id, group_ids))
+                if mention_pattern and admin_mention_pattern:
+                    cur.execute("""
+                        SELECT t.id, t.chat_id, t.name, t.icon,
+                               COALESCE(COUNT(DISTINCT m.id) FILTER (
+                                   WHERE (ms.status IS NULL OR ms.status != 'read') AND m.sender_id != %s
+                               ), 0) as unread,
+                               COALESCE(COUNT(DISTINCT m.id) FILTER (
+                                   WHERE (ms.status IS NULL OR ms.status != 'read') AND m.sender_id != %s
+                                   AND (m.text LIKE %s OR m.text LIKE %s)
+                               ), 0) as unread_mentions
+                        FROM topics t
+                        LEFT JOIN messages m ON m.topic_id = t.id
+                        LEFT JOIN message_status ms ON ms.message_id = m.id AND ms.user_id = %s
+                        WHERE t.chat_id = ANY(%s)
+                        GROUP BY t.id, t.chat_id, t.name, t.icon
+                        ORDER BY t.created_at
+                    """, (user_id, user_id, mention_pattern, admin_mention_pattern, user_id, group_ids))
+                else:
+                    cur.execute("""
+                        SELECT t.id, t.chat_id, t.name, t.icon,
+                               COALESCE(COUNT(DISTINCT m.id) FILTER (
+                                   WHERE (ms.status IS NULL OR ms.status != 'read') AND m.sender_id != %s
+                               ), 0) as unread,
+                               COALESCE(COUNT(DISTINCT m.id) FILTER (
+                                   WHERE (ms.status IS NULL OR ms.status != 'read') AND m.sender_id != %s
+                                   AND m.text LIKE %s
+                               ), 0) as unread_mentions
+                        FROM topics t
+                        LEFT JOIN messages m ON m.topic_id = t.id
+                        LEFT JOIN message_status ms ON ms.message_id = m.id AND ms.user_id = %s
+                        WHERE t.chat_id = ANY(%s)
+                        GROUP BY t.id, t.chat_id, t.name, t.icon
+                        ORDER BY t.created_at
+                    """, (user_id, user_id, mention_pattern or '%%%NOMATCH%%%', user_id, group_ids))
 
                 for topic in cur.fetchall():
                     cid = topic['chat_id']

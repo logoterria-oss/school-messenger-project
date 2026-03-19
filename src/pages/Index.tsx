@@ -295,6 +295,12 @@ const Index = () => {
                 onCancelReply={handleCancelReply}
                 disabled={selectedTopic?.endsWith('-important') && userRole !== 'admin'}
                 disabledMessage="Только админ может писать в раздел «Важное»"
+                hintMessage={
+                  selectedTopic && (userRole === 'parent' || userRole === 'student') &&
+                  ['-zoom', '-homework', '-reports'].some(s => selectedTopic.endsWith(s))
+                    ? 'Админам не приходят уведомления из этого чата. Если нужна помощь, напишите перед сообщением "@админ"'
+                    : undefined
+                }
                 mentionableUsers={
                   selectedChatData?.type === 'group'
                     ? (() => {
@@ -307,7 +313,7 @@ const Index = () => {
                           if (role === 'admin' && pid === leadAdminId) return true;
                           return false;
                         };
-                        return (selectedChatData.participants || [])
+                        const users = (selectedChatData.participants || [])
                           .filter(pid => pid !== userId)
                           .map(pid => {
                             if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: getRoleLabel('admin', 'admin'), avatar: 'https://cdn.poehali.dev/files/Админ.jpg', isPrimary: true };
@@ -315,6 +321,15 @@ const Index = () => {
                             return u ? { id: u.id, name: u.name, role: getRoleLabel(u.role, u.id), avatar: u.avatar, isPrimary: isPrimaryUser(u.id, u.role) } : null;
                           })
                           .filter(Boolean) as { id: string; name: string; role?: string; avatar?: string; isPrimary?: boolean }[];
+                        const hasAdmins = (selectedChatData.participants || []).some(pid => {
+                          if (pid === 'admin') return true;
+                          const u = allUsers.find(u => u.id === pid);
+                          return u?.role === 'admin';
+                        });
+                        if (hasAdmins) {
+                          users.unshift({ id: '__admin_group__', name: 'админ', role: 'все админы', isPrimary: true });
+                        }
+                        return users;
                       })()
                     : undefined
                 }
