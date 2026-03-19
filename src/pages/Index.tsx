@@ -298,7 +298,7 @@ const Index = () => {
                 hintMessage={
                   selectedTopic && (userRole === 'parent' || userRole === 'student') &&
                   ['-zoom', '-homework', '-reports'].some(s => selectedTopic.endsWith(s))
-                    ? 'Админам не приходят уведомления из этого чата. Если нужна помощь, напишите перед сообщением "@админ"'
+                    ? 'Админам не приходят уведомления из этого чата. Если нужна помощь, напишите "@админ"'
                     : undefined
                 }
                 mentionableUsers={
