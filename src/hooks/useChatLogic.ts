@@ -515,9 +515,10 @@ export const useChatLogic = () => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
           const deduped = deduplicatePrivateChats(mappedChats);
+          const withStaff = (userRole === 'teacher' || userRole === 'admin') ? ensureStaffChats(userRole, userId, deduped, allUsers) : deduped;
           const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
-          checkAndPlaySound(deduped.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
-          setChats(deduped);
+          checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
+          setChats(withStaff);
           setGroupTopics(mappedTopics);
         }
       }).catch(() => {});
@@ -1372,7 +1373,8 @@ export const useChatLogic = () => {
     const { createUser } = await import('@/services/api');
     await createUser({ id: newUser.id, name, phone, email, role: 'teacher', password, avatar: newUser.avatar });
 
-    setAllUsers(prev => [...prev, newUser]);
+    const updatedUsers = [...allUsers, newUser];
+    setAllUsers(updatedUsers);
     
     setChats(prevChats => {
       const updatedChats = prevChats.map(chat => {
@@ -1384,27 +1386,9 @@ export const useChatLogic = () => {
         return chat;
       });
       
-      if (userRole === 'admin') {
-        const privateChatId = `private-${newUser.id}-admin`;
-        const hasPrivateChat = updatedChats.some(chat => chat.id === privateChatId);
-        
-        if (!hasPrivateChat) {
-          const privateChat: Chat = {
-            id: privateChatId,
-            name: newUser.name,
-            type: 'private',
-            lastMessage: '',
-            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            unread: 0,
-            participants: [newUser.id, 'admin'],
-            isPinned: true,
-            avatar: newUser.avatar || 'https://cdn.poehali.dev/files/Педагог.jpg',
-          };
-          updatedChats.unshift(privateChat);
-          createChat({ id: privateChatId, name: newUser.name, type: 'private', participants: [newUser.id, 'admin'], isPinned: true, avatar: privateChat.avatar }).catch(() => {});
-        }
+      if (userRole && userId) {
+        return ensureStaffChats(userRole, userId, updatedChats, updatedUsers);
       }
-      
       return updatedChats;
     });
   };
@@ -1424,7 +1408,8 @@ export const useChatLogic = () => {
     const { createUser } = await import('@/services/api');
     await createUser({ id: newAdminId, name, phone, email, role: 'admin', password, avatar: newUser.avatar });
 
-    setAllUsers(prev => [...prev, newUser]);
+    const updatedUsers = [...allUsers, newUser];
+    setAllUsers(updatedUsers);
 
     setChats(prevChats => {
       const updatedChats = prevChats.map(chat => {
@@ -1435,6 +1420,10 @@ export const useChatLogic = () => {
         }
         return chat;
       });
+      
+      if (userRole && userId) {
+        return ensureStaffChats(userRole, userId, updatedChats, updatedUsers);
+      }
       return updatedChats;
     });
   };
