@@ -50,6 +50,8 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
       if (otherUserIds.length === 0) return false;
       const uniqueIds = new Set(chat.participants);
       if (uniqueIds.size === 1 && uniqueIds.has(userId || '')) return false;
+      const allOthersExist = otherUserIds.every(id => allUsers.some(u => u.id === id));
+      if (!allOthersExist) return false;
     }
     if (isTeacher && chat.isArchived) return false;
     if (query) {
