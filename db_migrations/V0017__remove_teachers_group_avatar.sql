@@ -1,0 +1,1 @@
+UPDATE chats SET avatar = NULL WHERE id = 'teachers-group';
