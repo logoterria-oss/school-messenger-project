@@ -91,10 +91,7 @@ export const SidebarMembersSection = ({
     <>
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
-            <Icon name="GraduationCap" size={16} />
-            Ученики
-          </h4>
+          <h4 className="font-medium text-sm text-muted-foreground">Ученики</h4>
           {isAdmin && !isTeachersGroup && !isEditingStudents && onUpdateParticipants && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditStudents}>
               <Icon name="Pencil" size={14} className="mr-1" />
@@ -150,10 +147,7 @@ export const SidebarMembersSection = ({
 
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
-            <Icon name="Users" size={16} />
-            Родители
-          </h4>
+          <h4 className="font-medium text-sm text-muted-foreground">Родители</h4>
           {isAdmin && !isTeachersGroup && !isEditingParents && onUpdateParticipants && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditParents}>
               <Icon name="Pencil" size={14} className="mr-1" />
