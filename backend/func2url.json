@@ -1,4 +1,5 @@
 {
+  "cleanup": "https://functions.poehali.dev/195b7880-387e-4720-80c8-f517f2b40410",
   "push": "https://functions.poehali.dev/6f14d956-9bae-4666-99e7-38a5840a017b",
   "auth": "https://functions.poehali.dev/5a8de8b1-0d64-4384-8dc1-a94e8e68c2e3",
   "chats": "https://functions.poehali.dev/7321ff36-8923-4d5f-ba35-61643bc89545",
