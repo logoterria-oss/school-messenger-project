@@ -90,7 +90,7 @@ export const SidebarMembersSection = ({
   return (
     <>
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-1">
           <h4 className="font-medium text-sm text-muted-foreground">Ученики</h4>
           {isAdmin && !isTeachersGroup && !isEditingStudents && onUpdateParticipants && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditStudents}>
@@ -146,7 +146,7 @@ export const SidebarMembersSection = ({
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-1">
           <h4 className="font-medium text-sm text-muted-foreground">Родители</h4>
           {isAdmin && !isTeachersGroup && !isEditingParents && onUpdateParticipants && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditParents}>
@@ -203,7 +203,7 @@ export const SidebarMembersSection = ({
 
       {!isTeachersGroup && (
         <div>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-1">
             <h4 className="font-medium text-sm text-muted-foreground">Ведущие педагоги</h4>
             {isAdmin && !isEditingLeads && onUpdateLeadTeachers && (
               <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditLeads}>
@@ -251,7 +251,7 @@ export const SidebarMembersSection = ({
 
       {!isTeachersGroup && allAdmins.length > 0 && (
         <div>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-1">
             <h4 className="font-medium text-sm text-muted-foreground">Администраторы</h4>
           </div>
           <div className="space-y-1">
