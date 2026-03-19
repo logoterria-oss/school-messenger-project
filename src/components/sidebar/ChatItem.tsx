@@ -11,9 +11,10 @@ type ChatItemProps = {
   isAdmin?: boolean;
   onArchive?: (chatId: string, archive: boolean) => void;
   topicIds?: string[];
+  onlyMentionBadge?: boolean;
 };
 
-export const ChatItem = memo(({ chat, isSelected, onClick, isAdmin, onArchive, topicIds }: ChatItemProps) => {
+export const ChatItem = memo(({ chat, isSelected, onClick, isAdmin, onArchive, topicIds, onlyMentionBadge }: ChatItemProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [settings, setSettings] = useState(() => getChatSettings(chat.id));
@@ -89,7 +90,8 @@ export const ChatItem = memo(({ chat, isSelected, onClick, isAdmin, onArchive, t
                   <Badge className="text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold bg-primary text-white">
                     @
                   </Badge>
-                ) : chat.unread > 0 && !isMuted ? (
+                ) : onlyMentionBadge ? null
+                : chat.unread > 0 && !isMuted ? (
                   <Badge className="text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold bg-primary text-white">
                     {chat.unread}
                   </Badge>

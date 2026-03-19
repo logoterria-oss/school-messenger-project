@@ -167,6 +167,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
                   isAdmin={isAdmin}
                   onArchive={onArchiveChat}
                   topicIds={groupTopics?.[chat.id]?.map(t => t.id)}
+                  onlyMentionBadge={onlyMentionUnread}
                 />
               );
             })
