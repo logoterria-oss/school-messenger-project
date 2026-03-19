@@ -3,6 +3,7 @@ import Icon from '@/components/ui/icon';
 import FloatingDecor from '@/components/login/FloatingDecor';
 import InstallHintModal from '@/components/login/InstallHintModal';
 import LoginForm from '@/components/login/LoginForm';
+import { cn } from '@/lib/utils';
 
 type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
@@ -21,6 +22,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showInstallHint, setShowInstallHint] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
@@ -94,7 +96,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const currentRole = ROLES.find(r => r.id === selectedRole)!;
 
   return (
-    <div className="fixed inset-0 overflow-auto bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col items-center justify-center p-4">
+    <div className={cn(
+      "fixed inset-0 overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col items-center p-4 transition-all duration-300",
+      keyboardOpen ? "justify-start pt-6" : "justify-center"
+    )}>
       <FloatingDecor />
       {isLoggingIn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
@@ -132,7 +137,11 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         </div>
       )}
       
-      <div className={`flex items-center justify-center gap-6 mb-8 max-lg:gap-2.5 max-lg:mb-5 transition-opacity duration-300 ${isLoggingIn ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={cn(
+        "flex items-center justify-center gap-6 mb-8 max-lg:gap-2.5 max-lg:mb-5 transition-all duration-300",
+        isLoggingIn ? 'opacity-0' : 'opacity-100',
+        keyboardOpen ? 'max-lg:hidden' : ''
+      )}>
         <img 
           src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" 
           alt="ЛинэяСкул" 
@@ -153,6 +162,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         onBack={handleBack}
         isLoggingIn={isLoggingIn}
         setIsLoggingIn={setIsLoggingIn}
+        onKeyboardOpen={setKeyboardOpen}
       />
     </div>
   );
