@@ -86,6 +86,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
         @
       </Badge>
     );
+    if (onlyMentionUnread) return null;
     if (unmutedUnread > 0) return (
       <Badge className="bg-primary text-white text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold">
         {unmutedUnread}
