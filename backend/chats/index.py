@@ -194,6 +194,15 @@ def handler(event: dict, context) -> dict:
                     ON CONFLICT DO NOTHING
                 """, (chat_id, uid))
 
+            for uid in data['participants']:
+                cur.execute("""
+                    INSERT INTO message_status (message_id, user_id, status, updated_at)
+                    SELECT m.id, %s, 'read', NOW()
+                    FROM messages m
+                    WHERE m.chat_id = %s AND m.sender_id != %s
+                    ON CONFLICT (message_id, user_id) DO NOTHING
+                """, (uid, chat_id, uid))
+
             lead_teachers = data.get('leadTeachers', [])
             for uid in lead_teachers:
                 cur.execute("""
@@ -263,6 +272,13 @@ def handler(event: dict, context) -> dict:
 
                 for uid in new_set - existing:
                     cur.execute("INSERT INTO chat_participants (chat_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (chat_id, uid))
+                    cur.execute("""
+                        INSERT INTO message_status (message_id, user_id, status, updated_at)
+                        SELECT m.id, %s, 'read', NOW()
+                        FROM messages m
+                        WHERE m.chat_id = %s AND m.sender_id != %s
+                        ON CONFLICT (message_id, user_id) DO NOTHING
+                    """, (uid, chat_id, uid))
                 for uid in existing - new_set:
                     cur.execute("DELETE FROM chat_participants WHERE chat_id = %s AND user_id = %s", (chat_id, uid))
 
