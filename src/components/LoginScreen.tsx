@@ -94,7 +94,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const currentRole = ROLES.find(r => r.id === selectedRole)!;
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col items-center justify-center p-4">
+    <div className="fixed inset-0 overflow-auto bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col items-center justify-center p-4">
       <FloatingDecor />
       {isLoggingIn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">

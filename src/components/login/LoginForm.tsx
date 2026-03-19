@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
@@ -23,6 +23,12 @@ const LoginForm = ({ selectedRole, roleImage, roleName, onLogin, onBack, isLoggi
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  const scrollToInput = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }, []);
 
   const handleLogin = async () => {
     setError('');
@@ -75,6 +81,7 @@ const LoginForm = ({ selectedRole, roleImage, roleName, onLogin, onBack, isLoggi
                 placeholder="Введите логин"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
+                onFocus={scrollToInput}
                 className="pl-11 h-12 rounded-xl max-lg:pl-8 max-lg:h-9 max-lg:rounded-lg text-base"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') handleLogin();
@@ -94,6 +101,7 @@ const LoginForm = ({ selectedRole, roleImage, roleName, onLogin, onBack, isLoggi
                 placeholder="Введите пароль"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onFocus={scrollToInput}
                 className="pl-11 pr-11 h-12 rounded-xl max-lg:pl-8 max-lg:pr-8 max-lg:h-9 max-lg:rounded-lg text-base"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') handleLogin();
