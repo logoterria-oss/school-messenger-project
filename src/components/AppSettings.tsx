@@ -24,8 +24,6 @@ export const AppSettings = ({ onBack, userId }: AppSettingsProps) => {
   const [pushStatus, setPushStatus] = useState<PushStatus>('prompt');
   const [pushLoading, setPushLoading] = useState(false);
   const [showScheduledHelp, setShowScheduledHelp] = useState(false);
-  const [cacheClearing, setCacheClearing] = useState(false);
-  const [cacheCleared, setCacheCleared] = useState(false);
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   useEffect(() => {
@@ -44,26 +42,6 @@ export const AppSettings = ({ onBack, userId }: AppSettingsProps) => {
       setPushStatus(ok ? 'subscribed' : 'denied');
     }
     setPushLoading(false);
-  };
-
-  const handleClearCache = async () => {
-    setCacheClearing(true);
-    try {
-      localStorage.removeItem('chats');
-      localStorage.removeItem('messages');
-      localStorage.removeItem('allUsers');
-
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
-      }
-
-      setCacheCleared(true);
-      setTimeout(() => window.location.reload(), 1000);
-    } catch (e) {
-      console.error('Failed to clear cache:', e);
-      setCacheClearing(false);
-    }
   };
 
   const pushLabel = () => {
@@ -189,28 +167,6 @@ export const AppSettings = ({ onBack, userId }: AppSettingsProps) => {
                 />
               </div>
             </div>
-          </div>
-
-          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Icon name="Database" size={20} className="text-muted-foreground" />
-              Данные
-            </h3>
-            <Button
-              variant="outline"
-              className="w-full justify-start rounded-xl"
-              onClick={handleClearCache}
-              disabled={cacheClearing || cacheCleared}
-            >
-              {cacheClearing ? (
-                <Icon name="Loader2" size={18} className="mr-3 animate-spin" />
-              ) : cacheCleared ? (
-                <Icon name="Check" size={18} className="mr-3 text-green-500" />
-              ) : (
-                <Icon name="Trash2" size={18} className="mr-3" />
-              )}
-              {cacheCleared ? 'Кэш очищен' : cacheClearing ? 'Очистка...' : 'Очистить кэш'}
-            </Button>
           </div>
 
           <Button
