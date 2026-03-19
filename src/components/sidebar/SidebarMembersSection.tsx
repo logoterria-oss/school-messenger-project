@@ -138,15 +138,9 @@ export const SidebarMembersSection = ({
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {chatInfo.students.length > 0 ? chatInfo.students.map((student) => (
-              <div key={student.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={student.avatar} />
-                  <AvatarFallback className="bg-primary/10 text-primary"><Icon name="User" size={18} /></AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{student.name}</p></div>
-              </div>
+              <p key={student.id} className="text-sm py-0.5 truncate">{student.name}</p>
             )) : (
               <p className="text-sm text-muted-foreground">Нет учеников</p>
             )}
@@ -203,15 +197,9 @@ export const SidebarMembersSection = ({
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {chatInfo.parents.length > 0 ? chatInfo.parents.map((parent) => (
-              <div key={parent.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={parent.avatar} />
-                  <AvatarFallback className="bg-primary/10 text-primary"><Icon name="User" size={18} /></AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{parent.name}</p></div>
-              </div>
+              <p key={parent.id} className="text-sm py-0.5 truncate">{parent.name}</p>
             )) : (
               <p className="text-sm text-muted-foreground">Нет родителей</p>
             )}
@@ -219,14 +207,14 @@ export const SidebarMembersSection = ({
         )}
       </div>
 
-      {isAdmin && !isTeachersGroup && allAdmins.length > 0 && (
+      {!isTeachersGroup && allAdmins.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
               <Icon name="Shield" size={16} />
               Ведущий админ
             </h4>
-            {!isEditingLeadAdmin && onUpdateLeadAdmin && (
+            {isAdmin && !isEditingLeadAdmin && onUpdateLeadAdmin && (
               <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setEditLeadAdmin(leadAdminId || ''); setIsEditingLeadAdmin(true); }}>
                 <Icon name="Pencil" size={14} className="mr-1" />
                 Изменить
@@ -263,19 +251,11 @@ export const SidebarMembersSection = ({
           ) : (
             <>
               {leadAdminId ? (
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {(() => {
                     const admin = allAdmins.find(a => a.id === leadAdminId);
                     if (!admin) return <p className="text-sm text-muted-foreground">Ведущий админ не найден</p>;
-                    return (
-                      <div className="flex items-center gap-3 p-2 rounded-lg bg-accent/50">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={admin.avatar} />
-                          <AvatarFallback className="bg-blue-500/10 text-blue-600 text-xs"><Icon name="Shield" size={14} /></AvatarFallback>
-                        </Avatar>
-                        <p className="text-sm font-medium">{admin.name}</p>
-                      </div>
-                    );
+                    return <p className="text-sm py-0.5">{admin.name}</p>;
                   })()}
                 </div>
               ) : (
@@ -286,11 +266,11 @@ export const SidebarMembersSection = ({
         </div>
       )}
 
-      {isAdmin && !isTeachersGroup && (
+      {!isTeachersGroup && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-medium text-sm text-muted-foreground">Ведущие педагоги</h4>
-            {!isEditingLeads && onUpdateLeadTeachers && (
+            {isAdmin && !isEditingLeads && onUpdateLeadTeachers && (
               <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={startEditLeads}>
                 <Icon name="Pencil" size={14} className="mr-1" />
                 Изменить
@@ -321,15 +301,9 @@ export const SidebarMembersSection = ({
           ) : (
             <>
               {chatInfo.teachers.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {chatInfo.teachers.map((teacher) => (
-                    <div key={teacher.id} className="flex items-center gap-3 p-2 rounded-lg bg-accent/50">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={teacher.avatar} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs"><Icon name="User" size={14} /></AvatarFallback>
-                      </Avatar>
-                      <p className="text-sm font-medium">{teacher.name}</p>
-                    </div>
+                    <p key={teacher.id} className="text-sm py-0.5">{teacher.name}</p>
                   ))}
                 </div>
               ) : (
