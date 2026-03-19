@@ -63,6 +63,7 @@ export type Chat = {
   leadAdmin?: string;
   schedule?: string;
   conclusionLink?: string;
+  conclusionPdf?: string;
   avatar?: string;
   lastTime?: string;
 };

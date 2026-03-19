@@ -367,6 +367,7 @@ export const useChatLogic = () => {
         isArchived: c.is_archived as boolean | undefined,
         schedule: c.schedule as string | undefined,
         conclusionLink: c.conclusion_link as string | undefined,
+        conclusionPdf: c.conclusion_pdf as string | undefined,
       }));
       const mappedTopics: GroupTopics = {};
       for (const [chatId, topics] of Object.entries(chatsData.topics)) {
@@ -1434,7 +1435,7 @@ export const useChatLogic = () => {
     });
   };
 
-  const handleCreateGroup = async (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = [], leadAdmin?: string) => {
+  const handleCreateGroup = async (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = [], leadAdmin?: string, conclusionPdfBase64?: string) => {
     const teachersAndAdmins = allUsers
       .filter(user => user.role === 'teacher' || user.role === 'admin')
       .map(user => user.id);
@@ -1461,6 +1462,7 @@ export const useChatLogic = () => {
         avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
         schedule: schedule || undefined,
         conclusionLink: conclusionLink || undefined,
+        conclusionPdfBase64: conclusionPdfBase64 || undefined,
         topics,
         leadTeachers: leadTeachers.length > 0 ? leadTeachers : undefined,
         leadAdmin: leadAdmin || undefined,
@@ -1756,17 +1758,34 @@ export const useChatLogic = () => {
     return messageId;
   };
 
-  const handleUpdateGroupInfo = (chatId: string, updates: { schedule?: string; conclusionLink?: string; name?: string }) => {
+  const handleUpdateGroupInfo = async (chatId: string, updates: { schedule?: string; conclusionLink?: string; name?: string; conclusionPdfBase64?: string }) => {
+    const localUpdates = { ...updates };
+    delete (localUpdates as Record<string, unknown>).conclusionPdfBase64;
     setChats(prev => {
       const updated = prev.map(chat =>
         chat.id === chatId
-          ? { ...chat, ...updates }
+          ? { ...chat, ...localUpdates }
           : chat
       );
       localStorage.setItem('chats', JSON.stringify(updated));
       return updated;
     });
-    updateChat(chatId, updates).catch(() => {});
+    try {
+      const resp = await updateChat(chatId, updates);
+      if (resp.conclusionPdf) {
+        setChats(prev => {
+          const updated = prev.map(chat =>
+            chat.id === chatId
+              ? { ...chat, conclusionPdf: resp.conclusionPdf as string }
+              : chat
+          );
+          localStorage.setItem('chats', JSON.stringify(updated));
+          return updated;
+        });
+      }
+    } catch (e) {
+      console.error('Failed to update group info:', e);
+    }
   };
 
   return {

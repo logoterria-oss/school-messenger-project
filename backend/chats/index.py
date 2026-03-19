@@ -1,8 +1,25 @@
 import json
 import os
+import base64
+import uuid
 import psycopg2
 from psycopg2.extras import RealDictCursor
-# v2
+import boto3
+# v3
+
+def upload_pdf_to_s3(pdf_base64: str, chat_id: str) -> str:
+    if ',' in pdf_base64:
+        pdf_base64 = pdf_base64.split(',', 1)[1]
+    pdf_data = base64.b64decode(pdf_base64)
+    s3 = boto3.client(
+        's3',
+        endpoint_url='https://bucket.poehali.dev',
+        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY']
+    )
+    key = f"conclusions/{chat_id}/{uuid.uuid4().hex}.pdf"
+    s3.put_object(Bucket='files', Key=key, Body=pdf_data, ContentType='application/pdf')
+    return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
 
 def handler(event: dict, context) -> dict:
     '''API для управления чатами и группами'''
@@ -34,7 +51,7 @@ def handler(event: dict, context) -> dict:
 
             cur.execute("""
                 WITH chat_data AS (
-                    SELECT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link,
+                    SELECT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.conclusion_pdf,
                            CASE WHEN c.type = 'private' THEN false ELSE COALESCE(c.is_pinned, false) END as is_pinned,
                            COALESCE(c.is_archived, false) as is_archived, c.lead_admin,
                            COALESCE(m.text, '') as last_message,
@@ -61,7 +78,7 @@ def handler(event: dict, context) -> dict:
                     ) unread ON true
                     WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = %s)
                       AND COALESCE(c.is_archived, false) = false
-                    GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.is_pinned, c.is_archived, c.lead_admin, m.text, m.created_at, unread.count
+                    GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.conclusion_pdf, c.is_pinned, c.is_archived, c.lead_admin, m.text, m.created_at, unread.count
                 ),
                 deduped AS (
                     SELECT DISTINCT ON (
@@ -70,7 +87,7 @@ def handler(event: dict, context) -> dict:
                     FROM chat_data
                     ORDER BY CASE WHEN type = 'private' THEN participants::text ELSE id END, last_msg_at DESC NULLS LAST
                 )
-                SELECT id, name, type, avatar, schedule, conclusion_link, is_pinned, is_archived, lead_admin, last_message, timestamp, unread, participants
+                SELECT id, name, type, avatar, schedule, conclusion_link, conclusion_pdf, is_pinned, is_archived, lead_admin, last_message, timestamp, unread, participants
                 FROM deduped
                 ORDER BY is_pinned DESC, last_msg_at DESC NULLS LAST
             """, (user_id, user_id, user_id))
@@ -189,9 +206,13 @@ def handler(event: dict, context) -> dict:
                     conn.close()
                     return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'chatId': existing['id'], 'existing': True})}
 
+            conclusion_pdf_url = None
+            if data.get('conclusionPdfBase64'):
+                conclusion_pdf_url = upload_pdf_to_s3(data['conclusionPdfBase64'], data['id'])
+
             cur.execute("""
-                INSERT INTO chats (id, name, type, avatar, schedule, conclusion_link, is_pinned, lead_admin)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO chats (id, name, type, avatar, schedule, conclusion_link, conclusion_pdf, is_pinned, lead_admin)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id) DO NOTHING
                 RETURNING id
             """, (
@@ -201,6 +222,7 @@ def handler(event: dict, context) -> dict:
                 data.get('avatar'),
                 data.get('schedule'),
                 data.get('conclusionLink'),
+                conclusion_pdf_url,
                 data.get('isPinned', False),
                 data.get('leadAdmin')
             ))
@@ -255,6 +277,7 @@ def handler(event: dict, context) -> dict:
 
             updates = []
             values = []
+            new_pdf_url = None
 
             if 'schedule' in data:
                 updates.append('schedule = %s')
@@ -262,6 +285,14 @@ def handler(event: dict, context) -> dict:
             if 'conclusionLink' in data:
                 updates.append('conclusion_link = %s')
                 values.append(data['conclusionLink'])
+            if 'conclusionPdfBase64' in data:
+                if data['conclusionPdfBase64']:
+                    new_pdf_url = upload_pdf_to_s3(data['conclusionPdfBase64'], chat_id)
+                    updates.append('conclusion_pdf = %s')
+                    values.append(new_pdf_url)
+                else:
+                    updates.append('conclusion_pdf = %s')
+                    values.append(None)
             if 'name' in data:
                 updates.append('name = %s')
                 values.append(data['name'])
@@ -307,7 +338,10 @@ def handler(event: dict, context) -> dict:
             cur.close()
             conn.close()
 
-            return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'chatId': chat_id})}
+            resp = {'chatId': chat_id}
+            if new_pdf_url:
+                resp['conclusionPdf'] = new_pdf_url
+            return {'statusCode': 200, 'headers': cors, 'body': json.dumps(resp)}
 
         elif method == 'DELETE':
             params = event.get('queryStringParameters', {}) or {}

@@ -163,6 +163,7 @@ export async function createChat(chat: {
   avatar?: string;
   schedule?: string;
   conclusionLink?: string;
+  conclusionPdfBase64?: string;
   isPinned?: boolean;
   topics?: Array<{ id: string; name: string; icon: string }>;
   leadTeachers?: string[];
@@ -182,7 +183,7 @@ export async function createChat(chat: {
   return data.chatId;
 }
 
-export async function updateChat(chatId: string, updates: Record<string, unknown>): Promise<void> {
+export async function updateChat(chatId: string, updates: Record<string, unknown>): Promise<Record<string, unknown>> {
   const response = await fetch(API_URLS.chats, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -192,6 +193,8 @@ export async function updateChat(chatId: string, updates: Record<string, unknown
   if (!response.ok) {
     throw new Error('Failed to update chat');
   }
+
+  return await response.json();
 }
 
 export async function deleteChat(chatId: string): Promise<void> {

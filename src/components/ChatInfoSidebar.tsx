@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +21,7 @@ type ChatInfo = {
   teachers: User[];
   schedule?: string;
   conclusionLink?: string;
+  conclusionPdf?: string;
 };
 
 type ChatInfoSidebarProps = {
@@ -42,13 +43,14 @@ type ChatInfoSidebarProps = {
   onUpdateParticipants?: (participantIds: string[]) => void;
   onUpdateSchedule?: (schedule: string) => void;
   onUpdateConclusionLink?: (link: string) => void;
+  onUpdateConclusionPdf?: (base64: string) => void;
   chatName?: string;
   onUpdateName?: (name: string) => void;
   isArchived?: boolean;
   onArchive?: () => void;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onUpdateConclusionLink, chatName, onUpdateName, isArchived, onArchive }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onUpdateConclusionLink, onUpdateConclusionPdf, chatName, onUpdateName, isArchived, onArchive }: ChatInfoSidebarProps) => {
   const [isEditingLeads, setIsEditingLeads] = useState(false);
   const [editLeads, setEditLeads] = useState<string[]>([]);
   const [isEditingLeadAdmin, setIsEditingLeadAdmin] = useState(false);
@@ -64,6 +66,8 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
   const [isEditingParents, setIsEditingParents] = useState(false);
   const [editParentIds, setEditParentIds] = useState<string[]>([]);
   const [memberSearch, setMemberSearch] = useState('');
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
@@ -454,8 +458,62 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
                   Открыть заключение
                 </a>
               ) : (
-                <p className="text-sm text-muted-foreground">Заключение не добавлено</p>
+                <p className="text-sm text-muted-foreground">Ссылка на заключение не добавлена</p>
               )}
+
+              <input
+                ref={pdfInputRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !onUpdateConclusionPdf) return;
+                  setIsUploadingPdf(true);
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    onUpdateConclusionPdf(ev.target?.result as string);
+                    setIsUploadingPdf(false);
+                  };
+                  reader.readAsDataURL(file);
+                  e.target.value = '';
+                }}
+              />
+              <div className="mt-3">
+                {chatInfo.conclusionPdf ? (
+                  <div className="space-y-2">
+                    <a href={chatInfo.conclusionPdf} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors text-sm text-primary">
+                      <Icon name="FileDown" size={16} />
+                      Скачать PDF заключение
+                    </a>
+                    {isAdminOrTeacher && onUpdateConclusionPdf && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs w-full"
+                        disabled={isUploadingPdf}
+                        onClick={() => pdfInputRef.current?.click()}
+                      >
+                        <Icon name="RefreshCw" size={14} className="mr-1" />
+                        {isUploadingPdf ? 'Загрузка...' : 'Заменить PDF'}
+                      </Button>
+                    )}
+                  </div>
+                ) : isAdminOrTeacher && onUpdateConclusionPdf ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    disabled={isUploadingPdf}
+                    onClick={() => pdfInputRef.current?.click()}
+                  >
+                    <Icon name="Upload" size={14} className="mr-2" />
+                    {isUploadingPdf ? 'Загрузка...' : 'Загрузить PDF заключение'}
+                  </Button>
+                ) : (
+                  !chatInfo.conclusionPdf && <p className="text-sm text-muted-foreground">PDF не прикреплён</p>
+                )}
+              </div>
             </div>
           )}
 

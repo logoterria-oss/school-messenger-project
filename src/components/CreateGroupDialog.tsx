@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ type User = {
 type CreateGroupDialogProps = {
   open: boolean;
   onClose: () => void;
-  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[], leadAdmin?: string) => void;
+  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[], leadAdmin?: string, conclusionPdfBase64?: string) => void;
   allUsers: User[];
 };
 
@@ -32,6 +32,9 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
   const [leadAdmin, setLeadAdmin] = useState<string>('');
   const [schedule, setSchedule] = useState('');
   const [conclusionLink, setConclusionLink] = useState('');
+  const [conclusionPdf, setConclusionPdf] = useState<string | null>(null);
+  const [conclusionPdfName, setConclusionPdfName] = useState('');
+  const pdfInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const teachers = allUsers.filter(u => u.role === 'teacher');
@@ -52,7 +55,7 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
     const allAdminIds = admins.map(a => a.id);
     const finalUsers = [...new Set([...allTeacherIds, ...allAdminIds, ...selectedUsers])];
 
-    onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim(), leadTeachers, leadAdmin || undefined);
+    onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim(), leadTeachers, leadAdmin || undefined, conclusionPdf || undefined);
     resetForm();
     onClose();
   };
@@ -64,6 +67,8 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
     setLeadAdmin('');
     setSchedule('');
     setConclusionLink('');
+    setConclusionPdf(null);
+    setConclusionPdfName('');
     setSearchQuery('');
   };
 
@@ -254,6 +259,50 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
               value={conclusionLink}
               onChange={(e) => setConclusionLink(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Заключение (PDF)</Label>
+            <input
+              ref={pdfInputRef}
+              type="file"
+              accept=".pdf"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setConclusionPdfName(file.name);
+                const reader = new FileReader();
+                reader.onload = (ev) => setConclusionPdf(ev.target?.result as string);
+                reader.readAsDataURL(file);
+                e.target.value = '';
+              }}
+            />
+            {conclusionPdf ? (
+              <div className="flex items-center gap-2 p-3 rounded-lg border bg-accent/30">
+                <Icon name="FileText" size={18} className="text-primary flex-shrink-0" />
+                <span className="text-sm truncate flex-1">{conclusionPdfName}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 flex-shrink-0"
+                  onClick={() => { setConclusionPdf(null); setConclusionPdfName(''); }}
+                >
+                  <Icon name="X" size={14} />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => pdfInputRef.current?.click()}
+              >
+                <Icon name="Upload" size={16} className="mr-2" />
+                Загрузить PDF
+              </Button>
+            )}
           </div>
         </div>
 

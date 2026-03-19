@@ -448,6 +448,7 @@ const Index = () => {
                     : allUsers.filter(u => u.role === 'teacher' && chatParticipants.includes(u.id)),
                   schedule: currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
                   conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
+                  conclusionPdf: currentChat?.conclusionPdf,
                 }}
                 allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
                 allAdmins={allUsers.filter(u => u.role === 'admin' && u.id !== 'admin').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
@@ -463,6 +464,7 @@ const Index = () => {
                 onUpdateName={(name) => selectedChat && handleUpdateGroupInfo(selectedChat, { name })}
                 onUpdateSchedule={(schedule) => selectedChat && handleUpdateGroupInfo(selectedChat, { schedule })}
                 onUpdateConclusionLink={(link) => selectedChat && handleUpdateGroupInfo(selectedChat, { conclusionLink: link })}
+                onUpdateConclusionPdf={(base64) => selectedChat && handleUpdateGroupInfo(selectedChat, { conclusionPdfBase64: base64 })}
                 onDeleteGroup={() => {
                   if (selectedChat && confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
                     handleDeleteGroup(selectedChat);
