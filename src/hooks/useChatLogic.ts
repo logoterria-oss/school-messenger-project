@@ -86,6 +86,21 @@ const deduplicatePrivateChats = (chats: Chat[]): Chat[] => {
   });
 };
 
+const runCacheCleanup = () => {
+  const key = 'cache_cleanup_v1';
+  if (localStorage.getItem(key)) return;
+  localStorage.removeItem('chats');
+  localStorage.removeItem('chatMessages');
+  localStorage.removeItem('groupTopics');
+  localStorage.removeItem('allUsers');
+  localStorage.removeItem('usersVersion');
+  localStorage.removeItem('chats_migration_v6_final');
+  localStorage.removeItem('topics_migration_standard_v2');
+  localStorage.removeItem('scheduledMessages');
+  localStorage.setItem(key, 'true');
+};
+runCacheCleanup();
+
 const loadChatsFromCache = (): Chat[] => {
   if (cachedChats) return cachedChats;
   const stored = localStorage.getItem('chats');
