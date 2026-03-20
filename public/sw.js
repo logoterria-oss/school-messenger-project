@@ -1,4 +1,4 @@
-const SW_VERSION = 2;
+const SW_VERSION = 3;
 const DB_NAME = 'notification_settings';
 const STORE_NAME = 'muted_topics';
 
@@ -62,7 +62,7 @@ self.addEventListener('push', (event) => {
       body: data.body || '',
       icon: data.icon || '/favicon.ico',
       badge: data.icon || '/favicon.ico',
-      tag: data.tag || 'chat-notification',
+      tag: data.tag || ('msg-' + Date.now()),
       vibrate: [200, 100, 200],
       renotify: true,
       data: data.data || {},
@@ -71,8 +71,9 @@ self.addEventListener('push', (event) => {
     return self.registration.showNotification(data.title || 'Новое сообщение', options)
       .then(() => self.registration.getNotifications())
       .then((notifications) => {
+        const count = notifications.length;
         if (navigator.setAppBadge) {
-          navigator.setAppBadge(notifications.length);
+          navigator.setAppBadge(count);
         }
       });
   });

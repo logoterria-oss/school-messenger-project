@@ -230,7 +230,7 @@ def handler(event: dict, context) -> dict:
                             'title': sender_name,
                             'body': preview,
                             'icon': 'https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/favicon-1773208222088.jpg',
-                            'tag': 'chat-%s' % chat_id,
+                            'tag': 'msg-%s' % message_id,
                             'data': {'chatId': chat_id, 'topicId': topic_id, 'hasMention': personal_mention}
                         })
                         try:
