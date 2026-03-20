@@ -41,7 +41,7 @@ export type Message = {
   isOwn: boolean;
   attachments?: AttachedFile[];
   reactions?: { emoji: string; count: number; users: string[] }[];
-  status?: 'sending' | 'sent' | 'delivered' | 'read';
+  status?: 'sending' | 'sent' | 'delivered' | 'read' | 'error';
   replyTo?: ReplyInfo;
   forwardedFrom?: ForwardInfo;
   scheduledAt?: string;

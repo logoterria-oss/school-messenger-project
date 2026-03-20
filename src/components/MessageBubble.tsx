@@ -151,6 +151,7 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
                     {message.status === 'sent' && <Icon name="Check" size={12} className="text-muted-foreground/50" />}
                     {message.status === 'delivered' && <Icon name="CheckCheck" size={12} className="text-muted-foreground/50" />}
                     {message.status === 'read' && <Icon name="CheckCheck" size={12} className="text-primary" />}
+                    {message.status === 'error' && <Icon name="AlertCircle" size={12} className="text-destructive" />}
                   </span>
                 )}
               </div>

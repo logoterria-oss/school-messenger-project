@@ -54,10 +54,16 @@ const mergeMessages = (existing: Message[], fromApi: Message[]): Message[] => {
     if (ex && ex.isOwn) {
       merged.set(msg.id, { ...msg, timestamp: ex.timestamp, date: ex.date, isOwn: true, status: ex.status });
     } else {
-      merged.set(msg.id, msg);
+      merged.set(msg.id, { ...ex, ...msg });
     }
   });
-  return Array.from(merged.values());
+  const arr = Array.from(merged.values());
+  arr.sort((a, b) => {
+    const da = a.date ? new Date(a.date).getTime() : 0;
+    const db = b.date ? new Date(b.date).getTime() : 0;
+    return da - db;
+  });
+  return arr;
 };
 
 type User = {
@@ -536,7 +542,8 @@ export const useChatLogic = () => {
     wsService.on('user_update', handleUserUpdate);
     wsService.on('message_new', handleNewMessage);
 
-    const pollInterval = setInterval(() => {
+    const pollChats = () => {
+      if (document.hidden) return;
       getChats(userId).then(chatsData => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
@@ -548,7 +555,8 @@ export const useChatLogic = () => {
           setGroupTopics(mappedTopics);
         }
       }).catch(() => {});
-    }, 5000);
+    };
+    const pollInterval = setInterval(pollChats, 3000);
 
     return () => {
       clearInterval(pollInterval);
@@ -562,7 +570,8 @@ export const useChatLogic = () => {
     if (!chatId) return;
 
     const targetId = topicId || chatId;
-    const poll = setInterval(() => {
+    const pollMessages = () => {
+      if (document.hidden) return;
       getMessages(chatId, topicId || undefined).then(msgs => {
         const mapped = mapApiMessages(msgs, userId);
         setChatMessages(prev => ({
@@ -570,7 +579,9 @@ export const useChatLogic = () => {
           [targetId]: mergeMessages(prev[targetId] || [], mapped)
         }));
       }).catch(() => {});
-    }, 5000);
+    };
+    pollMessages();
+    const poll = setInterval(pollMessages, 2000);
 
     return () => clearInterval(poll);
   }, [isAuthenticated, userId, selectedChat, selectedTopic]);
@@ -827,39 +838,18 @@ export const useChatLogic = () => {
       setChatMessages(prev => ({
         ...prev,
         [targetId]: (prev[targetId] || []).map(msg => 
-          msg.id === messageId ? { ...msg, status: 'sent' } : msg
+          msg.id === messageId ? { ...msg, status: 'delivered' } : msg
         )
       }));
     } catch (error) {
       console.error('Failed to send message:', error);
+      setChatMessages(prev => ({
+        ...prev,
+        [targetId]: (prev[targetId] || []).map(msg => 
+          msg.id === messageId ? { ...msg, status: 'error' } : msg
+        )
+      }));
     }
-
-    setTimeout(() => {
-      setChatMessages(prev => ({
-        ...prev,
-        [targetId]: (prev[targetId] || []).map(msg => 
-          msg.id === messageId ? { ...msg, status: 'sent' } : msg
-        )
-      }));
-    }, 500);
-
-    setTimeout(() => {
-      setChatMessages(prev => ({
-        ...prev,
-        [targetId]: (prev[targetId] || []).map(msg => 
-          msg.id === messageId ? { ...msg, status: 'delivered' } : msg
-        )
-      }));
-    }, 1000);
-
-    setTimeout(() => {
-      setChatMessages(prev => ({
-        ...prev,
-        [targetId]: (prev[targetId] || []).map(msg => 
-          msg.id === messageId ? { ...msg, status: 'read' } : msg
-        )
-      }));
-    }, 2000);
   };
 
   const executeScheduledMessage = (scheduled: ScheduledMessage) => {
