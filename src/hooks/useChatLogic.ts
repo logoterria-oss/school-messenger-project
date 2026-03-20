@@ -742,10 +742,21 @@ export const useChatLogic = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!selectedChat || (!messageText.trim() && attachments.length === 0)) return;
+    const currentText = messageText;
+    const currentAttachments = [...attachments];
+    const currentReplyTo = replyTo;
+    const currentChat = selectedChat;
+    const currentTopic = selectedTopic;
+    const currentGroup = selectedGroup;
+
+    if (!currentChat || (!currentText.trim() && currentAttachments.length === 0)) return;
     
-    const targetId = selectedTopic || selectedChat;
-    const messageId = Date.now().toString();
+    setMessageText('');
+    setAttachments([]);
+    setReplyTo(null);
+
+    const targetId = currentTopic || currentChat;
+    const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     
     const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Пользователь');
     const defaultAvatars: Record<string, string> = {
@@ -759,7 +770,7 @@ export const useChatLogic = () => {
     const nowISO = now.toISOString();
     const newMessage: Message = {
       id: messageId,
-      text: messageText || undefined,
+      text: currentText || undefined,
       sender: senderName,
       senderId: userId,
       senderRole: userRole || undefined,
@@ -767,27 +778,26 @@ export const useChatLogic = () => {
       timestamp: now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
       date: nowISO,
       isOwn: true,
-      attachments: attachments.length > 0 ? attachments : undefined,
+      attachments: currentAttachments.length > 0 ? currentAttachments : undefined,
       status: 'sending',
-      replyTo: replyTo || undefined,
+      replyTo: currentReplyTo || undefined,
     };
-    const currentReplyTo = replyTo;
     
     setChatMessages(prev => ({
       ...prev,
       [targetId]: [...(prev[targetId] || []), newMessage]
     }));
 
-    const msgPreview = messageText ? (messageText.length > 40 ? messageText.slice(0, 40) + '...' : messageText) : 'Вложение';
+    const msgPreview = currentText ? (currentText.length > 40 ? currentText.slice(0, 40) + '...' : currentText) : 'Вложение';
     const nowTime = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
     setChats(prev => {
       const updated = prev.map(chat =>
-        chat.id === selectedChat
+        chat.id === currentChat
           ? { ...chat, lastMessage: `${senderName}: ${msgPreview}`, timestamp: nowTime }
           : chat
       );
-      const idx = updated.findIndex(c => c.id === selectedChat);
+      const idx = updated.findIndex(c => c.id === currentChat);
       if (idx > 0) {
         const [moved] = updated.splice(idx, 1);
         const pinnedCount = updated.filter(c => c.isPinned || c.id === 'teachers-group').length;
@@ -796,32 +806,28 @@ export const useChatLogic = () => {
       return updated;
     });
 
-    if (selectedTopic && selectedGroup) {
+    if (currentTopic && currentGroup) {
       setGroupTopics(prev => ({
         ...prev,
-        [selectedGroup]: prev[selectedGroup]?.map(topic =>
-          topic.id === selectedTopic
+        [currentGroup]: prev[currentGroup]?.map(topic =>
+          topic.id === currentTopic
             ? { ...topic, lastMessage: msgPreview, timestamp: nowTime }
             : topic
         ) || []
       }));
     }
 
-    setMessageText('');
-    setAttachments([]);
-    setReplyTo(null);
-
     try {
       const { sendMessage } = await import('@/services/api');
       await sendMessage({
         id: messageId,
-        chatId: selectedChat,
-        topicId: selectedTopic || undefined,
+        chatId: currentChat,
+        topicId: currentTopic || undefined,
         senderId: userId,
         senderName: userName,
-        text: messageText || undefined,
+        text: currentText || undefined,
         createdAt: nowISO,
-        attachments: attachments.map(att => ({
+        attachments: currentAttachments.map(att => ({
           type: att.type,
           fileUrl: att.fileUrl,
           fileName: att.fileName,
@@ -833,7 +839,7 @@ export const useChatLogic = () => {
       });
 
       // Уведомляем через WebSocket
-      wsService.notifyNewMessage(messageId, selectedChat, selectedTopic || undefined);
+      wsService.notifyNewMessage(messageId, currentChat, currentTopic || undefined);
 
       setChatMessages(prev => ({
         ...prev,
