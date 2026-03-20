@@ -258,11 +258,12 @@ export async function sendMessage(message: {
   forwardedFromText?: string;
   forwardedFromDate?: string;
   forwardedFromChatName?: string;
-}): Promise<Message> {
+}, signal?: AbortSignal): Promise<Message> {
   const response = await fetch(API_URLS.messages, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(message),
+    signal,
   });
 
   if (!response.ok) {

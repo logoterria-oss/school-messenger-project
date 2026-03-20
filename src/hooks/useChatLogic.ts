@@ -323,37 +323,35 @@ export const useChatLogic = () => {
     return [];
   });
   const executedScheduledIds = useRef<Set<string>>(new Set());
-  const sendQueueRef = useRef<Array<{ msgId: string; targetId: string; payload: Parameters<typeof apiSendMessage>[0] }>>([]);
-  const isSendingRef = useRef(false);
-  const pausePollingRef = useRef(false);
+  const activeSendsRef = useRef(0);
 
-  const processSendQueue = () => {
-    if (isSendingRef.current || sendQueueRef.current.length === 0) return;
-    isSendingRef.current = true;
-    pausePollingRef.current = true;
-    const item = sendQueueRef.current.shift()!;
-    apiSendMessage(item.payload).then(() => {
+  const sendWithRetry = (msgId: string, targetId: string, payload: Parameters<typeof apiSendMessage>[0], attempt = 0) => {
+    activeSendsRef.current++;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    apiSendMessage(payload, controller.signal).then(() => {
+      clearTimeout(timeout);
       setChatMessages(prev => ({
         ...prev,
-        [item.targetId]: (prev[item.targetId] || []).map(msg =>
-          msg.id === item.msgId ? { ...msg, status: 'delivered' } : msg
+        [targetId]: (prev[targetId] || []).map(msg =>
+          msg.id === msgId ? { ...msg, status: 'delivered' } : msg
         )
       }));
-    }).catch((error) => {
-      console.error('Failed to send message:', item.msgId, error);
+    }).catch(() => {
+      clearTimeout(timeout);
+      if (attempt < 2) {
+        setTimeout(() => sendWithRetry(msgId, targetId, payload, attempt + 1), 1000 * (attempt + 1));
+        return;
+      }
       setChatMessages(prev => ({
         ...prev,
-        [item.targetId]: (prev[item.targetId] || []).map(msg =>
-          msg.id === item.msgId ? { ...msg, status: 'error' } : msg
+        [targetId]: (prev[targetId] || []).map(msg =>
+          msg.id === msgId ? { ...msg, status: 'error' } : msg
         )
       }));
     }).finally(() => {
-      isSendingRef.current = false;
-      if (sendQueueRef.current.length > 0) {
-        processSendQueue();
-      } else {
-        pausePollingRef.current = false;
-      }
+      activeSendsRef.current = Math.max(0, activeSendsRef.current - 1);
     });
   };
 
@@ -588,7 +586,7 @@ export const useChatLogic = () => {
     wsService.on('message_new', handleNewMessage);
 
     const pollChats = () => {
-      if (document.hidden || pausePollingRef.current) return;
+      if (document.hidden) return;
       getChats(userId).then(chatsData => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
@@ -616,7 +614,7 @@ export const useChatLogic = () => {
 
     const targetId = topicId || chatId;
     const pollMessages = () => {
-      if (document.hidden || pausePollingRef.current) return;
+      if (document.hidden || activeSendsRef.current > 0) return;
       getMessages(chatId, topicId || undefined).then(msgs => {
         const mapped = mapApiMessages(msgs, userId);
         setChatMessages(prev => ({
@@ -865,29 +863,24 @@ export const useChatLogic = () => {
       }));
     }
 
-    sendQueueRef.current.push({
-      msgId: messageId,
-      targetId,
-      payload: {
-        id: messageId,
-        chatId: currentChat,
-        topicId: currentTopic || undefined,
-        senderId: userId,
-        senderName: userName,
-        text: currentText || undefined,
-        createdAt: nowISO,
-        attachments: currentAttachments.map(att => ({
-          type: att.type,
-          fileUrl: att.fileUrl,
-          fileName: att.fileName,
-          fileSize: att.fileSize,
-        })),
-        replyToId: currentReplyTo?.id,
-        replyToSender: currentReplyTo?.sender,
-        replyToText: currentReplyTo?.text,
-      },
+    sendWithRetry(messageId, targetId, {
+      id: messageId,
+      chatId: currentChat,
+      topicId: currentTopic || undefined,
+      senderId: userId,
+      senderName: userName,
+      text: currentText || undefined,
+      createdAt: nowISO,
+      attachments: currentAttachments.map(att => ({
+        type: att.type,
+        fileUrl: att.fileUrl,
+        fileName: att.fileName,
+        fileSize: att.fileSize,
+      })),
+      replyToId: currentReplyTo?.id,
+      replyToSender: currentReplyTo?.sender,
+      replyToText: currentReplyTo?.text,
     });
-    processSendQueue();
   };
 
   const executeScheduledMessage = (scheduled: ScheduledMessage) => {
