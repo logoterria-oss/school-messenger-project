@@ -555,6 +555,26 @@ export const useChatLogic = () => {
     };
   }, [isAuthenticated, userId]);
 
+  useEffect(() => {
+    if (!isAuthenticated || !userId) return;
+    const chatId = selectedChat;
+    const topicId = selectedTopic;
+    if (!chatId) return;
+
+    const targetId = topicId || chatId;
+    const poll = setInterval(() => {
+      getMessages(chatId, topicId || undefined).then(msgs => {
+        const mapped = mapApiMessages(msgs, userId);
+        setChatMessages(prev => ({
+          ...prev,
+          [targetId]: mergeMessages(prev[targetId] || [], mapped)
+        }));
+      }).catch(() => {});
+    }, 5000);
+
+    return () => clearInterval(poll);
+  }, [isAuthenticated, userId, selectedChat, selectedTopic]);
+
   // Сохраняем данные в localStorage с debounce
   useEffect(() => {
     const timer = setTimeout(() => {
