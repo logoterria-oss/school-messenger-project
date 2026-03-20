@@ -701,14 +701,19 @@ export const useChatLogic = () => {
       setSelectedChat(null);
       setSelectedGroup(null);
       setSelectedTopic(null);
+      selectedChatRef.current = null;
+      selectedGroupRef.current = null;
+      selectedTopicRef.current = null;
       return;
     }
     const chat = chats.find(c => c.id === chatId);
     setSelectedChat(chatId);
+    selectedChatRef.current = chatId;
     
     let firstTopicId: string | null = null;
     if (chat && chat.type === 'group') {
       setSelectedGroup(chatId);
+      selectedGroupRef.current = chatId;
       const topics = groupTopics[chatId];
       if (topics && topics.length > 0) {
         if (userRole === 'teacher' || userRole === 'student') {
@@ -718,10 +723,13 @@ export const useChatLogic = () => {
           firstTopicId = topics[0].id;
         }
         setSelectedTopic(firstTopicId);
+        selectedTopicRef.current = firstTopicId;
       }
     } else {
       setSelectedGroup(null);
       setSelectedTopic(null);
+      selectedGroupRef.current = null;
+      selectedTopicRef.current = null;
     }
     
     setChats(prevChats => {
@@ -760,6 +768,7 @@ export const useChatLogic = () => {
 
   const handleSelectTopic = (topicId: string) => {
     setSelectedTopic(topicId);
+    selectedTopicRef.current = topicId;
     
     if (selectedGroup) {
       setGroupTopics(prev => {
