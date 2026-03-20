@@ -632,10 +632,14 @@ export const useChatLogic = () => {
       if (document.hidden || activeSendsRef.current > 0) return;
       getMessages(chatId, topicId || undefined).then(msgs => {
         const mapped = mapApiMessages(msgs, userId);
-        setChatMessages(prev => ({
-          ...prev,
-          [targetId]: mergeMessages(prev[targetId] || [], mapped)
-        }));
+        setChatMessages(prev => {
+          const old = prev[targetId] || [];
+          const merged = mergeMessages(old, mapped);
+          if (merged.length > old.length) {
+            markAsRead(userId, chatId, topicId || undefined).catch(() => {});
+          }
+          return { ...prev, [targetId]: merged };
+        });
       }).catch(() => {});
     };
     pollMessages();
