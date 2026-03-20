@@ -318,7 +318,9 @@ export const useChatLogic = () => {
   });
   const executedScheduledIds = useRef<Set<string>>(new Set());
   const fireAndForgetSend = (msgId: string, targetId: string, payload: Parameters<typeof apiSendMessage>[0]) => {
+    console.log('[SEND] firing API call for:', msgId, 'text:', payload.text);
     apiSendMessage(payload).then(() => {
+      console.log('[SEND] delivered:', msgId);
       setChatMessages(prev => ({
         ...prev,
         [targetId]: (prev[targetId] || []).map(msg =>
@@ -773,7 +775,12 @@ export const useChatLogic = () => {
     const currentTopic = selectedTopic;
     const currentGroup = selectedGroup;
 
-    if (!currentChat || (!currentText.trim() && currentAttachments.length === 0)) return;
+    console.log('[SEND] called, text:', JSON.stringify(currentText), 'chat:', currentChat, 'att:', currentAttachments.length);
+
+    if (!currentChat || (!currentText.trim() && currentAttachments.length === 0)) {
+      console.log('[SEND] SKIPPED — empty text or no chat');
+      return;
+    }
     
     setMessageText('');
     setAttachments([]);
