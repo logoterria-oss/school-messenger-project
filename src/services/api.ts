@@ -62,11 +62,11 @@ export type Message = {
 };
 
 // Аутентификация
-export async function login(phone: string, password: string): Promise<User> {
+export async function login(phone: string, password: string, role: string): Promise<User> {
   const response = await fetch(API_URLS.auth, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone, password }),
+    body: JSON.stringify({ phone, password, role }),
   });
 
   if (!response.ok) {

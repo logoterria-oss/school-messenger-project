@@ -37,15 +37,15 @@ const LoginForm = ({ selectedRole, roleImage, roleName, onLogin, onBack, isLoggi
     setIsLoggingIn(true);
 
     try {
-      const user = await apiLogin(login.trim(), password);
+      const user = await apiLogin(login.trim(), password, selectedRole);
       
       setTimeout(() => {
         onLogin(user.role, user.name, user.id);
       }, 500);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Login error:', err);
       setIsLoggingIn(false);
-      setError('Неверный логин или пароль');
+      setError(err instanceof Error ? err.message : 'Неверный логин или пароль');
     }
   };
 

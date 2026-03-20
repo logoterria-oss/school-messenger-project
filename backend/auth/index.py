@@ -24,6 +24,7 @@ def handler(event: dict, context) -> dict:
             data = json.loads(event.get('body', '{}'))
             login = data.get('phone')
             password = data.get('password')
+            expected_role = data.get('role')
 
             if not login or not password:
                 return {
@@ -58,10 +59,16 @@ def handler(event: dict, context) -> dict:
                 return {
                     'statusCode': 401,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Invalid credentials'})
+                    'body': json.dumps({'error': 'Неверный логин или пароль'})
                 }
 
-            # Возвращаем данные пользователя
+            role_names = {'admin': 'админ', 'teacher': 'педагог', 'parent': 'родитель', 'student': 'ученик'}
+            if expected_role and user['role'] != expected_role:
+                return {
+                    'statusCode': 403,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': f"Вы зарегистрированы как {role_names.get(user['role'], user['role'])}, а не как {role_names.get(expected_role, expected_role)}"})
+                }
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
