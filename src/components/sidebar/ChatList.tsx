@@ -9,7 +9,7 @@ const SUPERVISOR_ID = 'admin';
 
 const isNonLeadGroupForTeacher = (chat: Chat, userId?: string) => {
   if (chat.type !== 'group' || chat.id === 'teachers-group') return false;
-  if (!chat.leadTeachers || chat.leadTeachers.length === 0) return false;
+  if (!chat.leadTeachers || chat.leadTeachers.length === 0) return true;
   return !chat.leadTeachers.includes(userId || '');
 };
 

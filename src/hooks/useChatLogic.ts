@@ -476,7 +476,7 @@ export const useChatLogic = () => {
               for (const c of withStaff) {
                 if (c.type !== 'group' || c.id === 'teachers-group') continue;
                 const isNonLead = userRole === 'teacher'
-                  ? (c.leadTeachers && c.leadTeachers.length > 0 && !c.leadTeachers.includes(userId))
+                  ? (!c.leadTeachers || c.leadTeachers.length === 0 || !c.leadTeachers.includes(userId))
                   : (userRole === 'admin' && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
                 if (isNonLead && mappedTopics[c.id]) {
                   nonLeadTopicIds.push(...mappedTopics[c.id].map(t => t.id));
@@ -519,7 +519,7 @@ export const useChatLogic = () => {
             for (const c of withStaff) {
               if (c.type !== 'group' || c.id === 'teachers-group') continue;
               const isNonLead = userRole === 'teacher'
-                ? (c.leadTeachers && c.leadTeachers.length > 0 && !c.leadTeachers.includes(userId))
+                ? (!c.leadTeachers || c.leadTeachers.length === 0 || !c.leadTeachers.includes(userId))
                 : (userRole === 'admin' && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
               if (isNonLead && mappedTopics[c.id]) {
                 nonLeadTopicIds.push(...mappedTopics[c.id].map(t => t.id));
@@ -1630,7 +1630,7 @@ export const useChatLogic = () => {
     }
     {
       const isNonLead = userRole === 'teacher'
-        ? (leadTeachers.length > 0 && !leadTeachers.includes(userId!))
+        ? (leadTeachers.length === 0 || !leadTeachers.includes(userId!))
         : (userRole === 'admin' && userId !== SUPERVISOR_ID && leadAdmin && leadAdmin !== userId);
       if (isNonLead) {
         applyNonLeadDefaults(topics.map(t => t.id));
