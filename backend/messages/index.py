@@ -224,6 +224,8 @@ def handler(event: dict, context) -> dict:
                         if has_admin_mention and sub.get('user_role') == 'admin':
                             personal_mention = True
 
+                        print(f"[Push] user={sub['user_name']}, role={sub.get('user_role')}, mention={personal_mention}, text={msg_text[:80]}")
+
                         payload = json.dumps({
                             'title': sender_name,
                             'body': preview,
