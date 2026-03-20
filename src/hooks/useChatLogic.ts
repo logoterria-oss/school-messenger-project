@@ -6,8 +6,8 @@ import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
-import { checkAndPlaySound, markSoundPlayed, playNotificationSound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
-import { applyAdminDefaults, getChatSettings, shouldPlaySound, syncMutedSettingsToSW } from '@/utils/notificationSettings';
+import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
+import { applyAdminDefaults, getChatSettings, syncMutedSettingsToSW } from '@/utils/notificationSettings';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -544,16 +544,11 @@ export const useChatLogic = () => {
             return false;
           });
 
-          const soundTargetId = data.topicId || data.chatId;
-          if (hasMention || (addedMsgs.length > 0 && shouldPlaySound(soundTargetId))) {
-            playNotificationSound();
-          }
-
           if (data.topicId) {
             setGroupTopics(prev => {
               const groupTopicsList = prev[data.chatId];
               if (!groupTopicsList) return prev;
-              const updated = {
+              return {
                 ...prev,
                 [data.chatId]: groupTopicsList.map(t =>
                   t.id === data.topicId ? {
@@ -563,9 +558,6 @@ export const useChatLogic = () => {
                   } : t
                 )
               };
-              const updatedTopic = updated[data.chatId].find(t => t.id === data.topicId);
-              if (updatedTopic) markSoundPlayed(data.topicId, updatedTopic.unread, updatedTopic.unreadMentions || 0);
-              return updated;
             });
           } else {
             setChats(prev => {
@@ -576,8 +568,6 @@ export const useChatLogic = () => {
                   unreadMentions: (c.unreadMentions || 0) + (hasMention ? 1 : 0)
                 } : c
               );
-              const updatedChat = updated.find(c => c.id === data.chatId);
-              if (updatedChat) markSoundPlayed(data.chatId, updatedChat.unread, updatedChat.unreadMentions || 0);
               const idx = updated.findIndex(c => c.id === data.chatId);
               if (idx > 0) {
                 const [moved] = updated.splice(idx, 1);
@@ -597,7 +587,6 @@ export const useChatLogic = () => {
     wsService.on('message_new', handleNewMessage);
 
     const pollChats = () => {
-      if (document.hidden) return;
       getChats(userId).then(chatsData => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
