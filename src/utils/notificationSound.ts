@@ -259,6 +259,13 @@ export function resetNotificationState() {
   initialized = false;
 }
 
+export function markSoundPlayed(itemId: string, unread: number, unreadMentions: number) {
+  if (initialized) {
+    lastUnreadMap[itemId] = unread;
+    lastMentionsMap[itemId] = unreadMentions;
+  }
+}
+
 export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
   const allItems = [...chats, ...(topics || [])];
   const currentMap: Record<string, number> = {};
@@ -282,19 +289,13 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
     const curMentions = item.unreadMentions || 0;
 
     if (curMentions > prevMentions) {
-      console.log('[Sound] mention detected:', item.id, 'prev:', prevMentions, 'cur:', curMentions);
       needSound = true;
     } else if (item.unread > prev) {
-      const canPlay = shouldPlaySound(item.id);
-      console.log('[Sound] unread changed:', item.id, 'prev:', prev, 'cur:', item.unread, 'shouldPlay:', canPlay);
-      if (canPlay) needSound = true;
+      if (shouldPlaySound(item.id)) needSound = true;
     }
   }
 
-  if (needSound) {
-    console.log('[Sound] playing notification sound');
-    playNotificationSound();
-  }
+  if (needSound) playNotificationSound();
   lastUnreadMap = currentMap;
   lastMentionsMap = currentMentions;
 }
