@@ -288,8 +288,14 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
         <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
           <div className="max-w-4xl mx-auto py-4 space-y-0.5">
             {(() => {
-              const regular = messages.filter(m => !m.scheduledAt);
-              const scheduled = messages.filter(m => m.scheduledAt).sort((a, b) =>
+              const seen = new Set<string>();
+              const unique = messages.filter(m => {
+                if (seen.has(m.id)) return false;
+                seen.add(m.id);
+                return true;
+              });
+              const regular = unique.filter(m => !m.scheduledAt);
+              const scheduled = unique.filter(m => m.scheduledAt).sort((a, b) =>
                 new Date(a.scheduledAt!).getTime() - new Date(b.scheduledAt!).getTime()
               );
               return [...regular, ...scheduled];

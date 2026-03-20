@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { UserRole, AttachedFile, Message, Chat, GroupTopics } from '@/types/chat.types';
 import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
@@ -301,6 +301,7 @@ export const useChatLogic = () => {
     }
     return [];
   });
+  const executedScheduledIds = useRef<Set<string>>(new Set());
 
   const roleLabels: Record<string, string> = {
     admin: 'админ',
@@ -845,6 +846,9 @@ export const useChatLogic = () => {
   };
 
   const executeScheduledMessage = (scheduled: ScheduledMessage) => {
+    if (executedScheduledIds.current.has(scheduled.id)) return;
+    executedScheduledIds.current.add(scheduled.id);
+
     const msg = {
       ...scheduled.message,
       timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
@@ -853,12 +857,16 @@ export const useChatLogic = () => {
       scheduledAt: undefined,
     };
 
-    setChatMessages(prev => ({
-      ...prev,
-      [scheduled.targetId]: (prev[scheduled.targetId] || []).map(m =>
-        m.id === scheduled.id ? msg : m
-      )
-    }));
+    setChatMessages(prev => {
+      const existing = prev[scheduled.targetId] || [];
+      const found = existing.some(m => m.id === scheduled.id);
+      return {
+        ...prev,
+        [scheduled.targetId]: found
+          ? existing.map(m => m.id === scheduled.id ? msg : m)
+          : [...existing, msg]
+      };
+    });
 
     const senderName = msg.sender;
     const msgPreview = msg.text ? (msg.text.length > 40 ? msg.text.slice(0, 40) + '...' : msg.text) : 'Вложение';
@@ -977,6 +985,7 @@ export const useChatLogic = () => {
   };
 
   const handleCancelScheduledMessage = (messageId: string) => {
+    executedScheduledIds.current.delete(messageId);
     setScheduledMessages(prev => {
       const updated = prev.filter(s => s.id !== messageId);
       localStorage.setItem('scheduledMessages', JSON.stringify(updated));
