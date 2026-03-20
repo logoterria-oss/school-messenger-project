@@ -594,7 +594,22 @@ export const useChatLogic = () => {
           const withStaff = (userRole === 'teacher' || userRole === 'admin') ? ensureStaffChats(userRole, userId, deduped, allUsers) : deduped;
           const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
           checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
-          setChats(withStaff);
+          const openChatId = selectedChatRef.current;
+          const openTopicId = selectedTopicRef.current;
+          setChats(prev => {
+            return withStaff.map(fresh => {
+              if (fresh.id === openChatId) {
+                const old = prev.find(c => c.id === openChatId);
+                return { ...fresh, unread: old ? old.unread : 0, unreadMentions: old ? old.unreadMentions : 0 };
+              }
+              return fresh;
+            });
+          });
+          if (openChatId && openTopicId && mappedTopics[openChatId]) {
+            mappedTopics[openChatId] = mappedTopics[openChatId].map(t =>
+              t.id === openTopicId ? { ...t, unread: 0, unreadMentions: 0 } : t
+            );
+          }
           setGroupTopics(mappedTopics);
         }
       }).catch(() => {});
