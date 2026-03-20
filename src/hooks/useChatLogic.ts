@@ -855,7 +855,9 @@ export const useChatLogic = () => {
 
     setChatMessages(prev => ({
       ...prev,
-      [scheduled.targetId]: [...(prev[scheduled.targetId] || []), msg]
+      [scheduled.targetId]: (prev[scheduled.targetId] || []).map(m =>
+        m.id === scheduled.id ? msg : m
+      )
     }));
 
     const senderName = msg.sender;
