@@ -500,7 +500,8 @@ export const useChatLogic = () => {
           }
           syncMutedSettingsToSW();
           const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
-          checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
+          const chatsNoGroups = withStaff.filter(c => !mappedTopics[c.id] || mappedTopics[c.id].length === 0);
+          checkAndPlaySound(chatsNoGroups.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
         }
       } catch (err) {
         console.error('Failed to load data:', err);
@@ -593,7 +594,8 @@ export const useChatLogic = () => {
           const deduped = deduplicatePrivateChats(mappedChats);
           const withStaff = (userRole === 'teacher' || userRole === 'admin') ? ensureStaffChats(userRole, userId, deduped, allUsers) : deduped;
           const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
-          checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
+          const chatsWithoutGroups = withStaff.filter(c => !mappedTopics[c.id] || mappedTopics[c.id].length === 0);
+          checkAndPlaySound(chatsWithoutGroups.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
           const openChatId = selectedChatRef.current;
           const openTopicId = selectedTopicRef.current;
           setChats(prev => {
