@@ -282,7 +282,7 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
     const curMentions = item.unreadMentions || 0;
 
     if (curMentions > prevMentions) {
-      if (shouldPlaySound(item.id)) needSound = true;
+      needSound = true;
     } else if (item.unread > prev) {
       if (shouldPlaySound(item.id)) needSound = true;
     }
