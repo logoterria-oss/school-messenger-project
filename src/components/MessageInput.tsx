@@ -149,6 +149,16 @@ export const MessageInput = ({
     }, 0);
   }, [messageText, mentionStartPos, onMessageChange]);
 
+  const flushAndSend = useCallback(() => {
+    if (textareaRef.current) {
+      const domValue = textareaRef.current.value;
+      if (domValue !== messageText) {
+        onMessageChange(domValue);
+      }
+    }
+    onSendMessage();
+  }, [messageText, onMessageChange, onSendMessage]);
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (showMentions && sortedMentionUsers.length > 0) {
       if (e.key === 'ArrowDown') {
@@ -175,9 +185,9 @@ export const MessageInput = ({
 
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      onSendMessage();
+      flushAndSend();
     }
-  }, [showMentions, sortedMentionUsers, selectedMentionIndex, insertMention, onSendMessage]);
+  }, [showMentions, sortedMentionUsers, selectedMentionIndex, insertMention, flushAndSend]);
 
   if (disabled) {
     return (
@@ -435,9 +445,8 @@ export const MessageInput = ({
             )}
 
             <button
-              onClick={onSendMessage}
-              disabled={!messageText.trim() && attachments.length === 0}
-              className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              onClick={flushAndSend}
+              className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors"
             >
               <Icon name="ArrowUp" size={16} />
             </button>

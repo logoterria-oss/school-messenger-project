@@ -204,9 +204,15 @@ export const useChatLogic = () => {
   const messageTextRef = useRef(messageText);
   const attachmentsRef = useRef(attachments);
   const replyToRef = useRef(replyTo);
+  const selectedChatRef = useRef(selectedChat);
+  const selectedTopicRef = useRef(selectedTopic);
+  const selectedGroupRef = useRef(selectedGroup);
   messageTextRef.current = messageText;
   attachmentsRef.current = attachments;
   replyToRef.current = replyTo;
+  selectedChatRef.current = selectedChat;
+  selectedTopicRef.current = selectedTopic;
+  selectedGroupRef.current = selectedGroup;
   
   // МИГРАЦИЯ V6: убираем закрепления педагог↔педагог СРАЗУ при инициализации
   const [chats, setChats] = useState<Chat[]>(() => {
@@ -784,9 +790,9 @@ export const useChatLogic = () => {
     const currentText = messageTextRef.current;
     const currentAttachments = [...attachmentsRef.current];
     const currentReplyTo = replyToRef.current;
-    const currentChat = selectedChat;
-    const currentTopic = selectedTopic;
-    const currentGroup = selectedGroup;
+    const currentChat = selectedChatRef.current;
+    const currentTopic = selectedTopicRef.current;
+    const currentGroup = selectedGroupRef.current;
 
     if (!currentChat || (!currentText.trim() && currentAttachments.length === 0)) return;
     
