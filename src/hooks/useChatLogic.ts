@@ -201,6 +201,12 @@ export const useChatLogic = () => {
   const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
   const [replyTo, setReplyTo] = useState<{ id: string; sender: string; text: string } | null>(null);
+  const messageTextRef = useRef(messageText);
+  const attachmentsRef = useRef(attachments);
+  const replyToRef = useRef(replyTo);
+  messageTextRef.current = messageText;
+  attachmentsRef.current = attachments;
+  replyToRef.current = replyTo;
   
   // МИГРАЦИЯ V6: убираем закрепления педагог↔педагог СРАЗУ при инициализации
   const [chats, setChats] = useState<Chat[]>(() => {
@@ -311,39 +317,23 @@ export const useChatLogic = () => {
     return [];
   });
   const executedScheduledIds = useRef<Set<string>>(new Set());
-  const sendQueueRef = useRef<Array<{
-    id: string;
-    targetId: string;
-    payload: Parameters<typeof apiSendMessage>[0];
-    chatId: string;
-    topicId?: string;
-  }>>([]);
-  const isSendingRef = useRef(false);
-
-  const processSendQueue = async () => {
-    if (isSendingRef.current) return;
-    isSendingRef.current = true;
-    while (sendQueueRef.current.length > 0) {
-      const item = sendQueueRef.current.shift()!;
-      try {
-        await apiSendMessage(item.payload);
-        setChatMessages(prev => ({
-          ...prev,
-          [item.targetId]: (prev[item.targetId] || []).map(msg =>
-            msg.id === item.id ? { ...msg, status: 'delivered' } : msg
-          )
-        }));
-      } catch (error) {
-        console.error('Failed to send message:', item.id, error);
-        setChatMessages(prev => ({
-          ...prev,
-          [item.targetId]: (prev[item.targetId] || []).map(msg =>
-            msg.id === item.id ? { ...msg, status: 'error' } : msg
-          )
-        }));
-      }
-    }
-    isSendingRef.current = false;
+  const fireAndForgetSend = (msgId: string, targetId: string, payload: Parameters<typeof apiSendMessage>[0]) => {
+    apiSendMessage(payload).then(() => {
+      setChatMessages(prev => ({
+        ...prev,
+        [targetId]: (prev[targetId] || []).map(msg =>
+          msg.id === msgId ? { ...msg, status: 'delivered' } : msg
+        )
+      }));
+    }).catch((error) => {
+      console.error('Failed to send message:', msgId, error);
+      setChatMessages(prev => ({
+        ...prev,
+        [targetId]: (prev[targetId] || []).map(msg =>
+          msg.id === msgId ? { ...msg, status: 'error' } : msg
+        )
+      }));
+    });
   };
 
   const roleLabels: Record<string, string> = {
@@ -776,9 +766,9 @@ export const useChatLogic = () => {
   };
 
   const handleSendMessage = () => {
-    const currentText = messageText;
-    const currentAttachments = [...attachments];
-    const currentReplyTo = replyTo;
+    const currentText = messageTextRef.current;
+    const currentAttachments = [...attachmentsRef.current];
+    const currentReplyTo = replyToRef.current;
     const currentChat = selectedChat;
     const currentTopic = selectedTopic;
     const currentGroup = selectedGroup;
@@ -788,6 +778,9 @@ export const useChatLogic = () => {
     setMessageText('');
     setAttachments([]);
     setReplyTo(null);
+    messageTextRef.current = '';
+    attachmentsRef.current = [];
+    replyToRef.current = null;
 
     const targetId = currentTopic || currentChat;
     const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -851,31 +844,24 @@ export const useChatLogic = () => {
       }));
     }
 
-    sendQueueRef.current.push({
+    fireAndForgetSend(messageId, targetId, {
       id: messageId,
-      targetId,
       chatId: currentChat,
       topicId: currentTopic || undefined,
-      payload: {
-        id: messageId,
-        chatId: currentChat,
-        topicId: currentTopic || undefined,
-        senderId: userId,
-        senderName: userName,
-        text: currentText || undefined,
-        createdAt: nowISO,
-        attachments: currentAttachments.map(att => ({
-          type: att.type,
-          fileUrl: att.fileUrl,
-          fileName: att.fileName,
-          fileSize: att.fileSize,
-        })),
-        replyToId: currentReplyTo?.id,
-        replyToSender: currentReplyTo?.sender,
-        replyToText: currentReplyTo?.text,
-      },
+      senderId: userId,
+      senderName: userName,
+      text: currentText || undefined,
+      createdAt: nowISO,
+      attachments: currentAttachments.map(att => ({
+        type: att.type,
+        fileUrl: att.fileUrl,
+        fileName: att.fileName,
+        fileSize: att.fileSize,
+      })),
+      replyToId: currentReplyTo?.id,
+      replyToSender: currentReplyTo?.sender,
+      replyToText: currentReplyTo?.text,
     });
-    processSendQueue();
   };
 
   const executeScheduledMessage = (scheduled: ScheduledMessage) => {
@@ -1016,6 +1002,9 @@ export const useChatLogic = () => {
     setMessageText('');
     setAttachments([]);
     setReplyTo(null);
+    messageTextRef.current = '';
+    attachmentsRef.current = [];
+    replyToRef.current = null;
   };
 
   const handleCancelScheduledMessage = (messageId: string) => {
@@ -1580,11 +1569,7 @@ export const useChatLogic = () => {
 
   const handleTyping = (text: string) => {
     setMessageText(text);
-    
-    // TODO: Отправить событие на сервер о том, что текущий пользователь печатает
-    // Пример: socket.emit('typing', { chatId: selectedChat, userName: userName });
-    // Сервер должен рассылать это событие другим участникам чата
-    // Другие участники получат событие и добавят userName в свой список typingUsers
+    messageTextRef.current = text;
   };
 
   const handleArchiveChat = (chatId: string, archive: boolean) => {
