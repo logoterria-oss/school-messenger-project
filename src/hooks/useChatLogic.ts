@@ -597,16 +597,17 @@ export const useChatLogic = () => {
           checkAndPlaySound(chatsWithoutGroups.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
           const openChatId = selectedChatRef.current;
           const openTopicId = selectedTopicRef.current;
+          const isTabVisible = !document.hidden;
           setChats(prev => {
             return withStaff.map(fresh => {
-              if (fresh.id === openChatId) {
+              if (fresh.id === openChatId && isTabVisible) {
                 const old = prev.find(c => c.id === openChatId);
                 return { ...fresh, unread: old ? old.unread : 0, unreadMentions: old ? old.unreadMentions : 0 };
               }
               return fresh;
             });
           });
-          if (openChatId && openTopicId && mappedTopics[openChatId]) {
+          if (isTabVisible && openChatId && openTopicId && mappedTopics[openChatId]) {
             mappedTopics[openChatId] = mappedTopics[openChatId].map(t =>
               t.id === openTopicId ? { ...t, unread: 0, unreadMentions: 0 } : t
             );
