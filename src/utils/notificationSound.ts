@@ -40,8 +40,9 @@ let swRegistration: ServiceWorkerRegistration | null = null;
 async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!('serviceWorker' in navigator)) return null;
   try {
-    const reg = await navigator.serviceWorker.register('/sw.js');
+    const reg = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
     swRegistration = reg;
+    reg.update().catch(() => {});
     console.log('[Push] SW registered');
     return reg;
   } catch (err) {

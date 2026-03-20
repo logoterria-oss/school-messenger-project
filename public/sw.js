@@ -1,3 +1,4 @@
+const SW_VERSION = 2;
 const DB_NAME = 'notification_settings';
 const STORE_NAME = 'muted_topics';
 
