@@ -11,19 +11,12 @@ type AddParentDialogProps = {
   onAdd: (name: string, phone: string, password: string) => Promise<void> | void;
 };
 
-const generatePassword = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let password = '';
-  for (let i = 0; i < 8; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-};
+const DEFAULT_PASSWORD = 'par1';
 
 export const AddParentDialog = ({ open, onClose, onAdd }: AddParentDialogProps) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState(generatePassword());
+  const [password, setPassword] = useState(DEFAULT_PASSWORD);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,7 +31,7 @@ export const AddParentDialog = ({ open, onClose, onAdd }: AddParentDialogProps) 
       await onAdd(name.trim(), phone.trim(), password);
       setName('');
       setPhone('');
-      setPassword(generatePassword());
+      setPassword(DEFAULT_PASSWORD);
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Не удалось создать родителя');
@@ -48,7 +41,7 @@ export const AddParentDialog = ({ open, onClose, onAdd }: AddParentDialogProps) 
   };
 
   const handleRegenerate = () => {
-    setPassword(generatePassword());
+    setPassword(DEFAULT_PASSWORD);
   };
 
   return (
