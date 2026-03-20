@@ -311,6 +311,40 @@ export const useChatLogic = () => {
     return [];
   });
   const executedScheduledIds = useRef<Set<string>>(new Set());
+  const sendQueueRef = useRef<Array<{
+    id: string;
+    targetId: string;
+    payload: Parameters<typeof apiSendMessage>[0];
+    chatId: string;
+    topicId?: string;
+  }>>([]);
+  const isSendingRef = useRef(false);
+
+  const processSendQueue = async () => {
+    if (isSendingRef.current) return;
+    isSendingRef.current = true;
+    while (sendQueueRef.current.length > 0) {
+      const item = sendQueueRef.current.shift()!;
+      try {
+        await apiSendMessage(item.payload);
+        setChatMessages(prev => ({
+          ...prev,
+          [item.targetId]: (prev[item.targetId] || []).map(msg =>
+            msg.id === item.id ? { ...msg, status: 'delivered' } : msg
+          )
+        }));
+      } catch (error) {
+        console.error('Failed to send message:', item.id, error);
+        setChatMessages(prev => ({
+          ...prev,
+          [item.targetId]: (prev[item.targetId] || []).map(msg =>
+            msg.id === item.id ? { ...msg, status: 'error' } : msg
+          )
+        }));
+      }
+    }
+    isSendingRef.current = false;
+  };
 
   const roleLabels: Record<string, string> = {
     admin: 'админ',
@@ -741,7 +775,7 @@ export const useChatLogic = () => {
     }
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     const currentText = messageText;
     const currentAttachments = [...attachments];
     const currentReplyTo = replyTo;
@@ -817,9 +851,12 @@ export const useChatLogic = () => {
       }));
     }
 
-    try {
-      const { sendMessage } = await import('@/services/api');
-      await sendMessage({
+    sendQueueRef.current.push({
+      id: messageId,
+      targetId,
+      chatId: currentChat,
+      topicId: currentTopic || undefined,
+      payload: {
         id: messageId,
         chatId: currentChat,
         topicId: currentTopic || undefined,
@@ -836,26 +873,9 @@ export const useChatLogic = () => {
         replyToId: currentReplyTo?.id,
         replyToSender: currentReplyTo?.sender,
         replyToText: currentReplyTo?.text,
-      });
-
-      // Уведомляем через WebSocket
-      wsService.notifyNewMessage(messageId, currentChat, currentTopic || undefined);
-
-      setChatMessages(prev => ({
-        ...prev,
-        [targetId]: (prev[targetId] || []).map(msg => 
-          msg.id === messageId ? { ...msg, status: 'delivered' } : msg
-        )
-      }));
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      setChatMessages(prev => ({
-        ...prev,
-        [targetId]: (prev[targetId] || []).map(msg => 
-          msg.id === messageId ? { ...msg, status: 'error' } : msg
-        )
-      }));
-    }
+      },
+    });
+    processSendQueue();
   };
 
   const executeScheduledMessage = (scheduled: ScheduledMessage) => {
