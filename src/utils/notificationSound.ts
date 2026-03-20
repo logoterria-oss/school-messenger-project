@@ -268,10 +268,6 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
     currentMentions[c.id] = c.unreadMentions || 0;
   }
 
-  const totalUnread = chats.reduce((sum, c) => sum + c.unread, 0);
-  updateAppBadge(totalUnread);
-  updateDocumentTitle(totalUnread);
-
   if (!initialized) {
     lastUnreadMap = currentMap;
     lastMentionsMap = currentMentions;
@@ -286,7 +282,7 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
     const curMentions = item.unreadMentions || 0;
 
     if (curMentions > prevMentions) {
-      needSound = true;
+      if (shouldPlaySound(item.id)) needSound = true;
     } else if (item.unread > prev) {
       if (shouldPlaySound(item.id)) needSound = true;
     }

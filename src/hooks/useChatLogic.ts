@@ -672,11 +672,11 @@ export const useChatLogic = () => {
           for (const topic of topics) {
             const s = getChatSettings(topic.id);
             const isMuted = !s.sound && !s.push;
-            allMentions += topic.unreadMentions || 0;
             if (isMuted) {
               if (topic.unread > 0) mutedHasUnread = true;
             } else {
               unmutedUnread += topic.unread;
+              allMentions += topic.unreadMentions || 0;
             }
           }
 

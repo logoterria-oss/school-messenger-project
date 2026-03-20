@@ -75,7 +75,7 @@ export const FolderItem = ({ name, icon, chats, unread, isOpen, onToggle, select
     });
   }, [filteredChats, groupTopics]);
 
-  const allMentions = showMentionBadge ? chats.reduce((sum, c) => sum + (c.unreadMentions || 0), 0) : 0;
+  const allMentions = showMentionBadge ? chats.filter(c => !isChatMuted(c)).reduce((sum, c) => sum + (c.unreadMentions || 0), 0) : 0;
   const unmutedUnread = chats.filter(c => !isChatMuted(c)).reduce((sum, c) => sum + (c.unread || 0), 0);
   const hasMutedUnread = chats.some(c => (isChatMuted(c) && (c.unread || 0) > 0) || c.hasMutedUnread);
 
