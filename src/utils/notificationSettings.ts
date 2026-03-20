@@ -114,3 +114,15 @@ export function applyAdminDefaults(topicIds: string[]) {
   }
   if (changed) saveSettings(s);
 }
+
+export function applyNonLeadDefaults(topicIds: string[]) {
+  const s = loadSettings();
+  let changed = false;
+  for (const id of topicIds) {
+    if (!s.perChat[id]) {
+      s.perChat[id] = { sound: false, push: false };
+      changed = true;
+    }
+  }
+  if (changed) saveSettings(s);
+}

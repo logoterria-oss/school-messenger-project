@@ -7,7 +7,7 @@ import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
-import { applyAdminDefaults, getChatSettings, syncMutedSettingsToSW } from '@/utils/notificationSettings';
+import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW } from '@/utils/notificationSettings';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -471,6 +471,22 @@ export const useChatLogic = () => {
               applyAdminDefaults(allTopicIds);
               setMuteVersion(v => v + 1);
             }
+            if (userRole === 'teacher' || userRole === 'admin') {
+              const nonLeadTopicIds: string[] = [];
+              for (const c of withStaff) {
+                if (c.type !== 'group' || c.id === 'teachers-group') continue;
+                const isNonLead = userRole === 'teacher'
+                  ? (c.leadTeachers && c.leadTeachers.length > 0 && !c.leadTeachers.includes(userId))
+                  : (userRole === 'admin' && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
+                if (isNonLead && mappedTopics[c.id]) {
+                  nonLeadTopicIds.push(...mappedTopics[c.id].map(t => t.id));
+                }
+              }
+              if (nonLeadTopicIds.length > 0) {
+                applyNonLeadDefaults(nonLeadTopicIds);
+                setMuteVersion(v => v + 1);
+              }
+            }
             syncMutedSettingsToSW();
             const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
             checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
@@ -497,6 +513,22 @@ export const useChatLogic = () => {
             const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
             applyAdminDefaults(allTopicIds);
             setMuteVersion(v => v + 1);
+          }
+          if (userRole === 'teacher' || userRole === 'admin') {
+            const nonLeadTopicIds: string[] = [];
+            for (const c of withStaff) {
+              if (c.type !== 'group' || c.id === 'teachers-group') continue;
+              const isNonLead = userRole === 'teacher'
+                ? (c.leadTeachers && c.leadTeachers.length > 0 && !c.leadTeachers.includes(userId))
+                : (userRole === 'admin' && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
+              if (isNonLead && mappedTopics[c.id]) {
+                nonLeadTopicIds.push(...mappedTopics[c.id].map(t => t.id));
+              }
+            }
+            if (nonLeadTopicIds.length > 0) {
+              applyNonLeadDefaults(nonLeadTopicIds);
+              setMuteVersion(v => v + 1);
+            }
           }
           syncMutedSettingsToSW();
           const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
@@ -1595,6 +1627,15 @@ export const useChatLogic = () => {
     if (userRole === 'admin') {
       applyAdminDefaults(topics.map(t => t.id));
       setMuteVersion(v => v + 1);
+    }
+    {
+      const isNonLead = userRole === 'teacher'
+        ? (leadTeachers.length > 0 && !leadTeachers.includes(userId!))
+        : (userRole === 'admin' && userId !== SUPERVISOR_ID && leadAdmin && leadAdmin !== userId);
+      if (isNonLead) {
+        applyNonLeadDefaults(topics.map(t => t.id));
+        setMuteVersion(v => v + 1);
+      }
     }
     const welcomeText = `Добро пожаловать в ЛинеяСкул!
 
