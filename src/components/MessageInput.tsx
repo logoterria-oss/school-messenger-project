@@ -183,11 +183,7 @@ export const MessageInput = ({
       }
     }
 
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      flushAndSend();
-    }
-  }, [showMentions, sortedMentionUsers, selectedMentionIndex, insertMention, flushAndSend]);
+  }, [showMentions, sortedMentionUsers, selectedMentionIndex, insertMention]);
 
   if (disabled) {
     return (
