@@ -48,6 +48,9 @@ const mergeMessages = (existing: Message[], fromApi: Message[]): Message[] => {
   existing.forEach(msg => merged.set(msg.id, msg));
   fromApi.forEach(msg => {
     const ex = merged.get(msg.id);
+    if (ex && ex.scheduledAt) {
+      return;
+    }
     if (ex && ex.isOwn) {
       merged.set(msg.id, { ...msg, timestamp: ex.timestamp, date: ex.date, isOwn: true, status: ex.status });
     } else {
@@ -899,6 +902,7 @@ export const useChatLogic = () => {
         fileSize: att.fileSize,
       })),
     }).then(() => {
+      wsService.notifyNewMessage(scheduled.id, scheduled.chatId, scheduled.topicId);
       setChatMessages(prev => ({
         ...prev,
         [scheduled.targetId]: (prev[scheduled.targetId] || []).map(m =>
