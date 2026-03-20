@@ -812,12 +812,6 @@ export const useChatLogic = () => {
       }));
     } catch (error) {
       console.error('Failed to send message:', error);
-      setChatMessages(prev => ({
-        ...prev,
-        [targetId]: (prev[targetId] || []).map(msg => 
-          msg.id === messageId ? { ...msg, status: 'sent' } : msg
-        )
-      }));
     }
 
     setTimeout(() => {
