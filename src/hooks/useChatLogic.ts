@@ -1055,11 +1055,13 @@ export const useChatLogic = () => {
       if (role !== 'teacher' && role !== 'admin') return;
       const teachersGroupId = 'teachers-group';
       const allTeacherIds = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
+      const allAdminIds = allUsers.filter(u => u.role === 'admin').map(u => u.id);
+      const allStaffIds = [...new Set([...allTeacherIds, ...allAdminIds])];
       createChat({
         id: teachersGroupId,
         name: 'Педагоги',
         type: 'group',
-        participants: [...allTeacherIds, 'admin'],
+        participants: allStaffIds,
         isPinned: true,
         avatar: undefined,
         topics: [
