@@ -282,13 +282,19 @@ export function checkAndPlaySound(chats: UnreadInfo[], topics?: UnreadInfo[]) {
     const curMentions = item.unreadMentions || 0;
 
     if (curMentions > prevMentions) {
+      console.log('[Sound] mention detected:', item.id, 'prev:', prevMentions, 'cur:', curMentions);
       needSound = true;
     } else if (item.unread > prev) {
-      if (shouldPlaySound(item.id)) needSound = true;
+      const canPlay = shouldPlaySound(item.id);
+      console.log('[Sound] unread changed:', item.id, 'prev:', prev, 'cur:', item.unread, 'shouldPlay:', canPlay);
+      if (canPlay) needSound = true;
     }
   }
 
-  if (needSound) playNotificationSound();
+  if (needSound) {
+    console.log('[Sound] playing notification sound');
+    playNotificationSound();
+  }
   lastUnreadMap = currentMap;
   lastMentionsMap = currentMentions;
 }
