@@ -670,12 +670,15 @@ export const useChatLogic = () => {
           let allMentions = 0;
           let mutedHasUnread = false;
 
+          let mutedMentions = 0;
+
           for (const topic of topics) {
             const s = getChatSettings(topic.id);
             const isMuted = !s.sound && !s.push;
             allMentions += topic.unreadMentions || 0;
             if (isMuted) {
               if (topic.unread > 0) mutedHasUnread = true;
+              mutedMentions += topic.unreadMentions || 0;
             } else {
               unmutedUnread += topic.unread;
             }
@@ -683,7 +686,7 @@ export const useChatLogic = () => {
 
           return {
             ...chat,
-            unread: unmutedUnread,
+            unread: unmutedUnread + mutedMentions,
             unreadMentions: allMentions,
             hasMutedUnread: mutedHasUnread,
           };
@@ -782,18 +785,20 @@ export const useChatLogic = () => {
         let topicUnread = 0;
         let topicMutedHasUnread = false;
         let topicAllMentions = 0;
+        let topicMutedMentions = 0;
         for (const t of updatedTopics[selectedGroup]) {
           const ts = getChatSettings(t.id);
           topicAllMentions += t.unreadMentions || 0;
           if (!ts.sound && !ts.push) {
             if (t.unread > 0) topicMutedHasUnread = true;
+            topicMutedMentions += t.unreadMentions || 0;
           } else {
             topicUnread += t.unread;
           }
         }
         setChats(prevChats => {
           const updated = prevChats.map(c =>
-            c.id === selectedGroup ? { ...c, unread: topicUnread, unreadMentions: topicAllMentions, hasMutedUnread: topicMutedHasUnread } : c
+            c.id === selectedGroup ? { ...c, unread: topicUnread + topicMutedMentions, unreadMentions: topicAllMentions, hasMutedUnread: topicMutedHasUnread } : c
           );
           const totalUnread = updated.reduce((sum, c) => sum + c.unread, 0);
           updateAppBadge(totalUnread);
