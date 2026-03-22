@@ -84,6 +84,21 @@ const AddToHomeDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: 
             </p>
           </div>
         </div>
+
+        <div className="border-t" />
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Icon name="Smartphone" size={18} className="text-green-600 shrink-0" />
+            <p className="text-sm font-semibold">Android (Chrome / Яндекс Браузер)</p>
+          </div>
+          <ol className="text-xs text-muted-foreground space-y-1.5 ml-6 list-decimal">
+            <li>Нажмите <span className="font-medium text-foreground">три точки</span> в правом верхнем углу браузера</li>
+            <li>Выберите <span className="font-medium text-foreground">«Добавить на главный экран»</span> или <span className="font-medium text-foreground">«Установить приложение»</span></li>
+            <li>Подтвердите добавление</li>
+            <li>Откройте приложение с главного экрана</li>
+          </ol>
+        </div>
       </div>
     </DialogContent>
   </Dialog>
