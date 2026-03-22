@@ -130,6 +130,12 @@ const LoginForm = ({ selectedRole, roleImage, roleName, onLogin, onBack, isLoggi
               Войти
             </Button>
 
+            <p className="text-[11px] text-muted-foreground text-center leading-snug max-lg:text-[9px]">
+              Нажимая на кнопку, вы даёте согласие на{' '}
+              <a href="https://lineaschool.ru/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">
+                обработку персональных данных
+              </a>
+            </p>
 
           </div>
         </div>
