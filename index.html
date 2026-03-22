@@ -34,6 +34,7 @@
     </style>
     
     <!-- Preload critical resources -->
+    <link rel="preload" href="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" as="image">
     <link rel="modulepreload" href="/src/main.tsx">
     <link rel="modulepreload" href="/src/App.tsx">
 
@@ -56,9 +57,7 @@
   <!-- Splash screen пока грузится React -->
   <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #ffffff; color: #333; font-family: system-ui, -apple-system, sans-serif;">
     <div style="text-align: center;">
-      <div style="width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 20px; background: #3BA662; display: flex; align-items: center; justify-content: center; animation: pulse-logo 1.8s ease-in-out infinite;">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      </div>
+      <img src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" alt="ЛинэяСкул" style="width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 20px; object-fit: cover; animation: pulse-logo 1.8s ease-in-out infinite;">
       <div style="font-size: 22px; font-weight: 700; color: #3BA662; letter-spacing: -0.3px;">ЛинэяСкул</div>
       <div style="font-size: 13px; color: #999; margin-top: 4px;">загружаем мессенджер</div>
       <div style="margin-top: 20px; width: 160px; height: 3px; background: #e8f5e9; border-radius: 2px; overflow: hidden; margin-left: auto; margin-right: auto;">
