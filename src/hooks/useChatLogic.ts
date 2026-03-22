@@ -44,8 +44,13 @@ const mapApiMessages = (msgs: ApiMessage[], currentUserId?: string): Message[] =
   }));
 
 const mergeMessages = (existing: Message[], fromApi: Message[]): Message[] => {
+  const apiIds = new Set(fromApi.map(m => m.id));
   const merged = new Map<string, Message>();
-  existing.forEach(msg => merged.set(msg.id, msg));
+  existing.forEach(msg => {
+    if (msg.status === 'sending' || msg.scheduledAt || apiIds.has(msg.id)) {
+      merged.set(msg.id, msg);
+    }
+  });
   fromApi.forEach(msg => {
     const ex = merged.get(msg.id);
     if (ex && ex.scheduledAt) {
