@@ -50,8 +50,9 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
   const getDisplayChat = (chat: Chat) => {
     if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
       const otherUserId = chat.participants.find(id => id !== userId && id !== 'current');
-      if (otherUserId === 'admin' && userRole !== 'admin') {
-        return { ...chat, name: 'Виктория Абраменко (руководитель)', avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
+      if (otherUserId === 'admin') {
+        const sv = allUsers.find(u => u.id === 'admin');
+        return { ...chat, name: (sv?.name || 'Виктория Абраменко') + ' (руководитель)', avatar: sv?.avatar || 'https://cdn.poehali.dev/files/Админ.jpg' };
       }
       if (otherUserId) {
         const otherUser = allUsers.find(u => u.id === otherUserId);

@@ -97,6 +97,24 @@ const Index = () => {
     muteVersion,
   } = useChatLogic();
 
+  const getPrivateChatDisplayName = (chat: { type: string; name: string; participants?: string[] }) => {
+    if (chat.type === 'private' && chat.participants && chat.participants.length === 2) {
+      const otherUserId = chat.participants.find(id => id !== userId && id !== 'current');
+      if (otherUserId === SUPERVISOR_ID) {
+        const sv = allUsers.find(u => u.id === SUPERVISOR_ID);
+        return (sv?.name || 'Виктория Абраменко') + ' (руководитель)';
+      }
+      if (otherUserId) {
+        const otherUser = allUsers.find(u => u.id === otherUserId);
+        if (otherUser) {
+          const role = getRoleLabel(otherUser.role, otherUser.id);
+          return role ? `${otherUser.name} (${role})` : otherUser.name;
+        }
+      }
+    }
+    return chat.name;
+  };
+
   const selectedChatData = chats.find(c => c.id === selectedChat);
   const isPrivateTeacherAdminChat = selectedChatData?.type === 'private' && 
     selectedChatData?.participants?.includes('admin') && 
@@ -202,7 +220,7 @@ const Index = () => {
         open={forwardMessage !== null}
         onClose={() => setForwardMessage(null)}
         message={forwardMessage}
-        chats={chats.map(c => ({ id: c.id, name: c.name, type: c.type }))}
+        chats={chats.map(c => ({ id: c.id, name: getPrivateChatDisplayName(c), type: c.type }))}
         topics={groupTopics}
         currentChatId={selectedChat}
         currentTopicId={selectedTopic}
@@ -244,7 +262,7 @@ const Index = () => {
               <ChatArea 
                 messages={messages}
                 onReaction={handleReaction}
-                chatName={chats.find(c => c.id === selectedChat)?.name || ''}
+                chatName={selectedChatData ? getPrivateChatDisplayName(selectedChatData) : ''}
                 isGroup={selectedGroup !== null}
                 topics={selectedGroup ? groupTopics[selectedGroup] : undefined}
                 selectedTopic={selectedTopic || undefined}
