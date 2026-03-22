@@ -1,21 +1,13 @@
-import { useState, Suspense } from 'react';
-import Icon from '@/components/ui/icon';
+import { useState } from 'react';
 import { LoginScreen } from '@/components/LoginScreen';
 import { useChatLogic } from '@/hooks/useChatLogic';
 import { ChatSidebar } from '@/components/ChatSidebar';
-import { ChatArea } from '@/components/ChatArea';
-import { MessageInput } from '@/components/MessageInput';
 import { ProfileSettings } from '@/components/ProfileSettings';
 import { AppSettings } from '@/components/AppSettings';
 import { AllUsersView } from '@/components/AllUsersView';
-import { AddStudentDialog } from '@/components/AddStudentDialog';
-import { AddParentDialog } from '@/components/AddParentDialog';
-import { AddTeacherDialog } from '@/components/AddTeacherDialog';
-import CreateGroupDialog from '@/components/CreateGroupDialog';
-import { ChatInfoSidebar } from '@/components/ChatInfoSidebar';
-import { TeacherAdminChatInfo } from '@/components/TeacherAdminChatInfo';
-import { AddAdminDialog } from '@/components/AddAdminDialog';
-import ForwardMessageDialog from '@/components/ForwardMessageDialog';
+import ChatMainArea from '@/components/index/ChatMainArea';
+import ChatInfoPanel from '@/components/index/ChatInfoPanel';
+import IndexDialogs from '@/components/index/IndexDialogs';
 import { Message } from '@/types/chat.types';
 
 const SUPERVISOR_ID = 'admin';
@@ -185,62 +177,31 @@ const Index = () => {
         />
       </div>
 
-      <AddStudentDialog
-        open={showAddStudent}
-        onClose={() => setShowAddStudent(false)}
-        onAdd={handleAddStudent}
-      />
-
-      <AddParentDialog
-        open={showAddParent}
-        onClose={() => setShowAddParent(false)}
-        onAdd={handleAddParent}
-      />
-
-      <AddTeacherDialog
-        open={showAddTeacher}
-        onClose={() => setShowAddTeacher(false)}
-        onAdd={handleAddTeacher}
-      />
-
-      <CreateGroupDialog
-        open={showCreateGroup}
-        onClose={() => setShowCreateGroup(false)}
-        onCreate={handleCreateGroup}
+      <IndexDialogs
+        showAddStudent={showAddStudent}
+        showAddParent={showAddParent}
+        showAddTeacher={showAddTeacher}
+        showAddAdmin={showAddAdmin}
+        showCreateGroup={showCreateGroup}
+        forwardMessage={forwardMessage}
+        chats={chats}
         allUsers={allUsers}
-      />
-
-      <AddAdminDialog
-        open={showAddAdmin}
-        onClose={() => setShowAddAdmin(false)}
-        onAdd={handleAddAdmin}
-      />
-
-      <ForwardMessageDialog
-        open={forwardMessage !== null}
-        onClose={() => setForwardMessage(null)}
-        message={forwardMessage}
-        chats={chats.map(c => ({ id: c.id, name: getPrivateChatDisplayName(c), type: c.type }))}
-        topics={groupTopics}
-        currentChatId={selectedChat}
-        currentTopicId={selectedTopic}
-        chatMentionableUsers={
-          Object.fromEntries(
-            chats
-              .filter(c => c.type === 'group' && c.participants?.length)
-              .map(c => [
-                c.id,
-                (c.participants || [])
-                  .filter(pid => pid !== userId)
-                  .map(pid => {
-                    if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: roleLabels['admin'], avatar: 'https://cdn.poehali.dev/files/Админ.jpg' };
-                    const u = allUsers.find(u => u.id === pid);
-                    return u ? { id: u.id, name: u.name, role: roleLabels[u.role] || u.role, avatar: u.avatar } : null;
-                  })
-                  .filter(Boolean) as { id: string; name: string; role?: string; avatar?: string }[]
-              ])
-          )
-        }
+        groupTopics={groupTopics}
+        selectedChat={selectedChat}
+        selectedTopic={selectedTopic}
+        userId={userId}
+        getPrivateChatDisplayName={getPrivateChatDisplayName}
+        onCloseAddStudent={() => setShowAddStudent(false)}
+        onCloseAddParent={() => setShowAddParent(false)}
+        onCloseAddTeacher={() => setShowAddTeacher(false)}
+        onCloseAddAdmin={() => setShowAddAdmin(false)}
+        onCloseCreateGroup={() => setShowCreateGroup(false)}
+        onCloseForward={() => setForwardMessage(null)}
+        onAddStudent={handleAddStudent}
+        onAddParent={handleAddParent}
+        onAddTeacher={handleAddTeacher}
+        onAddAdmin={handleAddAdmin}
+        onCreateGroup={handleCreateGroup}
         onForward={async (targetChatId, targetTopicId, comment) => {
           if (forwardMessage) {
             const msgId = await handleForwardMessage(forwardMessage, targetChatId, targetTopicId, comment);
@@ -257,251 +218,71 @@ const Index = () => {
 
       <div className={`flex-1 flex min-w-0 min-h-0 ${!mobileShowChat ? 'hidden md:flex' : 'flex'}`}>
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
-          {selectedChat && selectedChatData ? (
-            <>
-              <ChatArea 
-                messages={messages}
-                onReaction={handleReaction}
-                chatName={selectedChatData ? getPrivateChatDisplayName(selectedChatData) : ''}
-                isGroup={selectedGroup !== null}
-                topics={selectedGroup ? groupTopics[selectedGroup] : undefined}
-                selectedTopic={selectedTopic || undefined}
-                onTopicSelect={handleSelectTopic}
-                typingUsers={typingUsers}
-                userRole={userRole}
-                onOpenChatInfo={() => setShowChatInfo(true)}
-                chatId={selectedChat}
-                onMobileBack={handleMobileBack}
-                userId={userId}
-                onLogout={handleLogout}
-                onOpenProfile={handleOpenProfile}
-                onOpenSettings={handleOpenSettings}
-                onOpenUsers={handleOpenUsers}
-                onAddStudent={() => setShowAddStudent(true)}
-                onAddParent={() => setShowAddParent(true)}
-                onAddTeacher={() => setShowAddTeacher(true)}
-                onCreateGroup={() => setShowCreateGroup(true)}
-                onAddAdmin={() => setShowAddAdmin(true)}
-                onReply={handleReply}
-                onForward={(msg) => setForwardMessage(msg)}
-                onDeleteMessage={handleDeleteMessage}
-                allUsers={allUsers}
-                scrollToMessageId={scrollToMessageId}
-                onScrollComplete={() => setScrollToMessageId(null)}
-                onCancelScheduledMessage={handleCancelScheduledMessage}
-                muteVersion={muteVersion}
-                participantsCount={(() => {
-                  const c = chats.find(c => c.id === selectedChat);
-                  if (!c?.participants) return 0;
-                  if (c.leadTeachers && c.leadTeachers.length > 0) {
-                    const nonLeadTeachers = allUsers.filter(u => u.role === 'teacher' && !c.leadTeachers!.includes(u.id)).map(u => u.id);
-                    return c.participants.filter(id => !nonLeadTeachers.includes(id)).length;
-                  }
-                  return c.participants.length;
-                })()}
-              />
-              <MessageInput 
-                messageText={messageText}
-                attachments={attachments}
-                onMessageChange={handleTyping}
-                onSendMessage={handleSendMessage}
-                onScheduleMessage={handleScheduleMessage}
-                onFileUpload={handleFileUpload}
-                onImageUpload={handleImageUpload}
-                onRemoveAttachment={removeAttachment}
-                replyTo={replyTo}
-                onCancelReply={handleCancelReply}
-                disabled={selectedTopic?.endsWith('-important') && userRole !== 'admin'}
-                disabledMessage="Только админ может писать в раздел «Важное»"
-                hintMessage={
-                  selectedTopic && (userRole === 'parent' || userRole === 'student') &&
-                  ['-zoom', '-homework', '-reports'].some(s => selectedTopic.endsWith(s))
-                    ? 'Админам не приходят уведомления из этого чата. Если нужна помощь, напишите "@админ"'
-                    : undefined
-                }
-                mentionableUsers={
-                  selectedChatData?.type === 'group'
-                    ? (() => {
-                        const leadTeachers = selectedChatData.leadTeachers || [];
-                        const leadAdminId = selectedChatData.leadAdmin;
-                        const isPrimaryUser = (pid: string, role?: string) => {
-                          if (pid === SUPERVISOR_ID) return true;
-                          if (role === 'parent' || role === 'student') return true;
-                          if (role === 'teacher' && leadTeachers.includes(pid)) return true;
-                          if (role === 'admin' && pid === leadAdminId) return true;
-                          return false;
-                        };
-                        const users = (selectedChatData.participants || [])
-                          .filter(pid => pid !== userId)
-                          .map(pid => {
-                            if (pid === 'admin') return { id: 'admin', name: 'Виктория Абраменко', role: getRoleLabel('admin', 'admin'), avatar: 'https://cdn.poehali.dev/files/Админ.jpg', isPrimary: true };
-                            const u = allUsers.find(u => u.id === pid);
-                            return u ? { id: u.id, name: u.name, role: getRoleLabel(u.role, u.id), avatar: u.avatar, isPrimary: isPrimaryUser(u.id, u.role) } : null;
-                          })
-                          .filter(Boolean) as { id: string; name: string; role?: string; avatar?: string; isPrimary?: boolean }[];
-                        const hasAdmins = (selectedChatData.participants || []).some(pid => {
-                          if (pid === 'admin') return true;
-                          const u = allUsers.find(u => u.id === pid);
-                          return u?.role === 'admin';
-                        });
-                        if (hasAdmins) {
-                          users.unshift({ id: '__admin_group__', name: 'админ', role: 'все админы', isPrimary: true });
-                        }
-                        return users;
-                      })()
-                    : undefined
-                }
-              />
-            </>
-          ) : (
-            <div className="hidden md:flex flex-1 items-center justify-center relative overflow-hidden">
-              <div className="absolute inset-0 pointer-events-none">
-                <svg className="absolute top-[8%] right-[10%] w-[28%] h-[28%] opacity-[0.07]" viewBox="0 0 400 400" fill="none" style={{ animation: 'floatA 20s ease-in-out infinite' }}>
-                  <path d="M200 60 Q320 100 300 220 Q280 340 160 320 Q40 300 60 180 Q80 60 200 60Z" fill="#52B788" />
-                </svg>
-                <svg className="absolute bottom-[12%] left-[8%] w-[24%] h-[24%] opacity-[0.06]" viewBox="0 0 300 300" fill="none" style={{ animation: 'floatB 24s ease-in-out infinite' }}>
-                  <path d="M150 30 Q260 70 240 160 Q220 250 130 260 Q40 270 30 170 Q20 70 150 30Z" fill="#74C69D" />
-                </svg>
-                <svg className="absolute top-[50%] left-[15%] w-[18%] h-[18%] opacity-[0.05]" viewBox="0 0 200 200" fill="none" style={{ animation: 'floatE 22s ease-in-out infinite' }}>
-                  <circle cx="100" cy="100" r="80" fill="#95D5B2" />
-                </svg>
-                <svg className="absolute bottom-[20%] right-[15%] w-[14%] h-[14%] opacity-[0.06]" viewBox="0 0 200 200" fill="none" style={{ animation: 'floatD 18s ease-in-out infinite' }}>
-                  <path d="M100 20 Q170 50 160 120 Q150 190 80 180 Q10 170 20 100 Q30 30 100 20Z" fill="#40916C" />
-                </svg>
-                {[
-                  { top: '20%', left: '30%', size: 5, delay: '0s', dur: '16s' },
-                  { top: '35%', left: '70%', size: 6, delay: '3s', dur: '20s' },
-                  { top: '65%', left: '45%', size: 4, delay: '1s', dur: '14s' },
-                  { top: '75%', left: '25%', size: 5, delay: '5s', dur: '18s' },
-                ].map((dot, i) => (
-                  <div
-                    key={i}
-                    className="absolute rounded-full bg-[#74C69D]"
-                    style={{
-                      top: dot.top,
-                      left: dot.left,
-                      width: dot.size,
-                      height: dot.size,
-                      opacity: 0.12,
-                      animation: `floatDot ${dot.dur} ease-in-out ${dot.delay} infinite`,
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="text-center space-y-4 relative z-10">
-                <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mx-auto">
-                  <Icon name="MessageSquare" size={24} className="text-muted-foreground/60" />
-                </div>
-                <div>
-                  <h2 className="text-base font-medium text-foreground/80 mb-1">
-                    Выберите чат
-                  </h2>
-                  <p className="text-xs text-muted-foreground/60">
-                    Начните общение с педагогами и родителями
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+          <ChatMainArea
+            selectedChat={selectedChat}
+            selectedChatData={selectedChatData}
+            selectedGroup={selectedGroup}
+            selectedTopic={selectedTopic}
+            messages={messages}
+            messageText={messageText}
+            attachments={attachments}
+            groupTopics={groupTopics}
+            typingUsers={typingUsers}
+            allUsers={allUsers}
+            chats={chats}
+            userRole={userRole}
+            userId={userId}
+            replyTo={replyTo}
+            scrollToMessageId={scrollToMessageId}
+            muteVersion={muteVersion}
+            mobileShowChat={mobileShowChat}
+            getPrivateChatDisplayName={getPrivateChatDisplayName}
+            onReaction={handleReaction}
+            onSelectTopic={handleSelectTopic}
+            onOpenChatInfo={() => setShowChatInfo(true)}
+            onMobileBack={handleMobileBack}
+            onLogout={handleLogout}
+            onOpenProfile={handleOpenProfile}
+            onOpenSettings={handleOpenSettings}
+            onOpenUsers={handleOpenUsers}
+            onAddStudent={() => setShowAddStudent(true)}
+            onAddParent={() => setShowAddParent(true)}
+            onAddTeacher={() => setShowAddTeacher(true)}
+            onCreateGroup={() => setShowCreateGroup(true)}
+            onAddAdmin={() => setShowAddAdmin(true)}
+            onReply={handleReply}
+            onForward={(msg) => setForwardMessage(msg)}
+            onDeleteMessage={handleDeleteMessage}
+            onScrollComplete={() => setScrollToMessageId(null)}
+            onCancelScheduledMessage={handleCancelScheduledMessage}
+            onMessageChange={handleTyping}
+            onSendMessage={handleSendMessage}
+            onScheduleMessage={handleScheduleMessage}
+            onFileUpload={handleFileUpload}
+            onImageUpload={handleImageUpload}
+            onRemoveAttachment={removeAttachment}
+            onCancelReply={handleCancelReply}
+          />
         </div>
 
-        {selectedChat && (() => {
-          const currentChat = chats.find(c => c.id === selectedChat);
-          const chatParticipants = currentChat?.participants || [];
-          
-          if (isPrivateTeacherAdminChat) {
-            let teacherData;
-            
-            if (userRole === 'admin') {
-              // Админ видит информацию о педагоге
-              const teacherId = chatParticipants.find(id => id !== 'admin');
-              teacherData = allUsers.find(u => u.id === teacherId);
-            } else if (userRole === 'teacher') {
-              // Педагог видит свою собственную информацию
-              teacherData = allUsers.find(u => u.id === userId);
-            }
-
-            if (teacherData) {
-              return (
-                <Suspense fallback={null}>
-                  <TeacherAdminChatInfo
-                    key={`teacher-info-${teacherData.id}-${teacherData.phone}-${teacherData.email}-${teacherData.availableSlots?.length || 0}`}
-                    isOpen={showChatInfo}
-                    onClose={() => setShowChatInfo(false)}
-                    teacherInfo={{
-                      id: teacherData.id,
-                      name: teacherData.name,
-                      phone: teacherData.phone,
-                      email: teacherData.email || '',
-                      availableSlots: teacherData.availableSlots || [],
-                      educationDocs: teacherData.educationDocs || [],
-                    }}
-                    onUpdateTeacher={(updates) => handleUpdateTeacher(teacherData.id, updates)}
-                    isAdmin={userRole === 'admin'}
-                    isArchived={currentChat?.isArchived}
-                    onArchive={() => {
-                      if (selectedChat) {
-                        handleArchiveChat(selectedChat, !currentChat?.isArchived);
-                        setShowChatInfo(false);
-                      }
-                    }}
-                  />
-                </Suspense>
-              );
-            }
-          }
-          
-          return (
-            <Suspense fallback={null}>
-              <ChatInfoSidebar
-                isOpen={showChatInfo}
-                onClose={() => setShowChatInfo(false)}
-                userRole={userRole}
-                isTeachersGroup={currentChat?.id === 'teachers-group'}
-                chatInfo={{
-                  students: allUsers.filter(u => u.role === 'student' && chatParticipants.includes(u.id)),
-                  parents: allUsers.filter(u => u.role === 'parent' && chatParticipants.includes(u.id)),
-                  teachers: currentChat?.leadTeachers && currentChat.leadTeachers.length > 0
-                    ? allUsers.filter(u => u.role === 'teacher' && currentChat.leadTeachers!.includes(u.id))
-                    : allUsers.filter(u => u.role === 'teacher' && chatParticipants.includes(u.id)),
-                  schedule: currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
-                  conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
-                  conclusionPdf: currentChat?.conclusionPdf,
-                }}
-                allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
-                allAdmins={allUsers.filter(u => u.role === 'admin').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
-                allStudents={allUsers.filter(u => u.role === 'student').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
-                allParents={allUsers.filter(u => u.role === 'parent').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
-                participantIds={chatParticipants}
-                leadTeacherIds={currentChat?.leadTeachers || []}
-                leadAdminId={currentChat?.leadAdmin}
-                onUpdateLeadTeachers={(leads) => selectedChat && handleUpdateLeadTeachers(selectedChat, leads)}
-                onUpdateLeadAdmin={(admin) => selectedChat && handleUpdateLeadAdmin(selectedChat, admin)}
-                onUpdateParticipants={(ids) => selectedChat && handleUpdateParticipants(selectedChat, ids)}
-                chatName={currentChat?.name}
-                onUpdateName={(name) => selectedChat && handleUpdateGroupInfo(selectedChat, { name })}
-                onUpdateSchedule={(schedule) => selectedChat && handleUpdateGroupInfo(selectedChat, { schedule })}
-                onUpdateConclusionLink={(link) => selectedChat && handleUpdateGroupInfo(selectedChat, { conclusionLink: link })}
-                onUpdateConclusionPdf={(base64) => selectedChat && handleUpdateGroupInfo(selectedChat, { conclusionPdfBase64: base64 })}
-                onDeleteGroup={() => {
-                  if (selectedChat && confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
-                    handleDeleteGroup(selectedChat);
-                    setShowChatInfo(false);
-                    setMobileShowChat(false);
-                  }
-                }}
-                isArchived={currentChat?.isArchived}
-                onArchive={() => {
-                  if (selectedChat) {
-                    handleArchiveChat(selectedChat, !currentChat?.isArchived);
-                    setShowChatInfo(false);
-                    setMobileShowChat(false);
-                  }
-                }}
-              />
-            </Suspense>
-          );
-        })()}
+        <ChatInfoPanel
+          selectedChat={selectedChat}
+          chats={chats}
+          allUsers={allUsers}
+          userRole={userRole}
+          userId={userId}
+          showChatInfo={showChatInfo}
+          isPrivateTeacherAdminChat={!!isPrivateTeacherAdminChat}
+          onCloseChatInfo={() => setShowChatInfo(false)}
+          onUpdateTeacher={handleUpdateTeacher}
+          onArchiveChat={handleArchiveChat}
+          onUpdateLeadTeachers={handleUpdateLeadTeachers}
+          onUpdateLeadAdmin={handleUpdateLeadAdmin}
+          onUpdateParticipants={handleUpdateParticipants}
+          onUpdateGroupInfo={handleUpdateGroupInfo}
+          onDeleteGroup={handleDeleteGroup}
+          onCloseMobile={() => setMobileShowChat(false)}
+        />
       </div>
     </div>
   );
