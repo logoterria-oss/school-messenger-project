@@ -334,17 +334,34 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
           )}
 
           {message.reactions && message.reactions.length > 0 && (
-            <div className="flex gap-1 mt-1.5">
+            <div className="flex gap-1 mt-1.5 flex-wrap">
               {message.reactions.map((reaction, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => onReaction(message.id, reaction.emoji)}
-                  className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent hover:bg-accent/80 border border-border/50 transition-colors"
-                  title={reaction.users?.join(', ')}
-                >
-                  <span className="text-sm">{reaction.emoji}</span>
-                  <span className="text-xs text-muted-foreground">{reaction.count}</span>
-                </button>
+                <Popover key={idx}>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent hover:bg-accent/80 border border-border/50 transition-colors"
+                    >
+                      <span className="text-sm">{reaction.emoji}</span>
+                      <span className="text-xs text-muted-foreground">{reaction.count}</span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto min-w-[140px] max-w-[220px] p-2" side="top">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between gap-3 pb-1 border-b border-border/50">
+                        <span className="text-base">{reaction.emoji}</span>
+                        <button
+                          onClick={() => onReaction(message.id, reaction.emoji)}
+                          className="text-[11px] text-primary hover:underline"
+                        >
+                          {reaction.users?.includes('Вы') ? 'Убрать' : 'Поставить'}
+                        </button>
+                      </div>
+                      {reaction.users?.map((user, uidx) => (
+                        <p key={uidx} className="text-xs text-foreground">{user}</p>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               ))}
             </div>
           )}
