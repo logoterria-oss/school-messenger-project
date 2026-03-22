@@ -225,6 +225,14 @@ export async function getMessages(chatId: string, topicId?: string): Promise<Mes
   return data.messages;
 }
 
+export async function toggleReaction(userId: string, messageId: string, emoji: string): Promise<void> {
+  await fetch(API_URLS.messages, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+    body: JSON.stringify({ messageId, emoji }),
+  });
+}
+
 export async function markAsRead(userId: string, chatId: string, topicId?: string): Promise<void> {
   const body: Record<string, string> = { chatId };
   if (topicId) body.topicId = topicId;

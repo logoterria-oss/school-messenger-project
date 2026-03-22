@@ -13,7 +13,7 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id'
             },
             'body': ''
@@ -259,6 +259,47 @@ def handler(event: dict, context) -> dict:
                         'createdAt': str(result['created_at'])
                     }
                 })
+            }
+
+        elif method == 'PATCH':
+            headers = event.get('headers', {}) or {}
+            user_id = headers.get('x-user-id') or headers.get('X-User-Id')
+            raw_body = event.get('body')
+            data = json.loads(raw_body) if raw_body else {}
+            message_id = data.get('messageId')
+            emoji = data.get('emoji')
+
+            if not user_id or not message_id or not emoji:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'X-User-Id header, messageId and emoji are required'})
+                }
+
+            cur.execute(
+                "SELECT id FROM reactions WHERE message_id = %s AND user_id = %s AND emoji = %s",
+                (message_id, user_id, emoji)
+            )
+            existing = cur.fetchone()
+
+            if existing:
+                cur.execute("DELETE FROM reactions WHERE id = %s", (existing['id'],))
+            else:
+                cur.execute(
+                    "INSERT INTO reactions (message_id, user_id, emoji) VALUES (%s, %s, %s)",
+                    (message_id, user_id, emoji)
+                )
+
+            conn.commit()
+            cur.close()
+            conn.close()
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'ok': True, 'action': 'removed' if existing else 'added'})
             }
 
         elif method == 'PUT':

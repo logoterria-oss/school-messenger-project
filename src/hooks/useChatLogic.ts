@@ -4,7 +4,7 @@ import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
-import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage } from '@/services/api';
+import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
 import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW } from '@/utils/notificationSettings';
@@ -1428,7 +1428,7 @@ export const useChatLogic = () => {
   };
 
   const handleReaction = (messageId: string, emoji: string) => {
-    if (!selectedChat) return;
+    if (!selectedChat || !userId) return;
     const targetId = selectedTopic || selectedChat;
     
     setChatMessages(prev => ({
@@ -1469,6 +1469,8 @@ export const useChatLogic = () => {
         return msg;
       })
     }));
+
+    toggleReaction(userId, messageId, emoji).catch(() => {});
   };
 
   const handleDeleteMessage = (messageId: string) => {
