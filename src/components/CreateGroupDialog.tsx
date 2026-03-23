@@ -53,8 +53,8 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
   const handleCreate = async () => {
     if (!groupName.trim() || isCreating) return;
     const allTeacherIds = teachers.map(t => t.id);
-    const allAdminIds = admins.map(a => a.id);
-    const finalUsers = [...new Set([...allTeacherIds, ...allAdminIds, ...selectedUsers])];
+    const adminIds = leadAdmin ? [leadAdmin] : [];
+    const finalUsers = [...new Set([...allTeacherIds, ...adminIds, ...selectedUsers])];
 
     setIsCreating(true);
     try {

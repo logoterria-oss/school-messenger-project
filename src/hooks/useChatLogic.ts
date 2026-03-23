@@ -1577,11 +1577,11 @@ export const useChatLogic = () => {
   };
 
   const handleCreateGroup = async (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = [], leadAdmin?: string, conclusionPdfBase64?: string) => {
-    const teachersAndAdmins = allUsers
-      .filter(user => user.role === 'teacher' || user.role === 'admin')
+    const allTeachers = allUsers
+      .filter(user => user.role === 'teacher')
       .map(user => user.id);
     
-    const allParticipants = [...new Set([...selectedUserIds, ...teachersAndAdmins, SUPERVISOR_ID])];
+    const allParticipants = [...new Set([...selectedUserIds, ...allTeachers, SUPERVISOR_ID, ...(leadAdmin ? [leadAdmin] : [])])];
     const groupId = Date.now().toString();
 
     const topics = [
