@@ -103,7 +103,7 @@ const ChatInfoPanel = ({
           conclusionPdf: currentChat?.conclusionPdf,
         }}
         allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
-        allAdmins={allUsers.filter(u => u.role === 'admin').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
+        allAdmins={allUsers.filter(u => u.role === 'admin' && chatParticipants.includes(u.id)).map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         allStudents={allUsers.filter(u => u.role === 'student').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         allParents={allUsers.filter(u => u.role === 'parent').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         participantIds={chatParticipants}
