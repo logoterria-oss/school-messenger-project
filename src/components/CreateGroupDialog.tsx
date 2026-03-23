@@ -19,7 +19,7 @@ type User = {
 type CreateGroupDialogProps = {
   open: boolean;
   onClose: () => void;
-  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[], leadAdmin?: string, conclusionPdfBase64?: string) => void;
+  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[], leadAdmin?: string, conclusionPdfBase64?: string) => Promise<void> | void;
   allUsers: User[];
 };
 
@@ -36,6 +36,7 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
   const [conclusionPdfName, setConclusionPdfName] = useState('');
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
   const teachers = allUsers.filter(u => u.role === 'teacher');
   const admins = allUsers.filter(u => u.role === 'admin' && u.id !== SUPERVISOR_ID);
@@ -49,15 +50,20 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
     u.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleCreate = () => {
-    if (!groupName.trim()) return;
+  const handleCreate = async () => {
+    if (!groupName.trim() || isCreating) return;
     const allTeacherIds = teachers.map(t => t.id);
     const allAdminIds = admins.map(a => a.id);
     const finalUsers = [...new Set([...allTeacherIds, ...allAdminIds, ...selectedUsers])];
 
-    onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim(), leadTeachers, leadAdmin || undefined, conclusionPdf || undefined);
-    resetForm();
-    onClose();
+    setIsCreating(true);
+    try {
+      await onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim(), leadTeachers, leadAdmin || undefined, conclusionPdf || undefined);
+      resetForm();
+      onClose();
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const resetForm = () => {
@@ -307,8 +313,10 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Отмена</Button>
-          <Button onClick={handleCreate} disabled={!groupName.trim()} className="bg-primary hover:bg-primary/90">Создать</Button>
+          <Button variant="outline" onClick={handleClose} disabled={isCreating}>Отмена</Button>
+          <Button onClick={handleCreate} disabled={!groupName.trim() || isCreating} className="bg-primary hover:bg-primary/90">
+            {isCreating ? 'Создаю...' : 'Создать'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

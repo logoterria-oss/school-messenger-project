@@ -182,9 +182,11 @@ def handler(event: dict, context) -> dict:
 
         elif method == 'POST':
             data = json.loads(event.get('body', '{}'))
+            print(f"POST /chats: creating {data.get('type')} chat '{data.get('name')}' id={data.get('id')} participants={len(data.get('participants', []))}")
 
             required_fields = ['id', 'name', 'type', 'participants']
             if not all(field in data for field in required_fields):
+                print(f"POST /chats: missing fields, got keys: {list(data.keys())}")
                 return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'Missing required fields'})}
 
             if data['type'] == 'private' and len(data['participants']) == 2:

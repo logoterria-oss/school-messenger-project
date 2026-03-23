@@ -1610,6 +1610,8 @@ export const useChatLogic = () => {
       });
     } catch (err) {
       console.error('Failed to create group in DB:', err);
+      alert('Не удалось создать группу. Попробуйте ещё раз.');
+      return;
     }
     
     const newGroup: Chat = {
