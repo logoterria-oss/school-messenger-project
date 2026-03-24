@@ -3,6 +3,20 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
 
+window.addEventListener('vite:preloadError', () => {
+  window.location.reload();
+});
+
+window.addEventListener('error', (e) => {
+  if (
+    e.message?.includes('Failed to fetch dynamically imported module') ||
+    e.message?.includes('Importing a module script failed') ||
+    e.message?.includes('error loading dynamically imported module')
+  ) {
+    window.location.reload();
+  }
+});
+
 function setAppHeight() {
   const vv = window.visualViewport;
   const h = vv ? vv.height : window.innerHeight;
