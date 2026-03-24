@@ -177,24 +177,26 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
   }, [scrollToMessageId]);
 
   const chatKey = `${chatId || ''}_${selectedTopic || ''}`;
-  useEffect(() => {
-    if (scrollToMessageId) return;
-    if (chatKey !== prevChatKeyRef.current && messages.length > 0) {
-      prevChatKeyRef.current = chatKey;
-      setTimeout(() => {
-        scrollToBottom(false);
-        setShowScrollDown(false);
-      }, 50);
-    }
-  }, [chatKey, messages.length, scrollToMessageId, scrollToBottom]);
-
+  const initialScrollDoneRef = useRef<string>('');
   useEffect(() => {
     if (scrollToMessageId) return;
     if (messages.length === 0) return;
+    if (chatKey !== prevChatKeyRef.current) {
+      prevChatKeyRef.current = chatKey;
+      initialScrollDoneRef.current = '';
+    }
+    if (initialScrollDoneRef.current !== chatKey) {
+      initialScrollDoneRef.current = chatKey;
+      requestAnimationFrame(() => {
+        scrollToBottom(false);
+        setShowScrollDown(false);
+      });
+      return;
+    }
     if (checkIfNearBottom()) {
       setTimeout(() => scrollToBottom(true), 50);
     }
-  }, [messages.length]);
+  }, [chatKey, messages.length, scrollToMessageId, scrollToBottom, checkIfNearBottom]);
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
