@@ -88,6 +88,15 @@
     @apply border-border;
   }
 
+  [class*="ytranslate"],
+  .ytranslate-sentence,
+  [data-ytranslate] {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
   html {
     @apply bg-background text-foreground;
     height: var(--app-height, 100dvh);
