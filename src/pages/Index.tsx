@@ -75,6 +75,7 @@ const Index = () => {
     handleArchiveChat,
     handleDeleteUser,
     handleUpdateTeacher,
+    handleEditUser,
     handleUpdateLeadTeachers,
     handleUpdateLeadAdmin,
     handleUpdateParticipants,
@@ -145,7 +146,7 @@ const Index = () => {
   if (currentView === 'users') {
     return (
       <div className="flex bg-background" style={{ height: 'var(--app-height, 100dvh)' }}>
-        <AllUsersView users={allUsers} onBack={handleBackToChat} onDeleteUser={handleDeleteUser} />
+        <AllUsersView users={allUsers} onBack={handleBackToChat} onDeleteUser={handleDeleteUser} onEditUser={handleEditUser} />
       </div>
     );
   }

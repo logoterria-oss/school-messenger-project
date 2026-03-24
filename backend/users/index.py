@@ -142,9 +142,25 @@ def handler(event: dict, context) -> dict:
             updates = []
             values = []
             
+            if 'name' in data:
+                updates.append('name = %s')
+                values.append(data['name'])
             if 'phone' in data:
+                phone_val = normalize_phone(data['phone'])
+                cur.execute("SELECT id FROM users WHERE phone = %s AND id != %s", (phone_val, user_id))
+                if cur.fetchone():
+                    cur.close()
+                    conn.close()
+                    return {
+                        'statusCode': 409,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Пользователь с таким номером телефона уже существует'})
+                    }
                 updates.append('phone = %s')
-                values.append(data['phone'])
+                values.append(phone_val)
+            if 'password' in data:
+                updates.append('password = %s')
+                values.append(data['password'])
             if 'email' in data:
                 updates.append('email = %s')
                 values.append(data['email'])

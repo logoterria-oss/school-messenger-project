@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
+import { EditUserDialog } from '@/components/EditUserDialog';
 
 type User = {
   id: string;
@@ -17,6 +18,7 @@ type AllUsersViewProps = {
   users: User[];
   onBack: () => void;
   onDeleteUser?: (userId: string) => void;
+  onEditUser?: (userId: string, updates: { name?: string; phone?: string; password?: string }) => Promise<void> | void;
 };
 
 const roleLabels: Record<string, string> = {
@@ -33,7 +35,15 @@ const roleColors: Record<string, string> = {
   student: 'bg-orange-500',
 };
 
-const UserCard = ({ user, onDelete }: { user: User; onDelete?: (userId: string) => void }) => {
+const UserCard = ({
+  user,
+  onDelete,
+  onEdit,
+}: {
+  user: User;
+  onDelete?: (userId: string) => void;
+  onEdit?: (user: User) => void;
+}) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
@@ -47,39 +57,51 @@ const UserCard = ({ user, onDelete }: { user: User; onDelete?: (userId: string) 
             </Badge>
           </div>
         </div>
-        {onDelete && (
-          <div className="flex items-center gap-1">
-            {confirmDelete ? (
-              <>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => { onDelete(user.id); setConfirmDelete(false); }}
-                  className="h-8 text-xs"
-                >
-                  Удалить
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setConfirmDelete(false)}
-                  className="h-8 text-xs"
-                >
-                  Отмена
-                </Button>
-              </>
-            ) : (
+        <div className="flex items-center gap-1">
+          {confirmDelete ? (
+            <>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => { onDelete?.(user.id); setConfirmDelete(false); }}
+                className="h-8 text-xs"
+              >
+                Удалить
+              </Button>
               <Button
                 variant="ghost"
-                size="icon"
-                onClick={() => setConfirmDelete(true)}
-                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                size="sm"
+                onClick={() => setConfirmDelete(false)}
+                className="h-8 text-xs"
               >
-                <Icon name="Trash2" size={16} />
+                Отмена
               </Button>
-            )}
-          </div>
-        )}
+            </>
+          ) : (
+            <>
+              {onEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEdit(user)}
+                  className="h-8 w-8 text-muted-foreground hover:text-primary"
+                >
+                  <Icon name="Pencil" size={16} />
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setConfirmDelete(true)}
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                >
+                  <Icon name="Trash2" size={16} />
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2 text-sm">
@@ -97,8 +119,9 @@ const UserCard = ({ user, onDelete }: { user: User; onDelete?: (userId: string) 
   );
 };
 
-export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps) => {
+export const AllUsersView = ({ users, onBack, onDeleteUser, onEditUser }: AllUsersViewProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const admins = users.filter(u => u.role === 'admin');
   const teachers = users.filter(u => u.role === 'teacher');
@@ -116,6 +139,8 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
   const filteredStudents = filterUsers(students);
 
   const hasResults = filteredAdmins.length > 0 || filteredTeachers.length > 0 || filteredParents.length > 0 || filteredStudents.length > 0;
+
+  const handleEditClick = onEditUser ? (user: User) => setEditingUser(user) : undefined;
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -174,7 +199,7 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
                   </h2>
                   <div className="space-y-3">
                     {filteredAdmins.map(user => (
-                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} />
+                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} onEdit={handleEditClick} />
                     ))}
                   </div>
                 </div>
@@ -187,7 +212,7 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
                   </h2>
                   <div className="space-y-3">
                     {filteredTeachers.map(user => (
-                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} />
+                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} onEdit={handleEditClick} />
                     ))}
                   </div>
                 </div>
@@ -200,7 +225,7 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
                   </h2>
                   <div className="space-y-3">
                     {filteredParents.map(user => (
-                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} />
+                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} onEdit={handleEditClick} />
                     ))}
                   </div>
                 </div>
@@ -213,7 +238,7 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
                   </h2>
                   <div className="space-y-3">
                     {filteredStudents.map(user => (
-                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} />
+                      <UserCard key={user.id} user={user} onDelete={onDeleteUser} onEdit={handleEditClick} />
                     ))}
                   </div>
                 </div>
@@ -222,6 +247,18 @@ export const AllUsersView = ({ users, onBack, onDeleteUser }: AllUsersViewProps)
           )}
         </div>
       </ScrollArea>
+
+      <EditUserDialog
+        open={!!editingUser}
+        user={editingUser}
+        onClose={() => setEditingUser(null)}
+        onSave={async (userId, updates) => {
+          if (onEditUser) {
+            await onEditUser(userId, updates);
+            setEditingUser(prev => prev ? { ...prev, ...updates } : null);
+          }
+        }}
+      />
     </div>
   );
 };

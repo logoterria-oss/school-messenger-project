@@ -1757,23 +1757,49 @@ export const useChatLogic = () => {
 
   const handleUpdateTeacher = async (teacherId: string, updates: Partial<User>) => {
     try {
-      // Отправляем обновление в API
       const { updateUser } = await import('@/services/api');
       await updateUser(teacherId, updates);
       
-      // Обновляем локальное состояние
       setAllUsers(prev => 
         prev.map(user => 
           user.id === teacherId ? { ...user, ...updates } : user
         )
       );
 
-      // Уведомляем через WebSocket
       wsService.notifyUserUpdate(teacherId);
       
     } catch (error) {
       console.error('Failed to update teacher:', error);
     }
+  };
+
+  const handleEditUser = async (userId: string, updates: { name?: string; phone?: string; password?: string }) => {
+    const { updateUser } = await import('@/services/api');
+    await updateUser(userId, updates);
+
+    setAllUsers(prev => {
+      const updated = prev.map(user =>
+        user.id === userId ? { ...user, ...updates } : user
+      );
+      localStorage.setItem('allUsers', JSON.stringify(updated));
+      return updated;
+    });
+
+    if (updates.name) {
+      setChats(prev => {
+        const updated = prev.map(chat => {
+          if (chat.type === 'private' && chat.participants?.includes(userId)) {
+            const otherName = updates.name!;
+            return { ...chat, name: otherName };
+          }
+          return chat;
+        });
+        localStorage.setItem('chats', JSON.stringify(updated));
+        return updated;
+      });
+    }
+
+    wsService.notifyUserUpdate(userId);
   };
 
   const handleUpdateLeadTeachers = (chatId: string, leadTeachers: string[]) => {
@@ -1976,6 +2002,7 @@ export const useChatLogic = () => {
     handleArchiveChat,
     handleDeleteUser,
     handleUpdateTeacher,
+    handleEditUser,
     handleUpdateLeadTeachers,
     handleUpdateLeadAdmin,
     handleUpdateParticipants,
