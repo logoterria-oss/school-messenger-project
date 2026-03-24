@@ -58,7 +58,6 @@ export const SidebarScheduleSection = ({
         {isEditingSchedule ? (
           <div className="space-y-3">
             <Textarea value={editSchedule} onChange={(e) => setEditSchedule(e.target.value)} placeholder={"Чт в 18:30 — индивидуальные занятия\nВт, Пт в 15:00 — групповые занятия"} rows={6} className="resize-vertical text-sm" />
-            <p className="text-xs text-muted-foreground">Нажмите Enter для переноса на новую строку</p>
             <div className="flex gap-2">
               <Button size="sm" onClick={saveSchedule} className="flex-1">Сохранить</Button>
               <Button size="sm" variant="outline" onClick={() => setIsEditingSchedule(false)} className="flex-1">Отмена</Button>
