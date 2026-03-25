@@ -1,0 +1,1 @@
+UPDATE push_subscriptions SET endpoint = 'reset://pending-' || id::text WHERE user_id = '1774407374619' AND endpoint LIKE 'expired://%';

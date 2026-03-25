@@ -249,7 +249,13 @@ def handler(event: dict, context) -> dict:
                             print(f"[Push] OK user={sub['user_name']}, status={resp.status_code if resp else 'none'}")
                         except WebPushException as e:
                             status_code = e.response.status_code if e.response is not None else 0
-                            print(f"[Push] WebPushException: status={status_code}, {e}")
+                            resp_text = ''
+                            if e.response is not None:
+                                try:
+                                    resp_text = e.response.text[:500]
+                                except Exception:
+                                    resp_text = str(e.response.content[:500]) if hasattr(e.response, 'content') else ''
+                            print(f"[Push] WebPushException: status={status_code}, user={sub['user_name']}, endpoint={sub['endpoint'][:80]}, body={resp_text}")
                             if status_code in (403, 404, 410):
                                 try:
                                     cleanup = psycopg2.connect(os.environ['DATABASE_URL'])
@@ -258,11 +264,11 @@ def handler(event: dict, context) -> dict:
                                     cleanup.commit()
                                     cleanup_cur.close()
                                     cleanup.close()
-                                    print(f"[Push] Removed dead subscription for {sub['user_name']}")
-                                except Exception:
-                                    pass
+                                    print(f"[Push] Marked expired for {sub['user_name']}")
+                                except Exception as ce:
+                                    print(f"[Push] Cleanup error: {ce}")
                         except Exception as e:
-                            print(f"[Push] Error: {e}")
+                            print(f"[Push] Error: {type(e).__name__}: {e}")
                 except Exception as e:
                     print(f"[Push] Send error: {e}")
 
