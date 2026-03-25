@@ -3,6 +3,7 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
+# v4 push logging
 
 def handler(event: dict, context) -> dict:
     '''API для работы с сообщениями и отправки push-уведомлений'''
