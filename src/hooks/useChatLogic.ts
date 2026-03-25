@@ -478,18 +478,21 @@ export const useChatLogic = () => {
               setMuteVersion(v => v + 1);
             }
             if (userRole === 'teacher' || userRole === 'admin') {
-              const nonLeadTopicIds: string[] = [];
+              const nonLeadIds: string[] = [];
               for (const c of withStaff) {
                 if (c.type !== 'group' || c.id === 'teachers-group') continue;
                 const isNonLead = userRole === 'teacher'
                   ? (!c.leadTeachers || c.leadTeachers.length === 0 || !c.leadTeachers.includes(userId))
                   : (userRole === 'admin' && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
-                if (isNonLead && mappedTopics[c.id]) {
-                  nonLeadTopicIds.push(...mappedTopics[c.id].map(t => t.id));
+                if (isNonLead) {
+                  nonLeadIds.push(c.id);
+                  if (mappedTopics[c.id]) {
+                    nonLeadIds.push(...mappedTopics[c.id].map(t => t.id));
+                  }
                 }
               }
-              if (nonLeadTopicIds.length > 0) {
-                applyNonLeadDefaults(nonLeadTopicIds);
+              if (nonLeadIds.length > 0) {
+                applyNonLeadDefaults(nonLeadIds);
                 setMuteVersion(v => v + 1);
               }
             }
@@ -527,8 +530,11 @@ export const useChatLogic = () => {
               const isNonLead = userRole === 'teacher'
                 ? (!c.leadTeachers || c.leadTeachers.length === 0 || !c.leadTeachers.includes(userId))
                 : (userRole === 'admin' && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
-              if (isNonLead && mappedTopics[c.id]) {
-                nonLeadTopicIds.push(...mappedTopics[c.id].map(t => t.id));
+              if (isNonLead) {
+                nonLeadTopicIds.push(c.id);
+                if (mappedTopics[c.id]) {
+                  nonLeadTopicIds.push(...mappedTopics[c.id].map(t => t.id));
+                }
               }
             }
             if (nonLeadTopicIds.length > 0) {
@@ -1579,7 +1585,10 @@ export const useChatLogic = () => {
   };
 
   const handleCreateGroup = async (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = [], leadAdmin?: string, conclusionPdfBase64?: string) => {
-    const allParticipants = [...new Set([...selectedUserIds, SUPERVISOR_ID, ...(leadAdmin ? [leadAdmin] : [])])];
+    const allTeachers = allUsers
+      .filter(user => user.role === 'teacher')
+      .map(user => user.id);
+    const allParticipants = [...new Set([...selectedUserIds, ...allTeachers, SUPERVISOR_ID, ...(leadAdmin ? [leadAdmin] : [])])];
     const groupId = Date.now().toString();
 
     const topics = [
@@ -1636,13 +1645,13 @@ export const useChatLogic = () => {
       setMuteVersion(v => v + 1);
       const isNonLeadAdmin = userId !== SUPERVISOR_ID && leadAdmin && leadAdmin !== userId;
       if (isNonLeadAdmin) {
-        applyNonLeadDefaults(topics.map(t => t.id));
+        applyNonLeadDefaults([groupId, ...topics.map(t => t.id)]);
         setMuteVersion(v => v + 1);
       }
     } else if (userRole === 'teacher') {
       const isNonLeadTeacher = leadTeachers.length === 0 || !leadTeachers.includes(userId!);
       if (isNonLeadTeacher) {
-        applyNonLeadDefaults(topics.map(t => t.id));
+        applyNonLeadDefaults([groupId, ...topics.map(t => t.id)]);
         setMuteVersion(v => v + 1);
       }
     }

@@ -175,6 +175,7 @@ def handler(event: dict, context) -> dict:
             conn.commit()
 
             user_subs = []
+            lead_teacher_ids = set()
             try:
                 cur2 = conn.cursor(cursor_factory=RealDictCursor)
                 cur2.execute("""
@@ -182,6 +183,12 @@ def handler(event: dict, context) -> dict:
                     WHERE cp.chat_id = %s AND cp.user_id != %s
                 """, (chat_id, sender_id))
                 participant_ids = [r['user_id'] for r in cur2.fetchall()]
+
+                cur2.execute(
+                    "SELECT user_id FROM chat_lead_teachers WHERE chat_id = %s",
+                    (chat_id,)
+                )
+                lead_teacher_ids = {r['user_id'] for r in cur2.fetchall()}
 
                 if participant_ids:
                     placeholders = ','.join(['%s'] * len(participant_ids))
@@ -208,7 +215,7 @@ def handler(event: dict, context) -> dict:
                 if not conn.closed:
                     conn.close()
 
-            print(f"[Push] Found {len(user_subs)} subscriptions for chat {chat_id}")
+            print(f"[Push] Found {len(user_subs)} subs for chat {chat_id}, lead_teachers={lead_teacher_ids}")
             if user_subs:
                 try:
                     from pywebpush import webpush, WebPushException
@@ -223,6 +230,11 @@ def handler(event: dict, context) -> dict:
                             personal_mention = True
                         if has_admin_mention and sub.get('user_role') == 'admin':
                             personal_mention = True
+
+                        if sub.get('user_role') == 'teacher' and lead_teacher_ids and sub['user_id'] not in lead_teacher_ids:
+                            if not personal_mention:
+                                print(f"[Push] SKIP non-lead teacher {sub.get('user_name')} ({sub['user_id']})")
+                                continue
 
                         is_apple = 'apple' in sub['endpoint'].lower()
                         print(f"[Push] Sending to {sub.get('user_name')} ({sub['user_id']}) apple={is_apple} endpoint={sub['endpoint'][:80]}")
