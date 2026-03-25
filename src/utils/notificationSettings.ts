@@ -9,18 +9,32 @@ type AllSettings = {
   perChat: Record<string, ChatNotifSettings>;
 };
 
-const STORAGE_KEY = 'notification_settings';
+const STORAGE_KEY_PREFIX = 'notification_settings';
+let currentUserId: string | null = null;
+
+function getStorageKey(): string {
+  if (currentUserId) return `${STORAGE_KEY_PREFIX}_${currentUserId}`;
+  return STORAGE_KEY_PREFIX;
+}
+
+export function initNotificationSettingsForUser(userId: string) {
+  const prevUserId = currentUserId;
+  currentUserId = userId;
+  if (prevUserId && prevUserId !== userId) {
+    syncMutedToSW(loadSettings());
+  }
+}
 
 function loadSettings(): AllSettings {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStorageKey());
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
   return { globalSound: true, globalPush: true, perChat: {} };
 }
 
 function saveSettings(s: AllSettings) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  localStorage.setItem(getStorageKey(), JSON.stringify(s));
   syncMutedToSW(s);
 }
 

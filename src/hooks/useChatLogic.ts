@@ -7,7 +7,7 @@ import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction, addConclusion, updateConclusion, deleteConclusion, deleteMessage as apiDeleteMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
-import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW } from '@/utils/notificationSettings';
+import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW, initNotificationSettingsForUser } from '@/utils/notificationSettings';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -418,6 +418,7 @@ export const useChatLogic = () => {
   useEffect(() => {
     if (!isAuthenticated || !userId) return;
 
+    initNotificationSettingsForUser(userId);
     requestNotificationPermission();
     ensurePushSubscription(userId);
 
