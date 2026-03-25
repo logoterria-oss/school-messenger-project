@@ -4,7 +4,7 @@ import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
-import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction, addConclusion, updateConclusion, deleteConclusion } from '@/services/api';
+import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction, addConclusion, updateConclusion, deleteConclusion, deleteMessage as apiDeleteMessage } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
 import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW } from '@/utils/notificationSettings';
@@ -1475,12 +1475,13 @@ export const useChatLogic = () => {
   };
 
   const handleDeleteMessage = (messageId: string) => {
-    if (!selectedChat) return;
+    if (!selectedChat || !userId) return;
     const targetId = selectedTopic || selectedChat;
     setChatMessages(prev => ({
       ...prev,
       [targetId]: (prev[targetId] || []).filter(msg => msg.id !== messageId)
     }));
+    apiDeleteMessage(userId, messageId).catch(() => {});
   };
 
   const handleAddStudent = async (name: string, phone: string, password: string) => {

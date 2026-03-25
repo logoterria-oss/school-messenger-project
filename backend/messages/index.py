@@ -13,7 +13,7 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id'
             },
             'body': ''
@@ -297,6 +297,35 @@ def handler(event: dict, context) -> dict:
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'ok': True, 'action': 'removed' if existing else 'added'})
+            }
+
+        elif method == 'DELETE':
+            headers = event.get('headers', {}) or {}
+            user_id = headers.get('x-user-id') or headers.get('X-User-Id')
+            params = event.get('queryStringParameters', {}) or {}
+            message_id = params.get('messageId')
+
+            if not user_id or not message_id:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'X-User-Id header and messageId are required'})
+                }
+
+            cur.execute("DELETE FROM reactions WHERE message_id = %s", (message_id,))
+            cur.execute("DELETE FROM attachments WHERE message_id = %s", (message_id,))
+            cur.execute("DELETE FROM message_status WHERE message_id = %s", (message_id,))
+            cur.execute("DELETE FROM messages WHERE id = %s", (message_id,))
+            conn.commit()
+            cur.close()
+            conn.close()
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'ok': True})
             }
 
         elif method == 'PUT':

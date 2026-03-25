@@ -275,6 +275,13 @@ export async function markAsRead(userId: string, chatId: string, topicId?: strin
   });
 }
 
+export async function deleteMessage(userId: string, messageId: string): Promise<void> {
+  await fetch(`${API_URLS.messages}?messageId=${encodeURIComponent(messageId)}`, {
+    method: 'DELETE',
+    headers: { 'X-User-Id': userId },
+  });
+}
+
 export async function sendMessage(message: {
   id: string;
   chatId: string;
