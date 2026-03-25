@@ -642,6 +642,10 @@ export const useChatLogic = () => {
                 const old = prev.find(c => c.id === openChatId);
                 return { ...fresh, unread: old ? old.unread : 0, unreadMentions: old ? old.unreadMentions : 0 };
               }
+              if (fresh.type === 'group' && mappedTopics[fresh.id]?.length > 0) {
+                const old = prev.find(c => c.id === fresh.id);
+                return { ...fresh, unread: old ? old.unread : 0, unreadMentions: old ? old.unreadMentions : 0, hasMutedUnread: old?.hasMutedUnread };
+              }
               return fresh;
             });
           });

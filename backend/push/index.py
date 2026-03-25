@@ -64,6 +64,14 @@ def handler(event: dict, context) -> dict:
 
             cur.execute("DELETE FROM push_subscriptions WHERE endpoint = %s", (endpoint,))
 
+            from urllib.parse import urlparse
+            parsed = urlparse(endpoint)
+            push_domain = parsed.netloc
+            cur.execute(
+                "DELETE FROM push_subscriptions WHERE user_id = %s AND endpoint LIKE %s AND endpoint != %s",
+                (user_id, '%' + push_domain + '%', endpoint)
+            )
+
             cur.execute("""
                 INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, updated_at)
                 VALUES (%s, %s, %s, %s, NOW())

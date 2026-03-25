@@ -1,4 +1,4 @@
-const SW_VERSION = 3;
+const SW_VERSION = 4;
 const DB_NAME = 'notification_settings';
 const STORE_NAME = 'muted_topics';
 
@@ -68,14 +68,7 @@ self.addEventListener('push', (event) => {
       data: data.data || {},
     };
 
-    return self.registration.showNotification(data.title || 'Новое сообщение', options)
-      .then(() => self.registration.getNotifications())
-      .then((notifications) => {
-        const count = notifications.length;
-        if (navigator.setAppBadge) {
-          navigator.setAppBadge(count);
-        }
-      });
+    return self.registration.showNotification(data.title || 'Новое сообщение', options);
   });
 
   event.waitUntil(showNotif);
@@ -84,14 +77,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
-    self.registration.getNotifications().then((notifications) => {
-      if (notifications.length === 0 && navigator.clearAppBadge) {
-        navigator.clearAppBadge();
-      } else if (navigator.setAppBadge) {
-        navigator.setAppBadge(notifications.length);
-      }
-      return self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    }).then((clients) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       if (clients.length > 0) {
         clients[0].focus();
         return;
