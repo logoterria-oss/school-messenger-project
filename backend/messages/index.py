@@ -234,7 +234,7 @@ def handler(event: dict, context) -> dict:
                             'data': {'chatId': chat_id, 'topicId': topic_id, 'hasMention': personal_mention}
                         })
                         try:
-                            webpush(
+                            resp = webpush(
                                 subscription_info={
                                     'endpoint': sub['endpoint'],
                                     'keys': {'p256dh': sub['p256dh'], 'auth': sub['auth']}
@@ -243,8 +243,21 @@ def handler(event: dict, context) -> dict:
                                 vapid_private_key=vapid_private,
                                 vapid_claims=vapid_claims
                             )
+                            print(f"[Push] OK user={sub['user_name']}, status={resp.status_code if resp else 'none'}")
                         except WebPushException as e:
-                            print(f"[Push] WebPushException: {e}")
+                            status_code = e.response.status_code if e.response is not None else 0
+                            print(f"[Push] WebPushException: status={status_code}, {e}")
+                            if status_code in (403, 404, 410):
+                                try:
+                                    cleanup = psycopg2.connect(os.environ['DATABASE_URL'])
+                                    cleanup_cur = cleanup.cursor()
+                                    cleanup_cur.execute("UPDATE push_subscriptions SET endpoint = 'expired://' || id WHERE endpoint = %s", (sub['endpoint'],))
+                                    cleanup.commit()
+                                    cleanup_cur.close()
+                                    cleanup.close()
+                                    print(f"[Push] Removed dead subscription for {sub['user_name']}")
+                                except Exception:
+                                    pass
                         except Exception as e:
                             print(f"[Push] Error: {e}")
                 except Exception as e:
