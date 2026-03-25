@@ -256,7 +256,6 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
                   : 'bg-accent/60 border-border/60 text-foreground hover:bg-accent'
               }`}
             >
-              <Icon name="Info" size={18} className={showGeneralInfo ? 'text-primary' : 'text-muted-foreground'} />
               <span className="flex-1 text-left text-[13px] font-semibold">Общая информация</span>
               <Icon name={showGeneralInfo ? 'ChevronUp' : 'ChevronDown'} size={16} className="text-muted-foreground" />
             </button>
