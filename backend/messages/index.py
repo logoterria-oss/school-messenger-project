@@ -5,8 +5,9 @@ from psycopg2.extras import RealDictCursor
 from datetime import datetime
 
 def handler(event: dict, context) -> dict:
-    '''API для работы с сообщениями и отправки push-уведомлений'''
+    '''API для работы с сообщениями и отправки push-уведомлений v2'''
     method = event.get('httpMethod', 'GET')
+    print(f"[Messages] {method} request")
 
     if method == 'OPTIONS':
         return {
