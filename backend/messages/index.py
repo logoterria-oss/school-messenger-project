@@ -176,9 +176,13 @@ def handler(event: dict, context) -> dict:
             conn.commit()
             print(f"[Push] Message saved: id={message_id}, chat={chat_id}, topic={topic_id}, sender={sender_id}")
 
+            if not conn.closed:
+                conn.close()
+
             user_subs = []
             try:
-                cur2 = conn.cursor(cursor_factory=RealDictCursor)
+                conn2 = psycopg2.connect(os.environ['DATABASE_URL'])
+                cur2 = conn2.cursor(cursor_factory=RealDictCursor)
                 cur2.execute("""
                     SELECT DISTINCT cp.user_id FROM chat_participants cp
                     WHERE cp.chat_id = %s AND cp.user_id != %s
@@ -205,11 +209,11 @@ def handler(event: dict, context) -> dict:
                         sub['user_name'] = u['name'] if u else None
                         sub['user_role'] = u['role'] if u else None
                 cur2.close()
+                conn2.close()
             except Exception as e:
+                import traceback
                 print(f"[Push] DB error: {e}")
-            finally:
-                if not conn.closed:
-                    conn.close()
+                print(f"[Push] Traceback: {traceback.format_exc()}")
 
             print(f"[Push] Subscriptions to send: {len(user_subs)}")
             if user_subs:
