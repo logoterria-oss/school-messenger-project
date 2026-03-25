@@ -385,7 +385,7 @@ export const MessageInput = ({
 
           <Textarea
             ref={textareaRef}
-            placeholder="Напишите сообщение..."
+            placeholder={mentionableUsers && mentionableUsers.length > 0 ? "Напишите сообщение... (@ — упомянуть)" : "Напишите сообщение..."}
             value={messageText}
             onChange={(e) => handleTextChange(e.target.value)}
             onKeyDown={handleKeyDown}

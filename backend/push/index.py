@@ -62,19 +62,7 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Missing fields: user_id, endpoint, p256dh, auth'})
                 }
 
-            print(f"[Push] Subscribe: user={user_id}, endpoint={endpoint[:80]}")
-
-            cur.execute("DELETE FROM push_subscriptions WHERE user_id = %s AND (endpoint LIKE 'expired://%%' OR endpoint LIKE 'reset://%%' OR endpoint LIKE 'cleaned://%%')", (user_id,))
-
             cur.execute("DELETE FROM push_subscriptions WHERE endpoint = %s", (endpoint,))
-
-            from urllib.parse import urlparse
-            parsed = urlparse(endpoint)
-            push_domain = parsed.netloc
-            cur.execute(
-                "DELETE FROM push_subscriptions WHERE user_id = %s AND endpoint LIKE %s AND endpoint != %s",
-                (user_id, '%' + push_domain + '%', endpoint)
-            )
 
             cur.execute("""
                 INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, updated_at)
@@ -84,7 +72,6 @@ def handler(event: dict, context) -> dict:
             cur.close()
             conn.close()
 
-            print(f"[Push] Subscribe OK: user={user_id}")
             return {
                 'statusCode': 200,
                 'headers': cors,

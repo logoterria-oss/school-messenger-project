@@ -420,7 +420,6 @@ export const useChatLogic = () => {
 
     requestNotificationPermission();
     ensurePushSubscription(userId);
-    const pushRefreshInterval = setInterval(() => ensurePushSubscription(userId), 5 * 60 * 1000);
 
     // Временно отключаем WebSocket для ускорения загрузки
     // wsService.connect(userId);
@@ -643,10 +642,6 @@ export const useChatLogic = () => {
                 const old = prev.find(c => c.id === openChatId);
                 return { ...fresh, unread: old ? old.unread : 0, unreadMentions: old ? old.unreadMentions : 0 };
               }
-              if (fresh.type === 'group' && mappedTopics[fresh.id]?.length > 0) {
-                const old = prev.find(c => c.id === fresh.id);
-                return { ...fresh, unread: old ? old.unread : 0, unreadMentions: old ? old.unreadMentions : 0, hasMutedUnread: old?.hasMutedUnread };
-              }
               return fresh;
             });
           });
@@ -663,7 +658,6 @@ export const useChatLogic = () => {
 
     return () => {
       clearInterval(pollInterval);
-      clearInterval(pushRefreshInterval);
     };
   }, [isAuthenticated, userId]);
 

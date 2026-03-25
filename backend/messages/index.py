@@ -5,9 +5,8 @@ from psycopg2.extras import RealDictCursor
 from datetime import datetime
 
 def handler(event: dict, context) -> dict:
-    '''API для работы с сообщениями и отправки push-уведомлений v2'''
+    '''API для работы с сообщениями и отправки push-уведомлений'''
     method = event.get('httpMethod', 'GET')
-    print(f"[Messages] {method} request")
 
     if method == 'OPTIONS':
         return {
@@ -174,22 +173,16 @@ def handler(event: dict, context) -> dict:
                 """, (att_id, message_id, att.get('type'), att.get('fileUrl'), att.get('fileName'), att.get('fileSize')))
 
             conn.commit()
-            print(f"[Push] Message saved: id={message_id}, chat={chat_id}, topic={topic_id}, sender={sender_id}")
-
-            if not conn.closed:
-                conn.close()
 
             user_subs = []
             try:
-                conn2 = psycopg2.connect(os.environ['DATABASE_URL'])
-                cur2 = conn2.cursor(cursor_factory=RealDictCursor)
+                cur2 = conn.cursor(cursor_factory=RealDictCursor)
                 cur2.execute("""
                     SELECT DISTINCT cp.user_id FROM chat_participants cp
                     WHERE cp.chat_id = %s AND cp.user_id != %s
                 """, (chat_id, sender_id))
                 participant_ids = [r['user_id'] for r in cur2.fetchall()]
 
-                print(f"[Push] Participants found: {len(participant_ids)}")
                 if participant_ids:
                     placeholders = ','.join(['%s'] * len(participant_ids))
                     cur2.execute(
@@ -199,7 +192,7 @@ def handler(event: dict, context) -> dict:
                     users_map = {r['id']: r for r in cur2.fetchall()}
 
                     cur2.execute(
-                        "SELECT user_id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (%s) AND endpoint LIKE 'https%%%%'" % placeholders,
+                        "SELECT user_id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (%s)" % placeholders,
                         participant_ids
                     )
                     user_subs = cur2.fetchall()
@@ -209,13 +202,12 @@ def handler(event: dict, context) -> dict:
                         sub['user_name'] = u['name'] if u else None
                         sub['user_role'] = u['role'] if u else None
                 cur2.close()
-                conn2.close()
             except Exception as e:
-                import traceback
                 print(f"[Push] DB error: {e}")
-                print(f"[Push] Traceback: {traceback.format_exc()}")
+            finally:
+                if not conn.closed:
+                    conn.close()
 
-            print(f"[Push] Subscriptions to send: {len(user_subs)}")
             if user_subs:
                 try:
                     from pywebpush import webpush, WebPushException
@@ -242,7 +234,7 @@ def handler(event: dict, context) -> dict:
                             'data': {'chatId': chat_id, 'topicId': topic_id, 'hasMention': personal_mention}
                         })
                         try:
-                            resp = webpush(
+                            webpush(
                                 subscription_info={
                                     'endpoint': sub['endpoint'],
                                     'keys': {'p256dh': sub['p256dh'], 'auth': sub['auth']}
@@ -251,29 +243,10 @@ def handler(event: dict, context) -> dict:
                                 vapid_private_key=vapid_private,
                                 vapid_claims=vapid_claims
                             )
-                            print(f"[Push] OK user={sub['user_name']}, status={resp.status_code if resp else 'none'}")
                         except WebPushException as e:
-                            status_code = e.response.status_code if e.response is not None else 0
-                            resp_text = ''
-                            if e.response is not None:
-                                try:
-                                    resp_text = e.response.text[:500]
-                                except Exception:
-                                    resp_text = str(e.response.content[:500]) if hasattr(e.response, 'content') else ''
-                            print(f"[Push] WebPushException: status={status_code}, user={sub['user_name']}, endpoint={sub['endpoint'][:80]}, body={resp_text}")
-                            if status_code in (403, 404, 410):
-                                try:
-                                    cleanup = psycopg2.connect(os.environ['DATABASE_URL'])
-                                    cleanup_cur = cleanup.cursor()
-                                    cleanup_cur.execute("UPDATE push_subscriptions SET endpoint = 'expired://' || id WHERE endpoint = %s", (sub['endpoint'],))
-                                    cleanup.commit()
-                                    cleanup_cur.close()
-                                    cleanup.close()
-                                    print(f"[Push] Marked expired for {sub['user_name']}")
-                                except Exception as ce:
-                                    print(f"[Push] Cleanup error: {ce}")
+                            print(f"[Push] WebPushException: {e}")
                         except Exception as e:
-                            print(f"[Push] Error: {type(e).__name__}: {e}")
+                            print(f"[Push] Error: {e}")
                 except Exception as e:
                     print(f"[Push] Send error: {e}")
 

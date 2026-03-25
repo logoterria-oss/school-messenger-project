@@ -1,4 +1,4 @@
-const SW_VERSION = 5;
+const SW_VERSION = 3;
 const DB_NAME = 'notification_settings';
 const STORE_NAME = 'muted_topics';
 
@@ -26,20 +26,6 @@ function getMutedTopics() {
       req.onerror = () => resolve([]);
     });
   }).catch(() => []);
-}
-
-function updateBadge() {
-  return self.registration.getNotifications().then((notifications) => {
-    const uniqueTags = new Set(notifications.map(n => n.tag).filter(Boolean));
-    const count = uniqueTags.size || notifications.length;
-    if (navigator.setAppBadge) {
-      if (count > 0) {
-        navigator.setAppBadge(count);
-      } else {
-        navigator.clearAppBadge();
-      }
-    }
-  }).catch(() => {});
 }
 
 self.addEventListener('install', (event) => {
@@ -83,7 +69,13 @@ self.addEventListener('push', (event) => {
     };
 
     return self.registration.showNotification(data.title || 'Новое сообщение', options)
-      .then(() => updateBadge());
+      .then(() => self.registration.getNotifications())
+      .then((notifications) => {
+        const count = notifications.length;
+        if (navigator.setAppBadge) {
+          navigator.setAppBadge(count);
+        }
+      });
   });
 
   event.waitUntil(showNotif);
@@ -92,7 +84,12 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
-    updateBadge().then(() => {
+    self.registration.getNotifications().then((notifications) => {
+      if (notifications.length === 0 && navigator.clearAppBadge) {
+        navigator.clearAppBadge();
+      } else if (navigator.setAppBadge) {
+        navigator.setAppBadge(notifications.length);
+      }
       return self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     }).then((clients) => {
       if (clients.length > 0) {
