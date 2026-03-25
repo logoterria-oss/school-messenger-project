@@ -64,7 +64,7 @@ def handler(event: dict, context) -> dict:
 
             print(f"[Push] Subscribe: user={user_id}, endpoint={endpoint[:80]}")
 
-            cur.execute("DELETE FROM push_subscriptions WHERE user_id = %s AND (endpoint LIKE 'expired://%%' OR endpoint LIKE 'reset://%%')", (user_id,))
+            cur.execute("DELETE FROM push_subscriptions WHERE user_id = %s AND (endpoint LIKE 'expired://%%' OR endpoint LIKE 'reset://%%' OR endpoint LIKE 'cleaned://%%')", (user_id,))
 
             cur.execute("DELETE FROM push_subscriptions WHERE endpoint = %s", (endpoint,))
 

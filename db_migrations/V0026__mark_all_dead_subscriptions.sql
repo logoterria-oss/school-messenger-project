@@ -1,0 +1,1 @@
+UPDATE push_subscriptions SET endpoint = 'dead://' || id::text WHERE endpoint LIKE 'cleaned://%' OR endpoint LIKE 'expired://%' OR endpoint LIKE 'reset://%';
