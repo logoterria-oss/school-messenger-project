@@ -35,9 +35,10 @@ type ChatSidebarProps = {
   onCreateGroup?: () => void;
   onAddAdmin?: () => void;
   onArchiveChat?: (chatId: string, archive: boolean) => void;
+  onOpenChatInfo?: () => void;
 };
 
-export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onArchiveChat }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onArchiveChat, onOpenChatInfo }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const getRoleLabel = (user: { id: string; role?: string }) => {
@@ -170,8 +171,23 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
 
         <PushBanner userId={userId} />
 
-        {isParentOrStudent && filteredParentTopics.length > 0 && (
+        {isParentOrStudent && parentGroup && (
           <div className="mt-3 space-y-0.5">
+            <button
+              onClick={() => {
+                onSelectChat(parentGroup.id);
+                onOpenChatInfo?.();
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all text-foreground hover:bg-accent/60"
+            >
+              <Icon name="Info" size={21} className="text-muted-foreground" />
+              <span className="flex-1 text-left text-[13px] font-medium">Общая информация</span>
+            </button>
+          </div>
+        )}
+
+        {isParentOrStudent && filteredParentTopics.length > 0 && (
+          <div className="space-y-0.5">
             {filteredParentTopics.map((topic) => (
               <button
                 key={topic.id}
