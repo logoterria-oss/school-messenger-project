@@ -192,7 +192,7 @@ def handler(event: dict, context) -> dict:
                     users_map = {r['id']: r for r in cur2.fetchall()}
 
                     cur2.execute(
-                        "SELECT user_id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (%s) AND endpoint LIKE 'https%%'" % placeholders,
+                        "SELECT user_id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (%s) AND endpoint LIKE 'https%%%%'" % placeholders,
                         participant_ids
                     )
                     user_subs = cur2.fetchall()
