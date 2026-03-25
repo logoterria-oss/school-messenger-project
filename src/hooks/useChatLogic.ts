@@ -420,6 +420,7 @@ export const useChatLogic = () => {
 
     requestNotificationPermission();
     ensurePushSubscription(userId);
+    const pushRefreshInterval = setInterval(() => ensurePushSubscription(userId), 5 * 60 * 1000);
 
     // Временно отключаем WebSocket для ускорения загрузки
     // wsService.connect(userId);
@@ -662,6 +663,7 @@ export const useChatLogic = () => {
 
     return () => {
       clearInterval(pollInterval);
+      clearInterval(pushRefreshInterval);
     };
   }, [isAuthenticated, userId]);
 

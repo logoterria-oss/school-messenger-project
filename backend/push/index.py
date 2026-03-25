@@ -62,6 +62,10 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Missing fields: user_id, endpoint, p256dh, auth'})
                 }
 
+            print(f"[Push] Subscribe: user={user_id}, endpoint={endpoint[:80]}")
+
+            cur.execute("DELETE FROM push_subscriptions WHERE user_id = %s AND (endpoint LIKE 'expired://%%' OR endpoint LIKE 'reset://%%')", (user_id,))
+
             cur.execute("DELETE FROM push_subscriptions WHERE endpoint = %s", (endpoint,))
 
             from urllib.parse import urlparse
@@ -80,6 +84,7 @@ def handler(event: dict, context) -> dict:
             cur.close()
             conn.close()
 
+            print(f"[Push] Subscribe OK: user={user_id}")
             return {
                 'statusCode': 200,
                 'headers': cors,
