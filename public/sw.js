@@ -1,4 +1,4 @@
-const SW_VERSION = 3;
+const SW_VERSION = 4;
 const DB_NAME = 'notification_settings';
 const STORE_NAME = 'muted_topics';
 
@@ -48,6 +48,24 @@ self.addEventListener('push', (event) => {
   const chatId = data.data && data.data.chatId;
   const hasMention = data.data && data.data.hasMention;
 
+  function showIt() {
+    return self.registration.showNotification(data.title || 'Новое сообщение', {
+      body: data.body || '',
+      icon: data.icon || '/favicon.ico',
+      badge: data.icon || '/favicon.ico',
+      tag: data.tag || ('msg-' + Date.now()),
+      renotify: true,
+      vibrate: [200, 100, 200],
+      data: data.data || {},
+    }).then(() => self.registration.getNotifications())
+      .then((notifications) => {
+        const count = notifications.length;
+        if (navigator.setAppBadge) {
+          navigator.setAppBadge(count);
+        }
+      });
+  }
+
   const showNotif = getMutedTopics().then(mutedList => {
     if (!hasMention) {
       if (topicId && mutedList.includes(topicId)) {
@@ -57,25 +75,9 @@ self.addEventListener('push', (event) => {
         return;
       }
     }
-
-    const options = {
-      body: data.body || '',
-      icon: data.icon || '/favicon.ico',
-      badge: data.icon || '/favicon.ico',
-      tag: data.tag || ('msg-' + Date.now()),
-      vibrate: [200, 100, 200],
-      renotify: true,
-      data: data.data || {},
-    };
-
-    return self.registration.showNotification(data.title || 'Новое сообщение', options)
-      .then(() => self.registration.getNotifications())
-      .then((notifications) => {
-        const count = notifications.length;
-        if (navigator.setAppBadge) {
-          navigator.setAppBadge(count);
-        }
-      });
+    return showIt();
+  }).catch(() => {
+    return showIt();
   });
 
   event.waitUntil(showNotif);
