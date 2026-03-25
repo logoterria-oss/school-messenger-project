@@ -212,8 +212,6 @@ def handler(event: dict, context) -> dict:
                 try:
                     from pywebpush import webpush, WebPushException
                     vapid_private = os.environ.get('VAPID_PRIVATE_KEY', '').strip()
-                    print(f"[Push] VAPID key length={len(vapid_private)}, first4={vapid_private[:4]}")
-                    vapid_claims = {'sub': 'mailto:push@lineya.school'}
                     preview = (text or '')[:100] or 'Новое сообщение'
                     msg_text = text or ''
                     has_admin_mention = '@[админ' in msg_text
@@ -224,8 +222,6 @@ def handler(event: dict, context) -> dict:
                             personal_mention = True
                         if has_admin_mention and sub.get('user_role') == 'admin':
                             personal_mention = True
-
-                        print(f"[Push] user={sub['user_name']}, role={sub.get('user_role')}, mention={personal_mention}, text={msg_text[:80]}")
 
                         payload = json.dumps({
                             'title': sender_name,
@@ -242,7 +238,7 @@ def handler(event: dict, context) -> dict:
                                 },
                                 data=payload,
                                 vapid_private_key=vapid_private,
-                                vapid_claims=vapid_claims
+                                vapid_claims={'sub': 'mailto:push@lineya.school'}
                             )
                         except WebPushException as e:
                             print(f"[Push] WebPushException: {e}")
