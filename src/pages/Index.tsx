@@ -178,7 +178,6 @@ const Index = () => {
           onSelectChat={handleSelectChatMobile}
           onTopicSelect={handleSelectTopic}
           onArchiveChat={handleArchiveChat}
-          onOpenChatInfo={() => setShowChatInfo(true)}
         />
       </div>
 

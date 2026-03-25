@@ -13,6 +13,7 @@ import {
 import { ChatList } from './sidebar/ChatList';
 import { PushBanner } from './sidebar/PushBanner';
 import type { Chat, Topic, UserRole } from './sidebar/types';
+import type { Conclusion } from '@/types/chat.types';
 
 type ChatSidebarProps = {
   userRole: UserRole;
@@ -35,11 +36,85 @@ type ChatSidebarProps = {
   onCreateGroup?: () => void;
   onAddAdmin?: () => void;
   onArchiveChat?: (chatId: string, archive: boolean) => void;
-  onOpenChatInfo?: () => void;
 };
 
-export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onArchiveChat, onOpenChatInfo }: ChatSidebarProps) => {
+const formatDate = (dateStr: string) => {
+  const [year, month, day] = dateStr.split('-');
+  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  return `${parseInt(day)} ${months[parseInt(month) - 1]} ${year}`;
+};
+
+const GeneralInfoContent = ({ schedule, conclusions }: { schedule?: string; conclusions?: Conclusion[] }) => (
+  <div className="mt-2 rounded-lg border border-border/60 bg-card/80 p-3 space-y-4">
+    <div>
+      <h4 className="font-medium text-xs text-muted-foreground flex items-center gap-1.5 mb-2">
+        <Icon name="Calendar" size={14} />
+        Расписание
+      </h4>
+      {schedule ? (
+        <div className="text-[13px] whitespace-pre-line leading-relaxed">{schedule}</div>
+      ) : (
+        <p className="text-xs text-muted-foreground">Расписание не задано</p>
+      )}
+    </div>
+
+    {conclusions && conclusions.length > 0 && (
+      <div>
+        <h4 className="font-medium text-xs text-muted-foreground flex items-center gap-1.5 mb-2">
+          <Icon name="FileText" size={14} />
+          Заключения
+        </h4>
+        <div className="space-y-2">
+          {conclusions.map((c) => (
+            <div key={c.id} className="rounded-md border border-border/50 p-2.5 space-y-1.5">
+              <p className="text-[13px] font-medium">
+                Заключение{c.diagnosisDate ? ` от ${formatDate(c.diagnosisDate)}` : ''}
+              </p>
+              <div className="flex gap-2">
+                {c.conclusionLink && (
+                  <a
+                    href={c.conclusionLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    <Icon name="ExternalLink" size={12} />
+                    Открыть
+                  </a>
+                )}
+                {c.conclusionPdf && (
+                  <a
+                    href={c.conclusionPdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    <Icon name="Download" size={12} />
+                    Скачать PDF
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {(!conclusions || conclusions.length === 0) && (
+      <div>
+        <h4 className="font-medium text-xs text-muted-foreground flex items-center gap-1.5 mb-2">
+          <Icon name="FileText" size={14} />
+          Заключения
+        </h4>
+        <p className="text-xs text-muted-foreground">Заключений пока нет</p>
+      </div>
+    )}
+  </div>
+);
+
+export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onArchiveChat }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showGeneralInfo, setShowGeneralInfo] = useState(false);
 
   const getRoleLabel = (user: { id: string; role?: string }) => {
     if (user.id === 'admin') return 'руководитель';
@@ -172,17 +247,26 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
         <PushBanner userId={userId} />
 
         {isParentOrStudent && parentGroup && (
-          <div className="mt-3 space-y-0.5">
+          <div className="mt-3">
             <button
-              onClick={() => {
-                onSelectChat(parentGroup.id);
-                onOpenChatInfo?.();
-              }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all text-foreground hover:bg-accent/60"
+              onClick={() => setShowGeneralInfo(!showGeneralInfo)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all border ${
+                showGeneralInfo
+                  ? 'bg-primary/10 border-primary/20 text-primary'
+                  : 'bg-accent/60 border-border/60 text-foreground hover:bg-accent'
+              }`}
             >
-              <Icon name="Info" size={21} className="text-muted-foreground" />
-              <span className="flex-1 text-left text-[13px] font-medium">Общая информация</span>
+              <Icon name="Info" size={18} className={showGeneralInfo ? 'text-primary' : 'text-muted-foreground'} />
+              <span className="flex-1 text-left text-[13px] font-semibold">Общая информация</span>
+              <Icon name={showGeneralInfo ? 'ChevronUp' : 'ChevronDown'} size={16} className="text-muted-foreground" />
             </button>
+
+            {showGeneralInfo && (
+              <GeneralInfoContent
+                schedule={parentGroup.schedule}
+                conclusions={parentGroup.conclusions}
+              />
+            )}
           </div>
         )}
 

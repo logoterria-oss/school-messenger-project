@@ -226,7 +226,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
             <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
               <Icon name="Search" size={16} />
             </Button>
-            {!isTeachersGroup && (
+            {!isTeachersGroup && !isParentOrStudent && (
               <Button
                 variant="ghost"
                 size="icon"
