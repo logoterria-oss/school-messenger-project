@@ -1,0 +1,1 @@
+UPDATE push_subscriptions SET endpoint = 'removed://' || id::text, p256dh = '', auth = '' WHERE endpoint NOT LIKE 'https://%';
