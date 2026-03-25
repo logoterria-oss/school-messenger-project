@@ -1,0 +1,1 @@
+ALTER TABLE conclusions ADD COLUMN IF NOT EXISTS diagnosis_date DATE;

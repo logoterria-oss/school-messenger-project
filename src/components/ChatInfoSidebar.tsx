@@ -48,8 +48,8 @@ type ChatInfoSidebarProps = {
   onUpdateLeadAdmin?: (leadAdmin: string | undefined) => void;
   onUpdateParticipants?: (participantIds: string[]) => void;
   onUpdateSchedule?: (schedule: string) => void;
-  onAddConclusion?: (data: { conclusionLink?: string; conclusionPdfBase64?: string }) => void;
-  onUpdateConclusion?: (conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string }) => void;
+  onAddConclusion?: (data: { conclusionLink?: string; conclusionPdfBase64?: string; diagnosisDate?: string }) => void;
+  onUpdateConclusion?: (conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string; diagnosisDate?: string }) => void;
   onDeleteConclusion?: (conclusionId: number) => void;
   chatName?: string;
   onUpdateName?: (name: string) => void;

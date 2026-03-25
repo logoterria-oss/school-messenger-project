@@ -13,8 +13,8 @@ type SidebarScheduleSectionProps = {
   isAdminOrTeacher: boolean;
   isTeachersGroup: boolean;
   onUpdateSchedule?: (schedule: string) => void;
-  onAddConclusion?: (data: { conclusionLink?: string; conclusionPdfBase64?: string }) => void;
-  onUpdateConclusion?: (conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string }) => void;
+  onAddConclusion?: (data: { conclusionLink?: string; conclusionPdfBase64?: string; diagnosisDate?: string }) => void;
+  onUpdateConclusion?: (conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string; diagnosisDate?: string }) => void;
   onDeleteConclusion?: (conclusionId: number) => void;
 };
 
@@ -39,6 +39,8 @@ export const SidebarScheduleSection = ({
   const [editConclusionLink, setEditConclusionLink] = useState('');
   const [isAddingConclusion, setIsAddingConclusion] = useState(false);
   const [newConclusionLink, setNewConclusionLink] = useState('');
+  const [newDiagnosisDate, setNewDiagnosisDate] = useState('');
+  const [editDiagnosisDate, setEditDiagnosisDate] = useState('');
   const [uploadingForId, setUploadingForId] = useState<number | 'new' | null>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const pdfTargetRef = useRef<number | 'new' | null>(null);
@@ -51,11 +53,15 @@ export const SidebarScheduleSection = ({
   const startEditConclusion = (c: Conclusion) => {
     setEditingConclusionId(c.id);
     setEditConclusionLink(c.conclusionLink || '');
+    setEditDiagnosisDate(c.diagnosisDate || '');
   };
 
   const saveEditConclusion = () => {
     if (editingConclusionId !== null) {
-      onUpdateConclusion?.(editingConclusionId, { conclusionLink: editConclusionLink.trim() || undefined });
+      onUpdateConclusion?.(editingConclusionId, {
+        conclusionLink: editConclusionLink.trim() || undefined,
+        diagnosisDate: editDiagnosisDate || undefined,
+      });
       setEditingConclusionId(null);
     }
   };
@@ -74,8 +80,9 @@ export const SidebarScheduleSection = ({
     reader.onload = (ev) => {
       const base64 = ev.target?.result as string;
       if (target === 'new') {
-        onAddConclusion?.({ conclusionPdfBase64: base64, conclusionLink: newConclusionLink.trim() || undefined });
+        onAddConclusion?.({ conclusionPdfBase64: base64, conclusionLink: newConclusionLink.trim() || undefined, diagnosisDate: newDiagnosisDate || undefined });
         setNewConclusionLink('');
+        setNewDiagnosisDate('');
         setIsAddingConclusion(false);
       } else if (typeof target === 'number') {
         onUpdateConclusion?.(target, { conclusionPdfBase64: base64 });
@@ -88,9 +95,10 @@ export const SidebarScheduleSection = ({
   };
 
   const handleAddWithLink = () => {
-    if (newConclusionLink.trim()) {
-      onAddConclusion?.({ conclusionLink: newConclusionLink.trim() });
+    if (newConclusionLink.trim() || newDiagnosisDate) {
+      onAddConclusion?.({ conclusionLink: newConclusionLink.trim() || undefined, diagnosisDate: newDiagnosisDate || undefined });
       setNewConclusionLink('');
+      setNewDiagnosisDate('');
       setIsAddingConclusion(false);
     }
   };
@@ -152,7 +160,7 @@ export const SidebarScheduleSection = ({
             <div key={c.id} className="border rounded-lg p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">
-                  Заключение от {formatDate(c.createdDate)}
+                  Заключение{c.diagnosisDate ? ` от ${formatDate(c.diagnosisDate)}` : ''}
                 </p>
                 {isAdminOrTeacher && editingConclusionId !== c.id && (
                   <div className="flex items-center gap-1">
@@ -170,6 +178,15 @@ export const SidebarScheduleSection = ({
 
               {editingConclusionId === c.id ? (
                 <div className="space-y-2">
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Дата диагностики</label>
+                    <Input
+                      value={editDiagnosisDate}
+                      onChange={(e) => setEditDiagnosisDate(e.target.value)}
+                      type="date"
+                      className="text-sm"
+                    />
+                  </div>
                   <Input
                     value={editConclusionLink}
                     onChange={(e) => setEditConclusionLink(e.target.value)}
@@ -223,6 +240,15 @@ export const SidebarScheduleSection = ({
         {isAddingConclusion && (
           <div className="border rounded-lg p-3 space-y-2 mt-4">
             <p className="text-sm font-medium">Новое заключение</p>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Дата диагностики</label>
+              <Input
+                value={newDiagnosisDate}
+                onChange={(e) => setNewDiagnosisDate(e.target.value)}
+                type="date"
+                className="text-sm"
+              />
+            </div>
             <Input
               value={newConclusionLink}
               onChange={(e) => setNewConclusionLink(e.target.value)}
@@ -234,10 +260,10 @@ export const SidebarScheduleSection = ({
               <Button
                 size="sm"
                 onClick={handleAddWithLink}
-                disabled={!newConclusionLink.trim()}
+                disabled={!newConclusionLink.trim() && !newDiagnosisDate}
                 className="flex-1"
               >
-                Добавить ссылку
+                Сохранить
               </Button>
               <Button
                 size="sm"
@@ -254,7 +280,7 @@ export const SidebarScheduleSection = ({
               size="sm"
               variant="ghost"
               className="w-full text-xs"
-              onClick={() => { setIsAddingConclusion(false); setNewConclusionLink(''); }}
+              onClick={() => { setIsAddingConclusion(false); setNewConclusionLink(''); setNewDiagnosisDate(''); }}
             >
               Отмена
             </Button>

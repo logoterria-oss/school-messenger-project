@@ -109,7 +109,7 @@ def handler(event: dict, context) -> dict:
             conclusions_dict = {}
             if chat_ids:
                 cur.execute("""
-                    SELECT id, chat_id, conclusion_link, conclusion_pdf, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date
+                    SELECT id, chat_id, conclusion_link, conclusion_pdf, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date, TO_CHAR(diagnosis_date, 'YYYY-MM-DD') as diagnosis_date
                     FROM conclusions
                     WHERE chat_id = ANY(%s)
                     ORDER BY created_at ASC
@@ -122,7 +122,8 @@ def handler(event: dict, context) -> dict:
                         'id': row['id'],
                         'conclusionLink': row['conclusion_link'],
                         'conclusionPdf': row['conclusion_pdf'],
-                        'createdDate': row['created_date']
+                        'createdDate': row['created_date'],
+                        'diagnosisDate': row['diagnosis_date']
                     })
 
             for chat in chats:
@@ -215,11 +216,13 @@ def handler(event: dict, context) -> dict:
                 if data.get('conclusionPdfBase64'):
                     pdf_url = upload_pdf_to_s3(data['conclusionPdfBase64'], chat_id)
 
+                diagnosis_date = data.get('diagnosisDate')
+
                 cur.execute("""
-                    INSERT INTO conclusions (chat_id, conclusion_link, conclusion_pdf)
-                    VALUES (%s, %s, %s)
-                    RETURNING id, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date
-                """, (chat_id, data.get('conclusionLink'), pdf_url))
+                    INSERT INTO conclusions (chat_id, conclusion_link, conclusion_pdf, diagnosis_date)
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING id, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date, TO_CHAR(diagnosis_date, 'YYYY-MM-DD') as diagnosis_date
+                """, (chat_id, data.get('conclusionLink'), pdf_url, diagnosis_date))
                 row = cur.fetchone()
 
                 conn.commit()
@@ -231,7 +234,8 @@ def handler(event: dict, context) -> dict:
                         'id': row['id'],
                         'conclusionLink': data.get('conclusionLink'),
                         'conclusionPdf': pdf_url,
-                        'createdDate': row['created_date']
+                        'createdDate': row['created_date'],
+                        'diagnosisDate': row['diagnosis_date']
                     }
                 })}
 
@@ -253,13 +257,16 @@ def handler(event: dict, context) -> dict:
                     pdf_url = upload_pdf_to_s3(data['conclusionPdfBase64'], chat_id)
                     c_updates.append('conclusion_pdf = %s')
                     c_values.append(pdf_url)
+                if 'diagnosisDate' in data:
+                    c_updates.append('diagnosis_date = %s')
+                    c_values.append(data['diagnosisDate'])
                 if c_updates:
                     c_values.extend([conclusion_id, chat_id])
                     cur.execute(f"UPDATE conclusions SET {', '.join(c_updates)} WHERE id = %s AND chat_id = %s", c_values)
 
                 conn.commit()
 
-                cur.execute("SELECT id, conclusion_link, conclusion_pdf, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date FROM conclusions WHERE id = %s", (conclusion_id,))
+                cur.execute("SELECT id, conclusion_link, conclusion_pdf, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date, TO_CHAR(diagnosis_date, 'YYYY-MM-DD') as diagnosis_date FROM conclusions WHERE id = %s", (conclusion_id,))
                 row = cur.fetchone()
                 cur.close()
                 conn.close()
@@ -269,7 +276,8 @@ def handler(event: dict, context) -> dict:
                         'id': row['id'],
                         'conclusionLink': row['conclusion_link'],
                         'conclusionPdf': row['conclusion_pdf'],
-                        'createdDate': row['created_date']
+                        'createdDate': row['created_date'],
+                        'diagnosisDate': row['diagnosis_date']
                     }
                 })}
 

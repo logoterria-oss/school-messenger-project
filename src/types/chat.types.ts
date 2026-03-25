@@ -52,6 +52,7 @@ export type Conclusion = {
   conclusionLink?: string;
   conclusionPdf?: string;
   createdDate: string;
+  diagnosisDate?: string;
 };
 
 export type Chat = {

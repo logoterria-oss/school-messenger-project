@@ -1933,7 +1933,7 @@ export const useChatLogic = () => {
     return messageId;
   };
 
-  const handleAddConclusion = async (chatId: string, data: { conclusionLink?: string; conclusionPdfBase64?: string }) => {
+  const handleAddConclusion = async (chatId: string, data: { conclusionLink?: string; conclusionPdfBase64?: string; diagnosisDate?: string }) => {
     try {
       const conclusion = await addConclusion(chatId, data);
       setChats(prev => {
@@ -1950,7 +1950,7 @@ export const useChatLogic = () => {
     }
   };
 
-  const handleUpdateConclusion = async (chatId: string, conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string }) => {
+  const handleUpdateConclusion = async (chatId: string, conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string; diagnosisDate?: string }) => {
     try {
       const conclusion = await updateConclusion(chatId, conclusionId, data);
       setChats(prev => {

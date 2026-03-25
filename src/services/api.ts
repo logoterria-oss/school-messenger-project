@@ -197,7 +197,7 @@ export async function updateChat(chatId: string, updates: Record<string, unknown
   return await response.json();
 }
 
-export async function addConclusion(chatId: string, data: { conclusionLink?: string; conclusionPdfBase64?: string }): Promise<{ id: number; conclusionLink?: string; conclusionPdf?: string; createdDate: string }> {
+export async function addConclusion(chatId: string, data: { conclusionLink?: string; conclusionPdfBase64?: string; diagnosisDate?: string }): Promise<{ id: number; conclusionLink?: string; conclusionPdf?: string; createdDate: string; diagnosisDate?: string }> {
   const response = await fetch(API_URLS.chats, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -208,7 +208,7 @@ export async function addConclusion(chatId: string, data: { conclusionLink?: str
   return result.conclusion;
 }
 
-export async function updateConclusion(chatId: string, conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string }): Promise<{ id: number; conclusionLink?: string; conclusionPdf?: string; createdDate: string }> {
+export async function updateConclusion(chatId: string, conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string; diagnosisDate?: string }): Promise<{ id: number; conclusionLink?: string; conclusionPdf?: string; createdDate: string; diagnosisDate?: string }> {
   const response = await fetch(API_URLS.chats, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
