@@ -1637,12 +1637,14 @@ export const useChatLogic = () => {
     if (userRole === 'admin') {
       applyAdminDefaults(topics.map(t => t.id));
       setMuteVersion(v => v + 1);
-    }
-    {
-      const isNonLead = userRole === 'teacher'
-        ? (leadTeachers.length === 0 || !leadTeachers.includes(userId!))
-        : (userRole === 'admin' && userId !== SUPERVISOR_ID && leadAdmin && leadAdmin !== userId);
-      if (isNonLead) {
+      const isNonLeadAdmin = userId !== SUPERVISOR_ID && leadAdmin && leadAdmin !== userId;
+      if (isNonLeadAdmin) {
+        applyNonLeadDefaults(topics.map(t => t.id));
+        setMuteVersion(v => v + 1);
+      }
+    } else if (userRole === 'teacher') {
+      const isNonLeadTeacher = leadTeachers.length === 0 || !leadTeachers.includes(userId!);
+      if (isNonLeadTeacher) {
         applyNonLeadDefaults(topics.map(t => t.id));
         setMuteVersion(v => v + 1);
       }
