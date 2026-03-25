@@ -173,6 +173,7 @@ def handler(event: dict, context) -> dict:
                 """, (att_id, message_id, att.get('type'), att.get('fileUrl'), att.get('fileName'), att.get('fileSize')))
 
             conn.commit()
+            print(f"[Push] Message saved: id={message_id}, chat={chat_id}, topic={topic_id}, sender={sender_id}")
 
             user_subs = []
             try:
@@ -183,6 +184,7 @@ def handler(event: dict, context) -> dict:
                 """, (chat_id, sender_id))
                 participant_ids = [r['user_id'] for r in cur2.fetchall()]
 
+                print(f"[Push] Participants found: {len(participant_ids)}")
                 if participant_ids:
                     placeholders = ','.join(['%s'] * len(participant_ids))
                     cur2.execute(
@@ -208,6 +210,7 @@ def handler(event: dict, context) -> dict:
                 if not conn.closed:
                     conn.close()
 
+            print(f"[Push] Subscriptions to send: {len(user_subs)}")
             if user_subs:
                 try:
                     from pywebpush import webpush, WebPushException
