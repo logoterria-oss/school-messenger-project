@@ -1,4 +1,4 @@
-const SW_VERSION = 4;
+const SW_VERSION = 5;
 const DB_NAME = 'notification_settings';
 const STORE_NAME = 'muted_topics';
 
@@ -26,6 +26,20 @@ function getMutedTopics() {
       req.onerror = () => resolve([]);
     });
   }).catch(() => []);
+}
+
+function updateBadge() {
+  return self.registration.getNotifications().then((notifications) => {
+    const uniqueTags = new Set(notifications.map(n => n.tag).filter(Boolean));
+    const count = uniqueTags.size || notifications.length;
+    if (navigator.setAppBadge) {
+      if (count > 0) {
+        navigator.setAppBadge(count);
+      } else {
+        navigator.clearAppBadge();
+      }
+    }
+  }).catch(() => {});
 }
 
 self.addEventListener('install', (event) => {
@@ -68,7 +82,8 @@ self.addEventListener('push', (event) => {
       data: data.data || {},
     };
 
-    return self.registration.showNotification(data.title || 'Новое сообщение', options);
+    return self.registration.showNotification(data.title || 'Новое сообщение', options)
+      .then(() => updateBadge());
   });
 
   event.waitUntil(showNotif);
@@ -77,7 +92,9 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+    updateBadge().then(() => {
+      return self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    }).then((clients) => {
       if (clients.length > 0) {
         clients[0].focus();
         return;
