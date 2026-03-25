@@ -64,6 +64,10 @@ def handler(event: dict, context) -> dict:
 
             cur.execute("DELETE FROM push_subscriptions WHERE endpoint = %s", (endpoint,))
 
+            is_apple = 'apple' in endpoint.lower()
+            if is_apple:
+                cur.execute("DELETE FROM push_subscriptions WHERE user_id = %s AND endpoint LIKE 'https://web.push.apple.com/%%'", (user_id,))
+
             cur.execute("""
                 INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, updated_at)
                 VALUES (%s, %s, %s, %s, NOW())

@@ -23,6 +23,20 @@ def handler(event: dict, context) -> dict:
     body = json.loads(event.get('body', '{}')) if event.get('body') else {}
     action = body.get('action', 'clear_messages')
 
+    if action == 'cleanup_push':
+        user_id = body.get('userId')
+        keep_id = body.get('keepId')
+        if not user_id or not keep_id:
+            cur.close()
+            conn.close()
+            return {'statusCode': 400, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': json.dumps({'error': 'userId and keepId required'})}
+        cur.execute("DELETE FROM push_subscriptions WHERE user_id = %s AND id != %s", (user_id, keep_id))
+        deleted = cur.rowcount
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': json.dumps({'success': True, 'deleted': deleted})}
+
     if action == 'fix_participants':
         chat_id = body.get('chatId')
         keep_ids = body.get('keepUserIds', [])
