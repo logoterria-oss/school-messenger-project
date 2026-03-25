@@ -35,8 +35,11 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
   const [conclusionPdf, setConclusionPdf] = useState<string | null>(null);
   const [conclusionPdfName, setConclusionPdfName] = useState('');
   const pdfInputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+
+
 
   const teachers = allUsers.filter(u => u.role === 'teacher');
   const admins = allUsers.filter(u => u.role === 'admin' && u.id !== SUPERVISOR_ID);
@@ -101,11 +104,16 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] max-sm:top-[2%] max-sm:translate-y-0 max-sm:max-h-[96vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Создать группу</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4 overflow-y-auto flex-1 px-1">
+        <div ref={scrollContainerRef} className="space-y-4 py-4 overflow-y-auto flex-1 px-1 -mr-1 pr-2" onFocus={(e) => {
+          if (e.target instanceof HTMLInputElement && e.target.type !== 'file' && e.target.type !== 'checkbox') {
+            const el = e.target;
+            setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 350);
+          }
+        }}>
           <div className="space-y-2">
             <Label htmlFor="groupName">Название группы</Label>
             <Input
@@ -310,6 +318,7 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
               </Button>
             )}
           </div>
+          <div className="pb-4 sm:pb-0" />
         </div>
 
         <DialogFooter>
