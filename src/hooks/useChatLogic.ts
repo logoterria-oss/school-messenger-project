@@ -418,6 +418,9 @@ export const useChatLogic = () => {
   useEffect(() => {
     if (!isAuthenticated || !userId) return;
 
+    // ⚠️ CRITICAL: initNotificationSettingsForUser ДОЛЖЕН быть первым!
+    // Привязывает localStorage/IndexedDB мьюты к userId.
+    // Без этого мьюты админа блокируют пуши родителю на том же устройстве.
     initNotificationSettingsForUser(userId);
     requestNotificationPermission();
     ensurePushSubscription(userId);

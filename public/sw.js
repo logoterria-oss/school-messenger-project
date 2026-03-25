@@ -36,6 +36,8 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// ⚠️ CRITICAL: Мьют-лист в IndexedDB привязан к userId (см. notificationSettings.ts).
+// initNotificationSettingsForUser() в useChatLogic обновляет IndexedDB при смене аккаунта.
 self.addEventListener('push', (event) => {
   let data = { title: 'Новое сообщение', body: '' };
   try {

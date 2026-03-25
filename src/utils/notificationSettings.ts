@@ -9,6 +9,10 @@ type AllSettings = {
   perChat: Record<string, ChatNotifSettings>;
 };
 
+// ⚠️ CRITICAL: Настройки привязаны к userId — НЕ МЕНЯТЬ!
+// Без привязки к userId мьюты одного аккаунта (например админа)
+// блокируют пуши другого аккаунта на том же устройстве.
+// См. коммит 63465e1
 const STORAGE_KEY_PREFIX = 'notification_settings';
 let currentUserId: string | null = null;
 
@@ -17,6 +21,8 @@ function getStorageKey(): string {
   return STORAGE_KEY_PREFIX;
 }
 
+// ⚠️ CRITICAL: Вызывается при логине ДО applyAdminDefaults/syncMutedSettingsToSW
+// Обновляет IndexedDB мьют-листом текущего пользователя
 export function initNotificationSettingsForUser(userId: string) {
   const prevUserId = currentUserId;
   currentUserId = userId;
