@@ -197,6 +197,37 @@ export async function updateChat(chatId: string, updates: Record<string, unknown
   return await response.json();
 }
 
+export async function addConclusion(chatId: string, data: { conclusionLink?: string; conclusionPdfBase64?: string }): Promise<{ id: number; conclusionLink?: string; conclusionPdf?: string; createdDate: string }> {
+  const response = await fetch(API_URLS.chats, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'add_conclusion', chatId, ...data }),
+  });
+  if (!response.ok) throw new Error('Failed to add conclusion');
+  const result = await response.json();
+  return result.conclusion;
+}
+
+export async function updateConclusion(chatId: string, conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string }): Promise<{ id: number; conclusionLink?: string; conclusionPdf?: string; createdDate: string }> {
+  const response = await fetch(API_URLS.chats, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'update_conclusion', chatId, conclusionId, ...data }),
+  });
+  if (!response.ok) throw new Error('Failed to update conclusion');
+  const result = await response.json();
+  return result.conclusion;
+}
+
+export async function deleteConclusion(chatId: string, conclusionId: number): Promise<void> {
+  const response = await fetch(API_URLS.chats, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'delete_conclusion', chatId, conclusionId }),
+  });
+  if (!response.ok) throw new Error('Failed to delete conclusion');
+}
+
 export async function deleteChat(chatId: string): Promise<void> {
   const response = await fetch(`${API_URLS.chats}?chatId=${chatId}`, {
     method: 'DELETE',

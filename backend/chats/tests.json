@@ -19,6 +19,32 @@
         "error": "string"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test add_conclusion without chatId",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "add_conclusion"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test delete_conclusion without required fields",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "delete_conclusion"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

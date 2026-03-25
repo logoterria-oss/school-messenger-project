@@ -4,7 +4,7 @@ import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
-import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction } from '@/services/api';
+import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction, addConclusion, updateConclusion, deleteConclusion } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
 import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW } from '@/utils/notificationSettings';
@@ -441,6 +441,7 @@ export const useChatLogic = () => {
         schedule: c.schedule as string | undefined,
         conclusionLink: c.conclusion_link as string | undefined,
         conclusionPdf: c.conclusion_pdf as string | undefined,
+        conclusions: (c.conclusions as Array<{ id: number; conclusionLink?: string; conclusionPdf?: string; createdDate: string }>) || [],
       }));
       const mappedTopics: GroupTopics = {};
       for (const [chatId, topics] of Object.entries(chatsData.topics)) {
@@ -1932,6 +1933,57 @@ export const useChatLogic = () => {
     return messageId;
   };
 
+  const handleAddConclusion = async (chatId: string, data: { conclusionLink?: string; conclusionPdfBase64?: string }) => {
+    try {
+      const conclusion = await addConclusion(chatId, data);
+      setChats(prev => {
+        const updated = prev.map(chat =>
+          chat.id === chatId
+            ? { ...chat, conclusions: [...(chat.conclusions || []), conclusion] }
+            : chat
+        );
+        localStorage.setItem('chats', JSON.stringify(updated));
+        return updated;
+      });
+    } catch (e) {
+      console.error('Failed to add conclusion:', e);
+    }
+  };
+
+  const handleUpdateConclusion = async (chatId: string, conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string }) => {
+    try {
+      const conclusion = await updateConclusion(chatId, conclusionId, data);
+      setChats(prev => {
+        const updated = prev.map(chat =>
+          chat.id === chatId
+            ? { ...chat, conclusions: (chat.conclusions || []).map(c => c.id === conclusionId ? conclusion : c) }
+            : chat
+        );
+        localStorage.setItem('chats', JSON.stringify(updated));
+        return updated;
+      });
+    } catch (e) {
+      console.error('Failed to update conclusion:', e);
+    }
+  };
+
+  const handleDeleteConclusion = async (chatId: string, conclusionId: number) => {
+    try {
+      await deleteConclusion(chatId, conclusionId);
+      setChats(prev => {
+        const updated = prev.map(chat =>
+          chat.id === chatId
+            ? { ...chat, conclusions: (chat.conclusions || []).filter(c => c.id !== conclusionId) }
+            : chat
+        );
+        localStorage.setItem('chats', JSON.stringify(updated));
+        return updated;
+      });
+    } catch (e) {
+      console.error('Failed to delete conclusion:', e);
+    }
+  };
+
   const handleUpdateGroupInfo = async (chatId: string, updates: { schedule?: string; conclusionLink?: string; name?: string; conclusionPdfBase64?: string }) => {
     const localUpdates = { ...updates };
     delete (localUpdates as Record<string, unknown>).conclusionPdfBase64;
@@ -2007,6 +2059,9 @@ export const useChatLogic = () => {
     handleUpdateLeadAdmin,
     handleUpdateParticipants,
     handleUpdateGroupInfo,
+    handleAddConclusion,
+    handleUpdateConclusion,
+    handleDeleteConclusion,
     handleAddAdmin,
     replyTo,
     handleReply,

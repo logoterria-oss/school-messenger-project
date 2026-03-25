@@ -15,13 +15,19 @@ type User = {
 
 type SimpleUser = { id: string; name: string; avatar?: string };
 
+type Conclusion = {
+  id: number;
+  conclusionLink?: string;
+  conclusionPdf?: string;
+  createdDate: string;
+};
+
 type ChatInfo = {
   students: User[];
   parents: User[];
   teachers: User[];
   schedule?: string;
-  conclusionLink?: string;
-  conclusionPdf?: string;
+  conclusions?: Conclusion[];
 };
 
 type ChatInfoSidebarProps = {
@@ -42,15 +48,16 @@ type ChatInfoSidebarProps = {
   onUpdateLeadAdmin?: (leadAdmin: string | undefined) => void;
   onUpdateParticipants?: (participantIds: string[]) => void;
   onUpdateSchedule?: (schedule: string) => void;
-  onUpdateConclusionLink?: (link: string) => void;
-  onUpdateConclusionPdf?: (base64: string) => void;
+  onAddConclusion?: (data: { conclusionLink?: string; conclusionPdfBase64?: string }) => void;
+  onUpdateConclusion?: (conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string }) => void;
+  onDeleteConclusion?: (conclusionId: number) => void;
   chatName?: string;
   onUpdateName?: (name: string) => void;
   isArchived?: boolean;
   onArchive?: () => void;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onUpdateConclusionLink, onUpdateConclusionPdf, chatName, onUpdateName, isArchived, onArchive }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onAddConclusion, onUpdateConclusion, onDeleteConclusion, chatName, onUpdateName, isArchived, onArchive }: ChatInfoSidebarProps) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState('');
 
@@ -121,8 +128,9 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
             isAdminOrTeacher={isAdminOrTeacher}
             isTeachersGroup={isTeachersGroup}
             onUpdateSchedule={onUpdateSchedule}
-            onUpdateConclusionLink={onUpdateConclusionLink}
-            onUpdateConclusionPdf={onUpdateConclusionPdf}
+            onAddConclusion={onAddConclusion}
+            onUpdateConclusion={onUpdateConclusion}
+            onDeleteConclusion={onDeleteConclusion}
           />
 
           <SidebarActions

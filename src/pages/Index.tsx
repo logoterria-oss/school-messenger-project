@@ -80,6 +80,9 @@ const Index = () => {
     handleUpdateLeadAdmin,
     handleUpdateParticipants,
     handleUpdateGroupInfo,
+    handleAddConclusion,
+    handleUpdateConclusion,
+    handleDeleteConclusion,
     handleAddAdmin,
     replyTo,
     handleReply,
@@ -281,6 +284,9 @@ const Index = () => {
           onUpdateLeadAdmin={handleUpdateLeadAdmin}
           onUpdateParticipants={handleUpdateParticipants}
           onUpdateGroupInfo={handleUpdateGroupInfo}
+          onAddConclusion={handleAddConclusion}
+          onUpdateConclusion={handleUpdateConclusion}
+          onDeleteConclusion={handleDeleteConclusion}
           onDeleteGroup={handleDeleteGroup}
           onCloseMobile={() => setMobileShowChat(false)}
         />

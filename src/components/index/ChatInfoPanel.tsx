@@ -18,6 +18,9 @@ type ChatInfoPanelProps = {
   onUpdateLeadAdmin: (chatId: string, admin: string) => void;
   onUpdateParticipants: (chatId: string, ids: string[]) => void;
   onUpdateGroupInfo: (chatId: string, updates: Record<string, unknown>) => void;
+  onAddConclusion: (chatId: string, data: { conclusionLink?: string; conclusionPdfBase64?: string }) => void;
+  onUpdateConclusion: (chatId: string, conclusionId: number, data: { conclusionLink?: string; conclusionPdfBase64?: string }) => void;
+  onDeleteConclusion: (chatId: string, conclusionId: number) => void;
   onDeleteGroup: (chatId: string) => void;
   onCloseMobile: () => void;
 };
@@ -37,6 +40,9 @@ const ChatInfoPanel = ({
   onUpdateLeadAdmin,
   onUpdateParticipants,
   onUpdateGroupInfo,
+  onAddConclusion,
+  onUpdateConclusion,
+  onDeleteConclusion,
   onDeleteGroup,
   onCloseMobile,
 }: ChatInfoPanelProps) => {
@@ -99,8 +105,7 @@ const ChatInfoPanel = ({
             ? allUsers.filter(u => u.role === 'teacher' && currentChat.leadTeachers!.includes(u.id))
             : allUsers.filter(u => u.role === 'teacher' && chatParticipants.includes(u.id)),
           schedule: currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
-          conclusionLink: currentChat?.conclusionLink || 'https://example.com/conclusion.pdf',
-          conclusionPdf: currentChat?.conclusionPdf,
+          conclusions: currentChat?.conclusions || [],
         }}
         allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         allAdmins={allUsers.filter(u => u.role === 'admin' && chatParticipants.includes(u.id)).map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
@@ -115,8 +120,9 @@ const ChatInfoPanel = ({
         chatName={currentChat?.name}
         onUpdateName={(name) => selectedChat && onUpdateGroupInfo(selectedChat, { name })}
         onUpdateSchedule={(schedule) => selectedChat && onUpdateGroupInfo(selectedChat, { schedule })}
-        onUpdateConclusionLink={(link) => selectedChat && onUpdateGroupInfo(selectedChat, { conclusionLink: link })}
-        onUpdateConclusionPdf={(base64) => selectedChat && onUpdateGroupInfo(selectedChat, { conclusionPdfBase64: base64 })}
+        onAddConclusion={(data) => selectedChat && onAddConclusion(selectedChat, data)}
+        onUpdateConclusion={(conclusionId, data) => selectedChat && onUpdateConclusion(selectedChat, conclusionId, data)}
+        onDeleteConclusion={(conclusionId) => selectedChat && onDeleteConclusion(selectedChat, conclusionId)}
         onDeleteGroup={() => {
           if (selectedChat && confirm('Вы уверены, что хотите удалить эту группу? Это действие нельзя отменить.')) {
             onDeleteGroup(selectedChat);

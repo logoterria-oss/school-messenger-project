@@ -106,8 +106,28 @@ def handler(event: dict, context) -> dict:
                 for row in cur.fetchall():
                     lead_teachers_dict[row['chat_id']] = row['lead_teachers']
 
+            conclusions_dict = {}
+            if chat_ids:
+                cur.execute("""
+                    SELECT id, chat_id, conclusion_link, conclusion_pdf, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date
+                    FROM conclusions
+                    WHERE chat_id = ANY(%s)
+                    ORDER BY created_at ASC
+                """, (chat_ids,))
+                for row in cur.fetchall():
+                    cid = row['chat_id']
+                    if cid not in conclusions_dict:
+                        conclusions_dict[cid] = []
+                    conclusions_dict[cid].append({
+                        'id': row['id'],
+                        'conclusionLink': row['conclusion_link'],
+                        'conclusionPdf': row['conclusion_pdf'],
+                        'createdDate': row['created_date']
+                    })
+
             for chat in chats:
                 chat['lead_teachers'] = lead_teachers_dict.get(chat['id'], [])
+                chat['conclusions'] = conclusions_dict.get(chat['id'], [])
 
             group_ids = [c['id'] for c in chats if c['type'] == 'group']
             topics_dict = {}
@@ -182,6 +202,92 @@ def handler(event: dict, context) -> dict:
 
         elif method == 'POST':
             data = json.loads(event.get('body', '{}'))
+            action = data.get('action')
+
+            if action == 'add_conclusion':
+                chat_id = data.get('chatId')
+                if not chat_id:
+                    cur.close()
+                    conn.close()
+                    return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'chatId required'})}
+
+                pdf_url = None
+                if data.get('conclusionPdfBase64'):
+                    pdf_url = upload_pdf_to_s3(data['conclusionPdfBase64'], chat_id)
+
+                cur.execute("""
+                    INSERT INTO conclusions (chat_id, conclusion_link, conclusion_pdf)
+                    VALUES (%s, %s, %s)
+                    RETURNING id, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date
+                """, (chat_id, data.get('conclusionLink'), pdf_url))
+                row = cur.fetchone()
+
+                conn.commit()
+                cur.close()
+                conn.close()
+
+                return {'statusCode': 201, 'headers': cors, 'body': json.dumps({
+                    'conclusion': {
+                        'id': row['id'],
+                        'conclusionLink': data.get('conclusionLink'),
+                        'conclusionPdf': pdf_url,
+                        'createdDate': row['created_date']
+                    }
+                })}
+
+            elif action == 'update_conclusion':
+                conclusion_id = data.get('conclusionId')
+                chat_id = data.get('chatId')
+                if not conclusion_id or not chat_id:
+                    cur.close()
+                    conn.close()
+                    return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'conclusionId and chatId required'})}
+
+                c_updates = []
+                c_values = []
+                pdf_url = None
+                if 'conclusionLink' in data:
+                    c_updates.append('conclusion_link = %s')
+                    c_values.append(data['conclusionLink'])
+                if data.get('conclusionPdfBase64'):
+                    pdf_url = upload_pdf_to_s3(data['conclusionPdfBase64'], chat_id)
+                    c_updates.append('conclusion_pdf = %s')
+                    c_values.append(pdf_url)
+                if c_updates:
+                    c_values.extend([conclusion_id, chat_id])
+                    cur.execute(f"UPDATE conclusions SET {', '.join(c_updates)} WHERE id = %s AND chat_id = %s", c_values)
+
+                conn.commit()
+
+                cur.execute("SELECT id, conclusion_link, conclusion_pdf, TO_CHAR(created_at, 'YYYY-MM-DD') as created_date FROM conclusions WHERE id = %s", (conclusion_id,))
+                row = cur.fetchone()
+                cur.close()
+                conn.close()
+
+                return {'statusCode': 200, 'headers': cors, 'body': json.dumps({
+                    'conclusion': {
+                        'id': row['id'],
+                        'conclusionLink': row['conclusion_link'],
+                        'conclusionPdf': row['conclusion_pdf'],
+                        'createdDate': row['created_date']
+                    }
+                })}
+
+            elif action == 'delete_conclusion':
+                conclusion_id = data.get('conclusionId')
+                chat_id = data.get('chatId')
+                if not conclusion_id or not chat_id:
+                    cur.close()
+                    conn.close()
+                    return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'conclusionId and chatId required'})}
+
+                cur.execute("DELETE FROM conclusions WHERE id = %s AND chat_id = %s", (conclusion_id, chat_id))
+                conn.commit()
+                cur.close()
+                conn.close()
+
+                return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'deleted': True})}
+
             print(f"POST /chats: creating {data.get('type')} chat '{data.get('name')}' id={data.get('id')} participants={len(data.get('participants', []))}")
 
             required_fields = ['id', 'name', 'type', 'participants']
@@ -231,6 +337,12 @@ def handler(event: dict, context) -> dict:
 
             result = cur.fetchone()
             chat_id = result['id'] if result else data['id']
+
+            if data.get('conclusionLink') or conclusion_pdf_url:
+                cur.execute("""
+                    INSERT INTO conclusions (chat_id, conclusion_link, conclusion_pdf)
+                    VALUES (%s, %s, %s)
+                """, (chat_id, data.get('conclusionLink'), conclusion_pdf_url))
 
             for uid in data['participants']:
                 cur.execute("""
@@ -295,6 +407,21 @@ def handler(event: dict, context) -> dict:
                 else:
                     updates.append('conclusion_pdf = %s')
                     values.append(None)
+
+            if 'conclusionId' in data and ('conclusionLink' in data or 'conclusionPdfBase64' in data):
+                conclusion_id = data['conclusionId']
+                c_updates = []
+                c_values = []
+                if 'conclusionLink' in data:
+                    c_updates.append('conclusion_link = %s')
+                    c_values.append(data['conclusionLink'])
+                if new_pdf_url:
+                    c_updates.append('conclusion_pdf = %s')
+                    c_values.append(new_pdf_url)
+                if c_updates:
+                    c_values.append(conclusion_id)
+                    c_values.append(chat_id)
+                    cur.execute(f"UPDATE conclusions SET {', '.join(c_updates)} WHERE id = %s AND chat_id = %s", c_values)
             if 'name' in data:
                 updates.append('name = %s')
                 values.append(data['name'])

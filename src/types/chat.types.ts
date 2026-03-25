@@ -47,6 +47,13 @@ export type Message = {
   scheduledAt?: string;
 };
 
+export type Conclusion = {
+  id: number;
+  conclusionLink?: string;
+  conclusionPdf?: string;
+  createdDate: string;
+};
+
 export type Chat = {
   id: string;
   name: string;
@@ -64,6 +71,7 @@ export type Chat = {
   schedule?: string;
   conclusionLink?: string;
   conclusionPdf?: string;
+  conclusions?: Conclusion[];
   avatar?: string;
   lastTime?: string;
 };
