@@ -211,7 +211,8 @@ def handler(event: dict, context) -> dict:
             if user_subs:
                 try:
                     from pywebpush import webpush, WebPushException
-                    vapid_private = os.environ.get('VAPID_PRIVATE_KEY', '')
+                    vapid_private = os.environ.get('VAPID_PRIVATE_KEY', '').strip()
+                    print(f"[Push] VAPID key length={len(vapid_private)}, first4={vapid_private[:4]}")
                     vapid_claims = {'sub': 'mailto:push@lineya.school'}
                     preview = (text or '')[:100] or 'Новое сообщение'
                     msg_text = text or ''
