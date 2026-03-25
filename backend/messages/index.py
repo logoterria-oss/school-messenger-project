@@ -1,9 +1,13 @@
 import json
 import os
+import sys
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
-# v4 push logging
+# v5 push logging via stderr
+
+def log(msg):
+    print(msg, file=sys.stderr, flush=True)
 
 def handler(event: dict, context) -> dict:
     '''API для работы с сообщениями и отправки push-уведомлений'''
@@ -211,12 +215,12 @@ def handler(event: dict, context) -> dict:
                         sub['user_role'] = u['role'] if u else None
                 cur2.close()
             except Exception as e:
-                print(f"[Push] DB error: {e}")
+                log(f"[Push] DB error: {e}")
             finally:
                 if not conn.closed:
                     conn.close()
 
-            print(f"[Push] Found {len(user_subs)} subs for chat {chat_id}, lead_teachers={lead_teacher_ids}")
+            log(f"[Push] Found {len(user_subs)} subs for chat {chat_id}, lead_teachers={lead_teacher_ids}")
             if user_subs:
                 try:
                     from pywebpush import webpush, WebPushException
@@ -234,11 +238,11 @@ def handler(event: dict, context) -> dict:
 
                         if sub.get('user_role') == 'teacher' and lead_teacher_ids and sub['user_id'] not in lead_teacher_ids:
                             if not personal_mention:
-                                print(f"[Push] SKIP non-lead teacher {sub.get('user_name')} ({sub['user_id']})")
+                                log(f"[Push] SKIP non-lead teacher {sub.get('user_name')} ({sub['user_id']})")
                                 continue
 
                         is_apple = 'apple' in sub['endpoint'].lower()
-                        print(f"[Push] Sending to {sub.get('user_name')} ({sub['user_id']}) apple={is_apple} endpoint={sub['endpoint'][:80]}")
+                        log(f"[Push] Sending to {sub.get('user_name')} ({sub['user_id']}) apple={is_apple} endpoint={sub['endpoint'][:80]}")
 
                         payload = json.dumps({
                             'title': sender_name,
@@ -257,16 +261,16 @@ def handler(event: dict, context) -> dict:
                                 vapid_private_key=vapid_private,
                                 vapid_claims={'sub': 'mailto:push@lineya.school'}
                             )
-                            print(f"[Push] OK for {sub.get('user_name')}")
+                            log(f"[Push] OK for {sub.get('user_name')}")
                         except WebPushException as e:
-                            print(f"[Push] WebPushException for {sub.get('user_name')}: {e}")
+                            log(f"[Push] WebPushException for {sub.get('user_name')}: {e}")
                             resp_body = getattr(e, 'response', None)
                             if resp_body:
-                                print(f"[Push] Response status: {getattr(resp_body, 'status_code', 'unknown')}, body: {getattr(resp_body, 'text', '')[:200]}")
+                                log(f"[Push] Response status: {getattr(resp_body, 'status_code', 'unknown')}, body: {getattr(resp_body, 'text', '')[:200]}")
                         except Exception as e:
-                            print(f"[Push] Error for {sub.get('user_name')}: {e}")
+                            log(f"[Push] Error for {sub.get('user_name')}: {e}")
                 except Exception as e:
-                    print(f"[Push] Send error: {e}")
+                    log(f"[Push] Send error: {e}")
 
             return {
                 'statusCode': 201,
