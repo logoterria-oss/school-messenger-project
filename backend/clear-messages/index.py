@@ -3,7 +3,7 @@ import os
 import psycopg2
 
 def handler(event: dict, context) -> dict:
-    '''Очистка всех сообщений'''
+    '''Очистка сообщений и управление участниками'''
     method = event.get('httpMethod', 'GET')
 
     if method == 'OPTIONS':
@@ -19,6 +19,32 @@ def handler(event: dict, context) -> dict:
 
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
+
+    body = json.loads(event.get('body', '{}')) if event.get('body') else {}
+    action = body.get('action', 'clear_messages')
+
+    if action == 'fix_participants':
+        chat_id = body.get('chatId')
+        keep_ids = body.get('keepUserIds', [])
+        if not chat_id or not keep_ids:
+            cur.close()
+            conn.close()
+            return {'statusCode': 400, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': json.dumps({'error': 'chatId and keepUserIds required'})}
+
+        placeholders = ','.join(['%s'] * len(keep_ids))
+        cur.execute(
+            "DELETE FROM chat_participants WHERE chat_id = %%s AND user_id NOT IN (%s)" % placeholders,
+            [chat_id] + keep_ids
+        )
+        deleted = cur.rowcount
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'success': True, 'deleted': deleted})
+        }
 
     cur.execute("DELETE FROM reactions")
     cur.execute("DELETE FROM attachments")

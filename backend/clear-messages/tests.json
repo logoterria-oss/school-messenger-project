@@ -1,1 +1,1 @@
-{"tests": [{"name": "Clear all messages", "method": "POST", "path": "/", "expectedStatus": 200, "expectedBody": {"success": true}, "bodyMatcher": "partial"}]}
+{"tests": [{"name": "Fix participants without params", "method": "POST", "path": "/", "body": {"action": "fix_participants"}, "expectedStatus": 400, "expectedBody": {"error": "chatId and keepUserIds required"}, "bodyMatcher": "partial"}]}

@@ -55,9 +55,8 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
 
   const handleCreate = async () => {
     if (!groupName.trim() || isCreating) return;
-    const allTeacherIds = teachers.map(t => t.id);
     const adminIds = leadAdmin ? [leadAdmin] : [];
-    const finalUsers = [...new Set([...allTeacherIds, ...adminIds, ...selectedUsers])];
+    const finalUsers = [...new Set([...leadTeachers, ...adminIds, ...selectedUsers])];
 
     setIsCreating(true);
     try {
@@ -158,7 +157,7 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
           {teachers.length > 0 && (
             <div className="space-y-2">
               <Label>Ведущие педагоги</Label>
-              <p className="text-xs text-muted-foreground">Все педагоги добавляются в группу, но отметьте ведущих — они будут видны в участниках</p>
+              <p className="text-xs text-muted-foreground">Отметьте педагогов, которые должны быть в этой группе</p>
               <div className="border rounded-md p-3 space-y-2">
                 {teachers.map((teacher) => (
                   <div
