@@ -425,6 +425,14 @@ export const useChatLogic = () => {
     requestNotificationPermission();
     ensurePushSubscription(userId);
 
+    const STUDENT_ALLOWED_SUFFIXES = ['-important', '-zoom', '-homework', '-reports', '-cancellation'];
+    const isTopicAccessible = (topicId: string | undefined) => {
+      if (!topicId) return true;
+      if (userRole === 'teacher' && topicId.endsWith('-admin-contact')) return false;
+      if (userRole === 'student' && !STUDENT_ALLOWED_SUFFIXES.some(s => topicId.endsWith(s))) return false;
+      return true;
+    };
+
     // Временно отключаем WebSocket для ускорения загрузки
     // wsService.connect(userId);
 
@@ -501,7 +509,7 @@ export const useChatLogic = () => {
               }
             }
             syncMutedSettingsToSW();
-            const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
+            const topicItems = Object.values(mappedTopics).flat().filter(t => isTopicAccessible(t.id)).map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
             checkAndPlaySound(withStaff.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
           }
         }).catch(() => {});
@@ -547,7 +555,7 @@ export const useChatLogic = () => {
             }
           }
           syncMutedSettingsToSW();
-          const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread }));
+          const topicItems = Object.values(mappedTopics).flat().filter(t => isTopicAccessible(t.id)).map(t => ({ id: t.id, name: t.name, unread: t.unread }));
           const chatsNoGroups = withStaff.filter(c => !mappedTopics[c.id] || mappedTopics[c.id].length === 0);
           checkAndPlaySound(chatsNoGroups.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
         }
@@ -567,15 +575,6 @@ export const useChatLogic = () => {
       } catch (err) {
         console.error('Failed to reload users:', err);
       }
-    };
-
-    const STUDENT_ALLOWED_SUFFIXES = ['-important', '-zoom', '-homework', '-reports', '-cancellation'];
-
-    const isTopicAccessible = (topicId: string | undefined) => {
-      if (!topicId) return true;
-      if (userRole === 'teacher' && topicId.endsWith('-admin-contact')) return false;
-      if (userRole === 'student' && !STUDENT_ALLOWED_SUFFIXES.some(s => topicId.endsWith(s))) return false;
-      return true;
     };
 
     const handleNewMessage = async (data: { chatId: string; topicId?: string }) => {
@@ -725,7 +724,11 @@ export const useChatLogic = () => {
     setChats(prevChats => {
       const updated = prevChats.map(chat => {
         if (chat.type === 'group' && groupTopics[chat.id]) {
-          const topics = groupTopics[chat.id];
+          const topics = groupTopics[chat.id].filter(t => {
+            if (userRole === 'teacher' && t.id.endsWith('-admin-contact')) return false;
+            if (userRole === 'student' && !['-important', '-zoom', '-homework', '-reports', '-cancellation'].some(s => t.id.endsWith(s))) return false;
+            return true;
+          });
           let unmutedUnread = 0;
           let allMentions = 0;
           let mutedHasUnread = false;
