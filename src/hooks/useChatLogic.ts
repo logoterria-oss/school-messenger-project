@@ -569,7 +569,18 @@ export const useChatLogic = () => {
       }
     };
 
+    const STUDENT_ALLOWED_SUFFIXES = ['-important', '-zoom', '-homework', '-reports', '-cancellation'];
+
+    const isTopicAccessible = (topicId: string | undefined) => {
+      if (!topicId) return true;
+      if (userRole === 'teacher' && topicId.endsWith('-admin-contact')) return false;
+      if (userRole === 'student' && !STUDENT_ALLOWED_SUFFIXES.some(s => topicId.endsWith(s))) return false;
+      return true;
+    };
+
     const handleNewMessage = async (data: { chatId: string; topicId?: string }) => {
+      if (!isTopicAccessible(data.topicId)) return;
+
       try {
         const msgs = await getMessages(data.chatId, data.topicId);
         const targetId = data.topicId || data.chatId;
@@ -640,7 +651,7 @@ export const useChatLogic = () => {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
           const deduped = deduplicatePrivateChats(mappedChats);
           const withStaff = (userRole === 'teacher' || userRole === 'admin') ? ensureStaffChats(userRole, userId, deduped, allUsers) : deduped;
-          const topicItems = Object.values(mappedTopics).flat().map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
+          const topicItems = Object.values(mappedTopics).flat().filter(t => isTopicAccessible(t.id)).map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
           const chatsWithoutGroups = withStaff.filter(c => !mappedTopics[c.id] || mappedTopics[c.id].length === 0);
           checkAndPlaySound(chatsWithoutGroups.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
           const openChatId = selectedChatRef.current;

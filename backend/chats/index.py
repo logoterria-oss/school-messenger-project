@@ -180,7 +180,15 @@ def handler(event: dict, context) -> dict:
                         ORDER BY t.created_at
                     """, (user_id, user_id, mention_pattern or '%%%NOMATCH%%%', user_id, group_ids))
 
+                STUDENT_ALLOWED_SUFFIXES = ('-important', '-zoom', '-homework', '-reports', '-cancellation')
+
                 for topic in cur.fetchall():
+                    tid = topic['id']
+                    if user_role == 'teacher' and tid.endswith('-admin-contact'):
+                        continue
+                    if user_role == 'student' and not any(tid.endswith(s) for s in STUDENT_ALLOWED_SUFFIXES):
+                        continue
+
                     cid = topic['chat_id']
                     if cid not in topics_dict:
                         topics_dict[cid] = []
