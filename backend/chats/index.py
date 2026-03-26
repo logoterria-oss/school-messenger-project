@@ -49,6 +49,10 @@ def handler(event: dict, context) -> dict:
             if not user_id:
                 return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'X-User-Id header is required'})}
 
+            cur.execute("SELECT role FROM users WHERE id = %s", (user_id,))
+            role_row = cur.fetchone()
+            user_role = role_row['role'] if role_row else ''
+
             cur.execute("""
                 WITH chat_data AS (
                     SELECT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.conclusion_pdf,
@@ -75,6 +79,17 @@ def handler(event: dict, context) -> dict:
                         WHERE msg.chat_id = c.id
                         AND (ms.status IS NULL OR ms.status != 'read')
                         AND msg.sender_id != %s
+                        AND (
+                            msg.topic_id IS NULL
+                            OR NOT (
+                                (%s = 'teacher' AND msg.topic_id LIKE '%%' || '-admin-contact')
+                                OR (%s = 'student' AND msg.topic_id NOT LIKE '%%' || '-important'
+                                    AND msg.topic_id NOT LIKE '%%' || '-zoom'
+                                    AND msg.topic_id NOT LIKE '%%' || '-homework'
+                                    AND msg.topic_id NOT LIKE '%%' || '-reports'
+                                    AND msg.topic_id NOT LIKE '%%' || '-cancellation')
+                            )
+                        )
                     ) unread ON true
                     WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = %s)
                       AND COALESCE(c.is_archived, false) = false
@@ -90,7 +105,7 @@ def handler(event: dict, context) -> dict:
                 SELECT id, name, type, avatar, schedule, conclusion_link, conclusion_pdf, is_pinned, is_archived, lead_admin, last_message, timestamp, unread, participants
                 FROM deduped
                 ORDER BY is_pinned DESC, last_msg_at DESC NULLS LAST
-            """, (user_id, user_id, user_id))
+            """, (user_id, user_id, user_role, user_role, user_id))
 
             chats = cur.fetchall()
             chat_ids = [c['id'] for c in chats]
@@ -134,13 +149,11 @@ def handler(event: dict, context) -> dict:
             topics_dict = {}
 
             user_name = None
-            user_role = None
             if group_ids:
-                cur.execute("SELECT name, role FROM users WHERE id = %s", (user_id,))
+                cur.execute("SELECT name FROM users WHERE id = %s", (user_id,))
                 user_row = cur.fetchone()
                 if user_row:
                     user_name = user_row['name']
-                    user_role = user_row['role']
 
                 mention_pattern = '%@[' + user_name + '%' if user_name else None
                 admin_mention_pattern = '%@[админ%' if user_role == 'admin' else None
