@@ -298,14 +298,21 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
                     variant="ghost"
                     size="icon"
                     className="flex-shrink-0 h-8 w-8"
-                    onClick={() => {
-                      if (file.fileUrl) {
+                    onClick={async () => {
+                      if (!file.fileUrl) return;
+                      try {
+                        const resp = await fetch(file.fileUrl);
+                        const blob = await resp.blob();
+                        const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
-                        a.href = file.fileUrl;
+                        a.href = url;
                         a.download = file.fileName || 'file';
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      } catch {
+                        window.open(file.fileUrl, '_blank');
                       }
                     }}
                   >
