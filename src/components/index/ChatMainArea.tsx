@@ -165,8 +165,15 @@ const ChatMainArea = ({
           onRemoveAttachment={onRemoveAttachment}
           replyTo={replyTo}
           onCancelReply={onCancelReply}
-          disabled={selectedTopic?.endsWith('-important') && userRole !== 'admin'}
-          disabledMessage="Только админ может писать в раздел «Важное»"
+          disabled={
+            (selectedTopic?.endsWith('-important') && userRole !== 'admin') ||
+            (selectedTopic?.endsWith('-payment') && userRole === 'teacher')
+          }
+          disabledMessage={
+            selectedTopic?.endsWith('-payment') && userRole === 'teacher'
+              ? 'Педагогам недоступна отправка сообщений в раздел «Оплата»'
+              : 'Только админ может писать в раздел «Важное»'
+          }
           hintMessage={
             selectedTopic && (userRole === 'parent' || userRole === 'student') &&
             ['-zoom', '-homework', '-reports'].some(s => selectedTopic.endsWith(s))

@@ -140,6 +140,16 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Missing required fields'})
                 }
 
+            if topic_id and topic_id.endswith('-payment') and sender_id:
+                cur.execute("SELECT role FROM users WHERE id = %s", (sender_id,))
+                sender_row = cur.fetchone()
+                if sender_row and sender_row['role'] == 'teacher':
+                    return {
+                        'statusCode': 403,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Педагогам недоступна отправка сообщений в раздел «Оплата»'})
+                    }
+
             if created_at:
                 cur.execute("""
                     INSERT INTO messages (id, chat_id, topic_id, sender_id, sender_name, text, created_at,
