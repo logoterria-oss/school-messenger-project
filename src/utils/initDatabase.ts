@@ -116,7 +116,7 @@ export async function initializeDatabase() {
           { id: 'test-group-1-homework', name: 'ДЗ', icon: 'BookOpen' },
           { id: 'test-group-1-reports', name: 'Отчеты', icon: 'FileText' },
           { id: 'test-group-1-payment', name: 'Оплата', icon: 'CreditCard' },
-          { id: 'test-group-1-cancellation', name: 'Отмена занятий', icon: 'XCircle' },
+          { id: 'test-group-1-cancellation', name: 'Перенос/отмена', icon: 'XCircle' },
         ],
       },
     ];

@@ -274,7 +274,7 @@ export const useChatLogic = () => {
         { suffix: '-homework', name: 'ДЗ', icon: 'BookOpen' },
         { suffix: '-reports', name: 'Отчеты', icon: 'FileText' },
         { suffix: '-payment', name: 'Оплата', icon: 'CreditCard' },
-        { suffix: '-cancellation', name: 'Отмена занятий', icon: 'XCircle' },
+        { suffix: '-cancellation', name: 'Перенос/отмена', icon: 'XCircle' },
         { suffix: '-admin-contact', name: 'Связь с админом', icon: 'Headphones' },
       ];
       for (const st of standardTopics) {
@@ -1601,7 +1601,7 @@ export const useChatLogic = () => {
       { id: `${groupId}-homework`, name: 'ДЗ', icon: 'BookOpen' },
       { id: `${groupId}-reports`, name: 'Отчеты', icon: 'FileText' },
       { id: `${groupId}-payment`, name: 'Оплата', icon: 'CreditCard' },
-      { id: `${groupId}-cancellation`, name: 'Отмена занятий', icon: 'XCircle' },
+      { id: `${groupId}-cancellation`, name: 'Перенос/отмена', icon: 'XCircle' },
       { id: `${groupId}-admin-contact`, name: 'Связь с админом', icon: 'Headphones' },
     ];
 

@@ -1,0 +1,1 @@
+UPDATE t_p86655125_school_messenger_pro.topics SET name = 'Перенос/отмена' WHERE id LIKE '%cancellation%';
