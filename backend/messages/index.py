@@ -229,12 +229,22 @@ def handler(event: dict, context) -> dict:
                     msg_text = text or ''
                     has_admin_mention = '@[админ' in msg_text
 
+                    STUDENT_ALLOWED_SUFFIXES = ('-important', '-zoom', '-homework', '-reports', '-cancellation')
+
                     for sub in user_subs:
                         personal_mention = False
                         if sub['user_name'] and ('@[' + sub['user_name']) in msg_text:
                             personal_mention = True
                         if has_admin_mention and sub.get('user_role') == 'admin':
                             personal_mention = True
+
+                        if sub.get('user_role') == 'teacher' and topic_id and topic_id.endswith('-admin-contact'):
+                            log(f"[Push] SKIP teacher {sub.get('user_name')} ({sub['user_id']}) — no access to -admin-contact")
+                            continue
+
+                        if sub.get('user_role') == 'student' and topic_id and not any(topic_id.endswith(s) for s in STUDENT_ALLOWED_SUFFIXES):
+                            log(f"[Push] SKIP student {sub.get('user_name')} ({sub['user_id']}) — topic {topic_id} not in allowed list")
+                            continue
 
                         if sub.get('user_role') == 'teacher' and lead_teacher_ids and sub['user_id'] not in lead_teacher_ids:
                             if not personal_mention:
