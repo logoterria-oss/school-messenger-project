@@ -1,0 +1,2 @@
+UPDATE users SET avatar = 'https://cdn.poehali.dev/files/Родитель.jpg' WHERE role = 'parent' AND (avatar IS NULL OR avatar = '');
+UPDATE users SET avatar = 'https://cdn.poehali.dev/files/Ученик.jpg' WHERE role = 'student' AND (avatar IS NULL OR avatar = '');

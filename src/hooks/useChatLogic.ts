@@ -1560,7 +1560,7 @@ export const useChatLogic = () => {
       avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
     };
     const { createUser } = await import('@/services/api');
-    await createUser({ id: newUser.id, name, phone, email: '', role: 'student', password });
+    await createUser({ id: newUser.id, name, phone, email: '', role: 'student', password, avatar: newUser.avatar });
     setAllUsers(prev => [...prev, newUser]);
   };
 
@@ -1574,7 +1574,7 @@ export const useChatLogic = () => {
       avatar: 'https://cdn.poehali.dev/files/Родитель.jpg',
     };
     const { createUser } = await import('@/services/api');
-    await createUser({ id: newUser.id, name, phone, role: 'parent', password });
+    await createUser({ id: newUser.id, name, phone, role: 'parent', password, avatar: newUser.avatar });
     setAllUsers(prev => [...prev, newUser]);
   };
 

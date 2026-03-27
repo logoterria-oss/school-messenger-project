@@ -92,6 +92,14 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Пользователь с таким номером телефона уже существует'})
                 }
 
+            default_avatars = {
+                'admin': 'https://cdn.poehali.dev/files/Админ.jpg',
+                'teacher': 'https://cdn.poehali.dev/files/Педагог.jpg',
+                'parent': 'https://cdn.poehali.dev/files/Родитель.jpg',
+                'student': 'https://cdn.poehali.dev/files/Ученик.jpg',
+            }
+            avatar = data.get('avatar') or default_avatars.get(data['role'])
+
             cur.execute("""
                 INSERT INTO users (id, name, phone, email, password, role, avatar, available_slots, education_docs)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -103,7 +111,7 @@ def handler(event: dict, context) -> dict:
                 data.get('email'),
                 data['password'],
                 data['role'],
-                data.get('avatar'),
+                avatar,
                 data.get('availableSlots', []),
                 data.get('educationDocs', [])
             ))
