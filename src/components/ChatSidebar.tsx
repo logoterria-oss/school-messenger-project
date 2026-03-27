@@ -120,6 +120,7 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
     if (user.id === 'admin') return 'руководитель';
     if (user.role === 'admin') return 'админ';
     if (user.role === 'teacher') return 'педагог';
+    if (user.role === 'tech_specialist') return 'технический специалист';
     return '';
   };
 

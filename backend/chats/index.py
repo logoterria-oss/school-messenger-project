@@ -405,6 +405,23 @@ def handler(event: dict, context) -> dict:
                         ON CONFLICT DO NOTHING
                     """, (topic['id'], chat_id, topic['name'], topic['icon']))
 
+                cur.execute("""
+                    SELECT id FROM users WHERE role = 'tech_specialist'
+                """)
+                tech_specialists = [r['id'] for r in cur.fetchall()]
+                for ts_id in tech_specialists:
+                    cur.execute("""
+                        INSERT INTO chat_participants (chat_id, user_id)
+                        VALUES (%s, %s)
+                        ON CONFLICT DO NOTHING
+                    """, (chat_id, ts_id))
+                    for topic in data['topics']:
+                        cur.execute("""
+                            INSERT INTO topic_mutes (topic_id, user_id)
+                            VALUES (%s, %s)
+                            ON CONFLICT DO NOTHING
+                        """, (topic['id'], ts_id))
+
             conn.commit()
             cur.close()
             conn.close()

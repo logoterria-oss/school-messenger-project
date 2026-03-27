@@ -364,6 +364,7 @@ export const useChatLogic = () => {
     teacher: 'педагог',
     parent: 'родитель',
     student: 'ученик',
+    tech_specialist: 'технический специалист',
   };
 
   const getRoleLabel = (role: string, uid?: string) => {
@@ -1648,7 +1649,10 @@ export const useChatLogic = () => {
     const allTeachers = allUsers
       .filter(user => user.role === 'teacher')
       .map(user => user.id);
-    const allParticipants = [...new Set([...selectedUserIds, ...allTeachers, SUPERVISOR_ID, ...(leadAdmin ? [leadAdmin] : [])])];
+    const allTechSpecialists = allUsers
+      .filter(user => user.role === 'tech_specialist')
+      .map(user => user.id);
+    const allParticipants = [...new Set([...selectedUserIds, ...allTeachers, ...allTechSpecialists, SUPERVISOR_ID, ...(leadAdmin ? [leadAdmin] : [])])];
     const groupId = Date.now().toString();
 
     const topics = [

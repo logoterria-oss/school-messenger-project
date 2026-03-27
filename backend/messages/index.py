@@ -288,6 +288,11 @@ def handler(event: dict, context) -> dict:
                                 log(f"[Push] SKIP non-lead teacher {sub.get('user_name')} ({sub['user_id']})")
                                 continue
 
+                        if sub.get('user_role') == 'tech_specialist':
+                            if not personal_mention:
+                                log(f"[Push] SKIP tech_specialist {sub.get('user_name')} ({sub['user_id']}) — no mention")
+                                continue
+
                         sub['_mention'] = personal_mention
                         subs_to_send.append(sub)
 

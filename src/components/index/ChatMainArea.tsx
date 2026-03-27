@@ -12,6 +12,7 @@ const roleLabels: Record<string, string> = {
   teacher: 'педагог',
   parent: 'родитель',
   student: 'ученик',
+  tech_specialist: 'технический специалист',
 };
 
 const getRoleLabel = (role: string, userId?: string) => {

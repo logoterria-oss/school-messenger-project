@@ -26,6 +26,7 @@ const roleLabels: Record<string, string> = {
   teacher: 'Педагог',
   parent: 'Родитель',
   student: 'Ученик',
+  tech_specialist: 'Технический специалист',
 };
 
 const roleColors: Record<string, string> = {
@@ -33,6 +34,7 @@ const roleColors: Record<string, string> = {
   teacher: 'bg-blue-500',
   parent: 'bg-green-500',
   student: 'bg-orange-500',
+  tech_specialist: 'bg-slate-500',
 };
 
 const UserCard = ({
