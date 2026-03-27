@@ -199,8 +199,8 @@ export const MessageInput = ({
   return (
     <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-3 md:px-5 py-3">
       {hintMessage && (
-        <div className="mb-2 flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground border border-primary/30 rounded-lg">
-          <Icon name="Info" size={14} className="text-primary/60 flex-shrink-0" />
+        <div className="mb-2 flex items-center gap-2 px-3 py-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <Icon name="Info" size={14} className="text-amber-500 flex-shrink-0" />
           <span>{hintMessage}</span>
         </div>
       )}

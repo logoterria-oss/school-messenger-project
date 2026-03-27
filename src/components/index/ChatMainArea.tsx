@@ -177,9 +177,9 @@ const ChatMainArea = ({
               : 'Только админ может писать в раздел «Важное»'
           }
           hintMessage={
-            selectedTopic && (userRole === 'parent' || userRole === 'student') &&
-            ['-zoom', '-homework', '-reports'].some(s => selectedTopic.endsWith(s))
-              ? 'Админам не приходят уведомления из этого чата. Если нужна помощь, напишите "@админ"'
+            selectedTopic && (userRole === 'parent' || userRole === 'student' || userRole === 'teacher') &&
+            ['-zoom', '-homework', '-reports', '-cancellation'].some(s => selectedTopic.endsWith(s))
+              ? 'Админам не приходят уведомления из этого раздела. Если нужна помощь — упомяните "@админ"'
               : undefined
           }
           mentionableUsers={
