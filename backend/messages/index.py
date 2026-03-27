@@ -217,8 +217,14 @@ def handler(event: dict, context) -> dict:
 
             user_subs = []
             lead_teacher_ids = set()
+            chat_type = 'group'
             try:
                 cur2 = conn.cursor(cursor_factory=RealDictCursor)
+                cur2.execute("SELECT type FROM chats WHERE id = %s", (chat_id,))
+                chat_row = cur2.fetchone()
+                if chat_row:
+                    chat_type = chat_row['type']
+
                 cur2.execute("""
                     SELECT DISTINCT cp.user_id FROM chat_participants cp
                     WHERE cp.chat_id = %s AND cp.user_id != %s
@@ -288,9 +294,9 @@ def handler(event: dict, context) -> dict:
                                 log(f"[Push] SKIP non-lead teacher {sub.get('user_name')} ({sub['user_id']})")
                                 continue
 
-                        if sub.get('user_role') == 'tech_specialist':
+                        if sub.get('user_role') == 'tech_specialist' and chat_type == 'group':
                             if not personal_mention:
-                                log(f"[Push] SKIP tech_specialist {sub.get('user_name')} ({sub['user_id']}) — no mention")
+                                log(f"[Push] SKIP tech_specialist {sub.get('user_name')} ({sub['user_id']}) — no mention in group")
                                 continue
 
                         sub['_mention'] = personal_mention
