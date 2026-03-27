@@ -41,55 +41,40 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'chatId is required'})
                 }
 
-            # Запрос сообщений
-            if topic_id:
-                cur.execute("""
-                    SELECT m.id, m.text, m.sender_id, m.sender_name, m.created_at,
-                           m.reply_to_id, m.reply_to_sender, m.reply_to_text,
-                           m.forwarded_from_id, m.forwarded_from_sender, m.forwarded_from_text,
-                           m.forwarded_from_date, m.forwarded_from_chat_name,
-                           (SELECT ARRAY_AGG(DISTINCT jsonb_build_object(
-                               'type', a.type, 'fileUrl', a.file_url,
-                               'fileName', a.file_name, 'fileSize', a.file_size
-                           )) FROM attachments a WHERE a.message_id = m.id) as attachments,
-                           (SELECT ARRAY_AGG(jsonb_build_object(
-                               'emoji', rg.emoji, 'count', rg.cnt, 'users', rg.user_names
-                           )) FROM (
-                               SELECT r2.emoji, COUNT(*) as cnt,
-                                      ARRAY_AGG(u2.name) as user_names
-                               FROM reactions r2
-                               LEFT JOIN users u2 ON u2.id = r2.user_id
-                               WHERE r2.message_id = m.id
-                               GROUP BY r2.emoji
-                           ) rg) as reactions
-                    FROM messages m
-                    WHERE m.topic_id = %s
-                    ORDER BY m.created_at ASC
-                """, (topic_id,))
-            else:
-                cur.execute("""
-                    SELECT m.id, m.text, m.sender_id, m.sender_name, m.created_at,
-                           m.reply_to_id, m.reply_to_sender, m.reply_to_text,
-                           m.forwarded_from_id, m.forwarded_from_sender, m.forwarded_from_text,
-                           m.forwarded_from_date, m.forwarded_from_chat_name,
-                           (SELECT ARRAY_AGG(DISTINCT jsonb_build_object(
-                               'type', a.type, 'fileUrl', a.file_url,
-                               'fileName', a.file_name, 'fileSize', a.file_size
-                           )) FROM attachments a WHERE a.message_id = m.id) as attachments,
-                           (SELECT ARRAY_AGG(jsonb_build_object(
-                               'emoji', rg.emoji, 'count', rg.cnt, 'users', rg.user_names
-                           )) FROM (
-                               SELECT r2.emoji, COUNT(*) as cnt,
-                                      ARRAY_AGG(u2.name) as user_names
-                               FROM reactions r2
-                               LEFT JOIN users u2 ON u2.id = r2.user_id
-                               WHERE r2.message_id = m.id
-                               GROUP BY r2.emoji
-                           ) rg) as reactions
-                    FROM messages m
-                    WHERE m.chat_id = %s AND m.topic_id IS NULL
-                    ORDER BY m.created_at ASC
-                """, (chat_id,))
+            where_clause = "m.topic_id = %s" if topic_id else "m.chat_id = %s AND m.topic_id IS NULL"
+            filter_val = topic_id if topic_id else chat_id
+
+            cur.execute("""
+                SELECT m.id, m.text, m.sender_id, m.sender_name, m.created_at,
+                       m.reply_to_id, m.reply_to_sender, m.reply_to_text,
+                       m.forwarded_from_id, m.forwarded_from_sender, m.forwarded_from_text,
+                       m.forwarded_from_date, m.forwarded_from_chat_name,
+                       att.attachments,
+                       rct.reactions
+                FROM messages m
+                LEFT JOIN LATERAL (
+                    SELECT ARRAY_AGG(DISTINCT jsonb_build_object(
+                        'type', a.type, 'fileUrl', a.file_url,
+                        'fileName', a.file_name, 'fileSize', a.file_size
+                    )) as attachments
+                    FROM attachments a WHERE a.message_id = m.id
+                ) att ON true
+                LEFT JOIN LATERAL (
+                    SELECT ARRAY_AGG(jsonb_build_object(
+                        'emoji', rg.emoji, 'count', rg.cnt, 'users', rg.user_names
+                    )) as reactions
+                    FROM (
+                        SELECT r.emoji, COUNT(*) as cnt,
+                               ARRAY_AGG(u.name) as user_names
+                        FROM reactions r
+                        LEFT JOIN users u ON u.id = r.user_id
+                        WHERE r.message_id = m.id
+                        GROUP BY r.emoji
+                    ) rg
+                ) rct ON true
+                WHERE """ + where_clause + """
+                ORDER BY m.created_at ASC
+            """, (filter_val,))
 
             messages = cur.fetchall()
             
