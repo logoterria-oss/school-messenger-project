@@ -68,7 +68,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     if (otherIds.length === 0) return false;
     return otherIds.some(id => {
       const user = allUsers.find(u => u.id === id);
-      return user?.role === 'teacher' || user?.role === 'admin';
+      return user?.role === 'teacher' || user?.role === 'admin' || user?.role === 'tech_specialist';
     });
   };
 
