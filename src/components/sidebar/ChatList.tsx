@@ -85,8 +85,8 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
     };
     const userA = getOtherUser(a);
     const userB = getOtherUser(b);
-    const rankA = userA?.id === SUPERVISOR_ID ? 0 : userA?.role === 'admin' ? 1 : 2;
-    const rankB = userB?.id === SUPERVISOR_ID ? 0 : userB?.role === 'admin' ? 1 : 2;
+    const rankA = userA?.id === SUPERVISOR_ID ? 0 : userA?.role === 'admin' ? 1 : userA?.role === 'tech_specialist' ? 2 : 3;
+    const rankB = userB?.id === SUPERVISOR_ID ? 0 : userB?.role === 'admin' ? 1 : userB?.role === 'tech_specialist' ? 2 : 3;
     if (rankA !== rankB) return rankA - rankB;
     return (userA?.name || '').localeCompare(userB?.name || '', 'ru');
   });
