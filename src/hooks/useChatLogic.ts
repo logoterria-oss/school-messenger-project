@@ -57,7 +57,8 @@ const mergeMessages = (existing: Message[], fromApi: Message[]): Message[] => {
       return;
     }
     if (ex && ex.isOwn) {
-      merged.set(msg.id, { ...msg, timestamp: ex.timestamp, date: ex.date, isOwn: true, status: ex.status });
+      const resolvedStatus = ex.status === 'sending' ? 'delivered' : ex.status;
+      merged.set(msg.id, { ...msg, timestamp: ex.timestamp, date: ex.date, isOwn: true, status: resolvedStatus });
     } else {
       merged.set(msg.id, { ...ex, ...msg });
     }
