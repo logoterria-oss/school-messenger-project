@@ -332,7 +332,8 @@ export const useChatLogic = () => {
   const sendWithRetry = (msgId: string, targetId: string, payload: Parameters<typeof apiSendMessage>[0], attempt = 0) => {
     activeSendsRef.current++;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const hasAttachments = (payload.attachments?.length ?? 0) > 0;
+    const timeout = setTimeout(() => controller.abort(), hasAttachments ? 60000 : 10000);
 
     apiSendMessage(payload, controller.signal).then(() => {
       clearTimeout(timeout);
@@ -1209,11 +1210,22 @@ export const useChatLogic = () => {
       Array.from(files).forEach((file) => {
         const reader = new FileReader();
         reader.onload = (e) => {
-          const newAttachment: AttachedFile = {
-            type: 'image',
-            fileUrl: e.target?.result as string,
+          const img = new Image();
+          img.onload = () => {
+            const MAX = 1600;
+            let { width, height } = img;
+            if (width > MAX || height > MAX) {
+              if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+              else { width = Math.round(width * MAX / height); height = MAX; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+            const compressed = canvas.toDataURL('image/jpeg', 0.82);
+            setAttachments(prev => [...prev, { type: 'image', fileUrl: compressed }]);
           };
-          setAttachments(prev => [...prev, newAttachment]);
+          img.src = e.target?.result as string;
         };
         reader.readAsDataURL(file);
       });
