@@ -1,13 +1,39 @@
 import json
 import os
 import sys
+import base64
+import uuid
+import boto3
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
-# v5 push logging via stderr
 
 def log(msg):
     print(msg, file=sys.stderr, flush=True)
+
+def upload_base64_to_s3(data_url):
+    try:
+        header, b64data = data_url.split(',', 1)
+        mime = header.split(':')[1].split(';')[0] if ':' in header else 'application/octet-stream'
+        ext_map = {
+            'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif',
+            'image/webp': 'webp', 'application/pdf': 'pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+        }
+        ext = ext_map.get(mime, 'bin')
+        file_bytes = base64.b64decode(b64data)
+        key = f"chat-files/{uuid.uuid4()}.{ext}"
+        s3 = boto3.client(
+            's3',
+            endpoint_url='https://bucket.poehali.dev',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+        )
+        s3.put_object(Bucket='files', Key=key, Body=file_bytes, ContentType=mime)
+        return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+    except Exception as e:
+        log(f"[S3] Upload error: {e}")
+        return None
 
 def handler(event: dict, context) -> dict:
     '''API для работы с сообщениями и отправки push-уведомлений'''
@@ -88,6 +114,16 @@ def handler(event: dict, context) -> dict:
                     if not ts.endswith('Z') and '+' not in ts:
                         ts = ts + 'Z'
                     d['created_at'] = ts
+                if d.get('attachments'):
+                    cleaned = []
+                    for att in d['attachments']:
+                        if att and isinstance(att, dict):
+                            url = att.get('fileUrl') or ''
+                            if url.startswith('data:'):
+                                att = dict(att)
+                                att['fileUrl'] = None
+                            cleaned.append(att)
+                    d['attachments'] = cleaned if cleaned else None
                 return d
 
             return {
@@ -164,13 +200,17 @@ def handler(event: dict, context) -> dict:
             
             result = cur.fetchone()
 
-            # Вставка вложений
             for att in attachments:
                 att_id = f"{message_id}-{att.get('type')}-{datetime.now().timestamp()}"
+                file_url = att.get('fileUrl')
+                if file_url and file_url.startswith('data:'):
+                    cdn_url = upload_base64_to_s3(file_url)
+                    if cdn_url:
+                        file_url = cdn_url
                 cur.execute("""
                     INSERT INTO attachments (id, message_id, type, file_url, file_name, file_size)
                     VALUES (%s, %s, %s, %s, %s, %s)
-                """, (att_id, message_id, att.get('type'), att.get('fileUrl'), att.get('fileName'), att.get('fileSize')))
+                """, (att_id, message_id, att.get('type'), file_url, att.get('fileName'), att.get('fileSize')))
 
             conn.commit()
 
