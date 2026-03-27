@@ -150,11 +150,10 @@ const ChatMainArea = ({
           participantsCount={(() => {
             const c = chats.find(c => c.id === selectedChat);
             if (!c?.participants) return 0;
-            if (c.leadTeachers && c.leadTeachers.length > 0) {
-              const nonLeadTeachers = allUsers.filter(u => u.role === 'teacher' && !c.leadTeachers!.includes(u.id)).map(u => u.id);
-              return c.participants.filter(id => !nonLeadTeachers.includes(id)).length;
-            }
-            return c.participants.length;
+            const nonLeadTeachers = allUsers
+              .filter(u => u.role === 'teacher' && !(c.leadTeachers && c.leadTeachers.includes(u.id)))
+              .map(u => u.id);
+            return c.participants.filter(id => !nonLeadTeachers.includes(id)).length;
           })()}
         />
         <MessageInput
