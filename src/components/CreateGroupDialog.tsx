@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
@@ -16,10 +17,17 @@ type User = {
   password: string;
 };
 
+export type ConclusionDraft = {
+  diagnosisDate?: string;
+  conclusionLink?: string;
+  conclusionPdfBase64?: string;
+  pdfName?: string;
+};
+
 type CreateGroupDialogProps = {
   open: boolean;
   onClose: () => void;
-  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[], leadAdmin?: string, conclusionPdfBase64?: string) => Promise<void> | void;
+  onCreate: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[], leadAdmin?: string, conclusionPdfBase64?: string, conclusions?: ConclusionDraft[]) => Promise<void> | void;
   allUsers: User[];
 };
 
@@ -31,15 +39,15 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
   const [leadTeachers, setLeadTeachers] = useState<string[]>([]);
   const [leadAdmin, setLeadAdmin] = useState<string>('');
   const [schedule, setSchedule] = useState('');
-  const [conclusionLink, setConclusionLink] = useState('');
-  const [conclusionPdf, setConclusionPdf] = useState<string | null>(null);
-  const [conclusionPdfName, setConclusionPdfName] = useState('');
+  const [conclusions, setConclusions] = useState<ConclusionDraft[]>([]);
+  const [isAddingConclusion, setIsAddingConclusion] = useState(false);
+  const [newDiagnosisDate, setNewDiagnosisDate] = useState('');
+  const [newConclusionLink, setNewConclusionLink] = useState('');
   const pdfInputRef = useRef<HTMLInputElement>(null);
+  const pdfTargetRef = useRef<number | 'new' | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-
-
 
   const teachers = allUsers.filter(u => u.role === 'teacher');
   const admins = allUsers.filter(u => u.role === 'admin' && u.id !== SUPERVISOR_ID);
@@ -61,7 +69,7 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
 
     setIsCreating(true);
     try {
-      await onCreate(groupName.trim(), finalUsers, schedule.trim(), conclusionLink.trim(), leadTeachers, leadAdmin || undefined, conclusionPdf || undefined);
+      await onCreate(groupName.trim(), finalUsers, schedule.trim(), '', leadTeachers, leadAdmin || undefined, undefined, conclusions.length > 0 ? conclusions : undefined);
       resetForm();
       onClose();
     } finally {
@@ -75,9 +83,10 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
     setLeadTeachers([]);
     setLeadAdmin('');
     setSchedule('');
-    setConclusionLink('');
-    setConclusionPdf(null);
-    setConclusionPdfName('');
+    setConclusions([]);
+    setIsAddingConclusion(false);
+    setNewDiagnosisDate('');
+    setNewConclusionLink('');
     setSearchQuery('');
   };
 
@@ -100,6 +109,58 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
         ? prev.filter(id => id !== teacherId)
         : [...prev, teacherId]
     );
+  };
+
+  const formatDate = (dateStr: string) => {
+    const [year, month, day] = dateStr.split('-');
+    const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    return `${parseInt(day)} ${months[parseInt(month) - 1]} ${year}`;
+  };
+
+  const addConclusionWithLink = () => {
+    if (newConclusionLink.trim() || newDiagnosisDate) {
+      setConclusions(prev => [...prev, {
+        diagnosisDate: newDiagnosisDate || undefined,
+        conclusionLink: newConclusionLink.trim() || undefined,
+      }]);
+      setNewConclusionLink('');
+      setNewDiagnosisDate('');
+      setIsAddingConclusion(false);
+    }
+  };
+
+  const handlePdfUpload = (target: number | 'new') => {
+    pdfTargetRef.current = target;
+    pdfInputRef.current?.click();
+  };
+
+  const onPdfSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const target = pdfTargetRef.current;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target?.result as string;
+      if (target === 'new') {
+        setConclusions(prev => [...prev, {
+          diagnosisDate: newDiagnosisDate || undefined,
+          conclusionLink: newConclusionLink.trim() || undefined,
+          conclusionPdfBase64: base64,
+          pdfName: file.name,
+        }]);
+        setNewConclusionLink('');
+        setNewDiagnosisDate('');
+        setIsAddingConclusion(false);
+      } else if (typeof target === 'number') {
+        setConclusions(prev => prev.map((c, i) => i === target ? { ...c, conclusionPdfBase64: base64, pdfName: file.name } : c));
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const removeConclusion = (index: number) => {
+    setConclusions(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -257,64 +318,126 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
 
           <div className="space-y-2">
             <Label htmlFor="schedule">Расписание</Label>
-            <Input
+            <Textarea
               id="schedule"
-              placeholder="Пн, Ср, Пт — 15:00"
+              placeholder={"Чт в 18:30 — индивидуальные занятия\nВт, Пт в 15:00 — групповые занятия"}
               value={schedule}
               onChange={(e) => setSchedule(e.target.value)}
+              rows={3}
+              className="resize-vertical text-sm"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="conclusionLink">Ссылка на заключение</Label>
-            <Input
-              id="conclusionLink"
-              placeholder="https://..."
-              value={conclusionLink}
-              onChange={(e) => setConclusionLink(e.target.value)}
-            />
-          </div>
+          <input
+            ref={pdfInputRef}
+            type="file"
+            accept=".pdf"
+            className="hidden"
+            onChange={onPdfSelected}
+          />
 
           <div className="space-y-2">
-            <Label>Заключение (PDF)</Label>
-            <input
-              ref={pdfInputRef}
-              type="file"
-              accept=".pdf"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setConclusionPdfName(file.name);
-                const reader = new FileReader();
-                reader.onload = (ev) => setConclusionPdf(ev.target?.result as string);
-                reader.readAsDataURL(file);
-                e.target.value = '';
-              }}
-            />
-            {conclusionPdf ? (
-              <div className="flex items-center gap-2 p-3 rounded-lg border bg-accent/30">
-                <Icon name="FileText" size={18} className="text-primary flex-shrink-0" />
-                <span className="text-sm truncate flex-1">{conclusionPdfName}</span>
+            <Label>Заключения</Label>
+
+            {conclusions.length === 0 && !isAddingConclusion && (
+              <p className="text-sm text-muted-foreground">Заключений пока нет</p>
+            )}
+
+            <div className="space-y-3">
+              {conclusions.map((c, index) => (
+                <div key={index} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">
+                      Заключение{c.diagnosisDate ? ` от ${formatDate(c.diagnosisDate)}` : ''}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                      onClick={() => removeConclusion(index)}
+                    >
+                      <Icon name="Trash2" size={14} />
+                    </Button>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    {c.conclusionLink && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Icon name="Link" size={12} />
+                        Ссылка добавлена
+                      </span>
+                    )}
+                    {c.conclusionPdfBase64 && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Icon name="FileText" size={12} />
+                        {c.pdfName || 'PDF загружен'}
+                      </span>
+                    )}
+                    {!c.conclusionLink && !c.conclusionPdfBase64 && (
+                      <span className="text-xs text-muted-foreground">Только дата</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {isAddingConclusion && (
+              <div className="border rounded-lg p-3 space-y-2">
+                <p className="text-sm font-medium">Новое заключение</p>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Дата диагностики</label>
+                  <Input
+                    value={newDiagnosisDate}
+                    onChange={(e) => setNewDiagnosisDate(e.target.value)}
+                    type="date"
+                    className="text-sm"
+                  />
+                </div>
+                <Input
+                  value={newConclusionLink}
+                  onChange={(e) => setNewConclusionLink(e.target.value)}
+                  placeholder="Ссылка на заключение (необязательно)"
+                  type="url"
+                  className="text-sm"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={addConclusionWithLink}
+                    disabled={!newConclusionLink.trim() && !newDiagnosisDate}
+                    className="flex-1"
+                  >
+                    Сохранить
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => handlePdfUpload('new')}
+                  >
+                    <Icon name="Upload" size={14} className="mr-1" />
+                    Загрузить PDF
+                  </Button>
+                </div>
                 <Button
-                  type="button"
-                  variant="ghost"
                   size="sm"
-                  className="h-7 w-7 p-0 flex-shrink-0"
-                  onClick={() => { setConclusionPdf(null); setConclusionPdfName(''); }}
+                  variant="ghost"
+                  className="w-full text-xs"
+                  onClick={() => { setIsAddingConclusion(false); setNewConclusionLink(''); setNewDiagnosisDate(''); }}
                 >
-                  <Icon name="X" size={14} />
+                  Отмена
                 </Button>
               </div>
-            ) : (
+            )}
+
+            {!isAddingConclusion && (
               <Button
-                type="button"
                 variant="outline"
+                size="sm"
                 className="w-full"
-                onClick={() => pdfInputRef.current?.click()}
+                onClick={() => setIsAddingConclusion(true)}
               >
-                <Icon name="Upload" size={16} className="mr-2" />
-                Загрузить PDF
+                <Icon name="Plus" size={14} className="mr-2" />
+                Добавить заключение
               </Button>
             )}
           </div>

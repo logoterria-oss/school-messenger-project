@@ -1,7 +1,7 @@
 import { AddStudentDialog } from '@/components/AddStudentDialog';
 import { AddParentDialog } from '@/components/AddParentDialog';
 import { AddTeacherDialog } from '@/components/AddTeacherDialog';
-import CreateGroupDialog from '@/components/CreateGroupDialog';
+import CreateGroupDialog, { ConclusionDraft } from '@/components/CreateGroupDialog';
 import { AddAdminDialog } from '@/components/AddAdminDialog';
 import ForwardMessageDialog from '@/components/ForwardMessageDialog';
 import { Message, Chat, User } from '@/types/chat.types';
@@ -38,7 +38,7 @@ type IndexDialogsProps = {
   onAddParent: (data: { name: string; phone: string; groupId: string }) => void;
   onAddTeacher: (data: { name: string; phone: string }) => void;
   onAddAdmin: (data: { name: string; phone: string }) => void;
-  onCreateGroup: (data: { name: string; students: string[]; parents: string[]; teachers: string[]; leadTeachers: string[]; leadAdmin?: string }) => void;
+  onCreateGroup: (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[], leadAdmin?: string, conclusionPdfBase64?: string, conclusions?: ConclusionDraft[]) => Promise<void> | void;
   onForward: (targetChatId: string, targetTopicId?: string, comment?: string) => void;
 };
 

@@ -1644,7 +1644,7 @@ export const useChatLogic = () => {
     });
   };
 
-  const handleCreateGroup = async (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = [], leadAdmin?: string, conclusionPdfBase64?: string) => {
+  const handleCreateGroup = async (groupName: string, selectedUserIds: string[], schedule: string, conclusionLink: string, leadTeachers: string[] = [], leadAdmin?: string, conclusionPdfBase64?: string, conclusions?: Array<{ diagnosisDate?: string; conclusionLink?: string; conclusionPdfBase64?: string }>) => {
     const allTeachers = allUsers
       .filter(user => user.role === 'teacher')
       .map(user => user.id);
@@ -1680,6 +1680,22 @@ export const useChatLogic = () => {
       alert('Не удалось создать группу. Попробуйте ещё раз.');
       return;
     }
+
+    const createdConclusions: Array<{ id: number; conclusionLink?: string; conclusionPdf?: string; createdDate: string; diagnosisDate?: string }> = [];
+    if (conclusions && conclusions.length > 0) {
+      for (const c of conclusions) {
+        try {
+          const result = await addConclusion(groupId, {
+            conclusionLink: c.conclusionLink,
+            conclusionPdfBase64: c.conclusionPdfBase64,
+            diagnosisDate: c.diagnosisDate,
+          });
+          createdConclusions.push(result);
+        } catch (err) {
+          console.error('Failed to add conclusion:', err);
+        }
+      }
+    }
     
     const newGroup: Chat = {
       id: groupId,
@@ -1692,7 +1708,7 @@ export const useChatLogic = () => {
       leadTeachers: leadTeachers.length > 0 ? leadTeachers : undefined,
       leadAdmin: leadAdmin || undefined,
       schedule: schedule || undefined,
-      conclusionLink: conclusionLink || undefined,
+      conclusions: createdConclusions.length > 0 ? createdConclusions : undefined,
       avatar: 'https://cdn.poehali.dev/files/Ученик.jpg',
     };
     setChats(prev => [newGroup, ...prev]);
