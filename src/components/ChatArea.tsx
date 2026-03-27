@@ -79,6 +79,7 @@ type ChatAreaProps = {
   onScrollComplete?: () => void;
   onCancelScheduledMessage?: (messageId: string) => void;
   muteVersion?: number;
+  messagesLoading?: boolean;
 };
 
 const TopicMuteButton = ({ topicId }: { topicId: string }) => {
@@ -119,7 +120,7 @@ const canDeleteMessage = (message: Message, currentUserId?: string, currentUserR
   return false;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, onDeleteMessage, allUsers, scrollToMessageId, onScrollComplete, onCancelScheduledMessage, muteVersion }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, onDeleteMessage, allUsers, scrollToMessageId, onScrollComplete, onCancelScheduledMessage, muteVersion, messagesLoading }: ChatAreaProps) => {
   const scrollTargetRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -289,6 +290,19 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
       <div className="flex-1 min-h-0 relative">
         <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
           <div className="max-w-4xl mx-auto py-4 space-y-0.5">
+            {messagesLoading && messages.length === 0 && (
+              <div className="space-y-3 px-4">
+                {[0.6, 0.45, 0.7, 0.5, 0.55].map((w, i) => (
+                  <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+                    <div className="rounded-2xl px-4 py-3 bg-accent/40 animate-pulse" style={{ width: `${w * 100}%`, maxWidth: 340 }}>
+                      <div className="h-3 rounded bg-muted-foreground/10 mb-2" style={{ width: '40%' }} />
+                      <div className="h-3 rounded bg-muted-foreground/10" style={{ width: '100%' }} />
+                      {i % 3 === 0 && <div className="h-3 rounded bg-muted-foreground/10 mt-1" style={{ width: '60%' }} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             {(() => {
               const seen = new Set<string>();
               const unique = messages.filter(m => {

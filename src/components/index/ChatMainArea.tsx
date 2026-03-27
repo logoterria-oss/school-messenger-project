@@ -36,6 +36,7 @@ type ChatMainAreaProps = {
   replyTo: Message | null;
   scrollToMessageId: string | null;
   muteVersion: number;
+  messagesLoading: boolean;
   mobileShowChat: boolean;
   getPrivateChatDisplayName: (chat: { type: string; name: string; participants?: string[] }) => string;
   onReaction: (messageId: string, emoji: string) => void;
@@ -82,6 +83,7 @@ const ChatMainArea = ({
   replyTo,
   scrollToMessageId,
   muteVersion,
+  messagesLoading,
   mobileShowChat,
   getPrivateChatDisplayName,
   onReaction,
@@ -144,6 +146,7 @@ const ChatMainArea = ({
           onScrollComplete={onScrollComplete}
           onCancelScheduledMessage={onCancelScheduledMessage}
           muteVersion={muteVersion}
+          messagesLoading={messagesLoading}
           participantsCount={(() => {
             const c = chats.find(c => c.id === selectedChat);
             if (!c?.participants) return 0;

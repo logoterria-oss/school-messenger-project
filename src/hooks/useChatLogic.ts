@@ -307,8 +307,7 @@ export const useChatLogic = () => {
     return initialChatMessages;
   });
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
-  // Список пользователей, которые сейчас печатают (кроме текущего)
-  // TODO: Интеграция с WebSocket/сервером для получения данных о печатающих пользователях
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   type ScheduledMessage = {
@@ -727,8 +726,12 @@ export const useChatLogic = () => {
     if (!chatId) return;
 
     const targetId = topicId || chatId;
+    const hasCached = (chatMessages[targetId] || []).length > 0;
+    if (!hasCached) setMessagesLoading(true);
+    let firstLoad = true;
+
     const pollMessages = () => {
-      if (document.hidden || activeSendsRef.current > 0) return;
+      if (!firstLoad && (document.hidden || activeSendsRef.current > 0)) return;
       getMessages(chatId, topicId || undefined).then(msgs => {
         const mapped = mapApiMessages(msgs, userId);
         setChatMessages(prev => {
@@ -739,7 +742,16 @@ export const useChatLogic = () => {
           }
           return { ...prev, [targetId]: merged };
         });
-      }).catch(() => {});
+        if (firstLoad) {
+          setMessagesLoading(false);
+          firstLoad = false;
+        }
+      }).catch(() => {
+        if (firstLoad) {
+          setMessagesLoading(false);
+          firstLoad = false;
+        }
+      });
     };
     pollMessages();
     const poll = setInterval(pollMessages, 2000);
@@ -857,14 +869,8 @@ export const useChatLogic = () => {
             )
           };
         });
-        getMessages(chatId, firstTopicId).then(msgs => {
-          setChatMessages(prev => ({ ...prev, [firstTopicId!]: mergeMessages(prev[firstTopicId!] || [], mapApiMessages(msgs, userId)) }));
-        }).catch(() => {});
       } else {
         markAsRead(userId, chatId).catch(() => {});
-        getMessages(chatId).then(msgs => {
-          setChatMessages(prev => ({ ...prev, [chatId]: mergeMessages(prev[chatId] || [], mapApiMessages(msgs, userId)) }));
-        }).catch(() => {});
       }
     }
   };
@@ -2132,5 +2138,6 @@ export const useChatLogic = () => {
     handleScheduleMessage,
     handleCancelScheduledMessage,
     muteVersion,
+    messagesLoading,
   };
 };

@@ -91,6 +91,7 @@ const Index = () => {
     handleScheduleMessage,
     handleCancelScheduledMessage,
     muteVersion,
+    messagesLoading,
   } = useChatLogic();
 
   const getPrivateChatDisplayName = (chat: { type: string; name: string; participants?: string[] }) => {
@@ -239,6 +240,7 @@ const Index = () => {
             replyTo={replyTo}
             scrollToMessageId={scrollToMessageId}
             muteVersion={muteVersion}
+            messagesLoading={messagesLoading}
             mobileShowChat={mobileShowChat}
             getPrivateChatDisplayName={getPrivateChatDisplayName}
             onReaction={handleReaction}
