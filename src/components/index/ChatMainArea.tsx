@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, memo } from 'react';
 import Icon from '@/components/ui/icon';
 import { ChatArea } from '@/components/ChatArea';
 import { MessageInput } from '@/components/MessageInput';
@@ -26,7 +26,6 @@ type ChatMainAreaProps = {
   selectedGroup: string | null;
   selectedTopic: string | null;
   messages: Message[];
-  messageText: string;
   attachments: Array<{ name: string; type: string; url: string }>;
   groupTopics: Record<string, Array<{ id: string; name: string; icon: string }>>;
   typingUsers: Array<{ userId: string; userName: string }>;
@@ -74,7 +73,6 @@ const ChatMainArea = ({
   selectedGroup,
   selectedTopic,
   messages,
-  messageText,
   attachments,
   groupTopics,
   typingUsers,
@@ -160,7 +158,7 @@ const ChatMainArea = ({
           })()}
         />
         <MessageInput
-          messageText={messageText}
+          chatKey={selectedTopic || selectedChat}
           attachments={attachments}
           onMessageChange={onMessageChange}
           onSendMessage={onSendMessage}
@@ -275,4 +273,4 @@ const ChatMainArea = ({
   );
 };
 
-export default ChatMainArea;
+export default memo(ChatMainArea);

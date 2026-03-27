@@ -203,16 +203,14 @@ export const useChatLogic = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [messageText, setMessageText] = useState('');
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
   const [replyTo, setReplyTo] = useState<{ id: string; sender: string; text: string } | null>(null);
-  const messageTextRef = useRef(messageText);
+  const messageTextRef = useRef('');
   const attachmentsRef = useRef(attachments);
   const replyToRef = useRef(replyTo);
   const selectedChatRef = useRef(selectedChat);
   const selectedTopicRef = useRef(selectedTopic);
   const selectedGroupRef = useRef(selectedGroup);
-  messageTextRef.current = messageText;
   attachmentsRef.current = attachments;
   replyToRef.current = replyTo;
   selectedChatRef.current = selectedChat;
@@ -384,6 +382,12 @@ export const useChatLogic = () => {
   };
   const getCompressedAvatar = (url?: string) => url ? (compressedAvatars[url] || url) : undefined;
 
+  const allUsersMap = useMemo(() => {
+    const m = new Map<string, typeof allUsers[0]>();
+    allUsers.forEach(u => m.set(u.id, u));
+    return m;
+  }, [allUsers]);
+
   const messages = useMemo(() => {
     const raw = selectedTopic 
       ? (chatMessages[selectedTopic] || []) 
@@ -391,7 +395,7 @@ export const useChatLogic = () => {
       ? (chatMessages[selectedChat] || []) 
       : [];
     return raw.map(msg => {
-      const user = msg.senderId ? allUsers.find(u => u.id === msg.senderId) : undefined;
+      const user = msg.senderId ? allUsersMap.get(msg.senderId) : undefined;
       const roleLabel = user?.role ? getRoleLabel(user.role, user.id) : undefined;
       return {
         ...msg,
@@ -401,7 +405,7 @@ export const useChatLogic = () => {
         isOwn: msg.senderId ? msg.senderId === userId : msg.isOwn,
       };
     });
-  }, [selectedTopic, selectedChat, chatMessages, userId, allUsers]);
+  }, [selectedTopic, selectedChat, chatMessages, userId, allUsersMap]);
 
   useEffect(() => {
     if (isAuthenticated && (userRole === 'parent' || userRole === 'student') && !selectedChat && userId) {
@@ -938,10 +942,9 @@ export const useChatLogic = () => {
 
     if (!currentChat || (!currentText.trim() && currentAttachments.length === 0)) return;
     
-    setMessageText('');
+    messageTextRef.current = '';
     setAttachments([]);
     setReplyTo(null);
-    messageTextRef.current = '';
     attachmentsRef.current = [];
     replyToRef.current = null;
 
@@ -1113,7 +1116,7 @@ export const useChatLogic = () => {
   }, [scheduledMessages.length]);
 
   const handleScheduleMessage = (scheduledDate: Date) => {
-    if (!selectedChat || (!messageText.trim() && attachments.length === 0)) return;
+    if (!selectedChat || (!messageTextRef.current.trim() && attachments.length === 0)) return;
 
     const targetId = selectedTopic || selectedChat;
     const messageId = `scheduled-${Date.now()}`;
@@ -1128,7 +1131,7 @@ export const useChatLogic = () => {
 
     const msg: Message = {
       id: messageId,
-      text: messageText || undefined,
+      text: messageTextRef.current || undefined,
       sender: senderName,
       senderId: userId,
       senderRole: userRole || undefined,
@@ -1162,10 +1165,9 @@ export const useChatLogic = () => {
       [targetId]: [...(prev[targetId] || []), msg]
     }));
 
-    setMessageText('');
+    messageTextRef.current = '';
     setAttachments([]);
     setReplyTo(null);
-    messageTextRef.current = '';
     attachmentsRef.current = [];
     replyToRef.current = null;
   };
@@ -1776,7 +1778,6 @@ export const useChatLogic = () => {
   };
 
   const handleTyping = (text: string) => {
-    setMessageText(text);
     messageTextRef.current = text;
   };
 
@@ -2126,14 +2127,12 @@ export const useChatLogic = () => {
     selectedChat,
     selectedGroup,
     selectedTopic,
-    messageText,
     attachments,
     chats,
     groupTopics,
     messages,
     allUsers,
     typingUsers,
-    setMessageText,
     handleTyping,
     handleSelectChat,
     handleSelectTopic,

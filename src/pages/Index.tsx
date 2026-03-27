@@ -45,14 +45,12 @@ const Index = () => {
     selectedChat,
     selectedGroup,
     selectedTopic,
-    messageText,
     attachments,
     chats,
     groupTopics,
     messages,
     allUsers,
     typingUsers,
-    setMessageText,
     handleTyping,
     handleSelectChat,
     handleSelectTopic,
@@ -231,7 +229,6 @@ const Index = () => {
             selectedGroup={selectedGroup}
             selectedTopic={selectedTopic}
             messages={messages}
-            messageText={messageText}
             attachments={attachments}
             groupTopics={groupTopics}
             typingUsers={typingUsers}

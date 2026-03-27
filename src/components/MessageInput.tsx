@@ -27,7 +27,6 @@ export type MentionableUser = {
 };
 
 type MessageInputProps = {
-  messageText: string;
   attachments: AttachedFile[];
   onMessageChange: (text: string) => void;
   onSendMessage: () => void;
@@ -42,10 +41,10 @@ type MessageInputProps = {
   replyTo?: { id: string; sender: string; text: string } | null;
   onCancelReply?: () => void;
   isSending?: boolean;
+  chatKey?: string | null;
 };
 
 export const MessageInput = ({
-  messageText,
   attachments,
   onMessageChange,
   onSendMessage,
@@ -60,11 +59,13 @@ export const MessageInput = ({
   replyTo,
   onCancelReply,
   isSending,
+  chatKey,
 }: MessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mentionListRef = useRef<HTMLDivElement>(null);
+  const [messageText, setMessageText] = useState('');
 
   const [showScheduleDesktop, setShowScheduleDesktop] = useState(false);
   const [showScheduleMobile, setShowScheduleMobile] = useState(false);
@@ -73,6 +74,12 @@ export const MessageInput = ({
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionStartPos, setMentionStartPos] = useState(-1);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+
+  useEffect(() => {
+    setMessageText('');
+    onMessageChange('');
+    setShowMentions(false);
+  }, [chatKey]);
 
   const filteredUsers = (mentionableUsers || []).filter(u =>
     u.name.toLowerCase().includes(mentionQuery.toLowerCase())
@@ -104,6 +111,7 @@ export const MessageInput = ({
   }, [selectedMentionIndex, showMentions]);
 
   const handleTextChange = useCallback((value: string) => {
+    setMessageText(value);
     onMessageChange(value);
 
     if (!mentionableUsers || mentionableUsers.length === 0) return;
@@ -154,12 +162,11 @@ export const MessageInput = ({
   const flushAndSend = useCallback(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
-      if (domValue !== messageText) {
-        onMessageChange(domValue);
-      }
+      onMessageChange(domValue);
     }
+    setMessageText('');
     onSendMessage();
-  }, [messageText, onMessageChange, onSendMessage]);
+  }, [onMessageChange, onSendMessage]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (showMentions && sortedMentionUsers.length > 0) {
@@ -385,7 +392,7 @@ export const MessageInput = ({
                   {EMOJI_LIST.map((emoji) => (
                     <button
                       key={emoji}
-                      onClick={() => { onMessageChange(messageText + emoji); setShowAttachMenu(false); }}
+                      onClick={() => { const t = messageText + emoji; setMessageText(t); onMessageChange(t); setShowAttachMenu(false); }}
                       className="text-lg hover:scale-110 transition-transform p-1 cursor-pointer rounded-md hover:bg-accent"
                     >
                       {emoji}
@@ -422,6 +429,7 @@ export const MessageInput = ({
                     <ScheduleMessagePicker
                       onSchedule={(date) => {
                         onScheduleMessage(date);
+                        setMessageText('');
                         setShowScheduleDesktop(false);
                       }}
                       onClose={() => setShowScheduleDesktop(false)}
@@ -443,6 +451,7 @@ export const MessageInput = ({
                       <ScheduleMessagePicker
                         onSchedule={(date) => {
                           onScheduleMessage(date);
+                          setMessageText('');
                           setShowScheduleMobile(false);
                         }}
                         onClose={() => setShowScheduleMobile(false)}
