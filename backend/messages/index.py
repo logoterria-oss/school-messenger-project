@@ -7,6 +7,7 @@ import boto3
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def log(msg):
     print(msg, file=sys.stderr, flush=True)
@@ -266,6 +267,7 @@ def handler(event: dict, context) -> dict:
 
                     STUDENT_ALLOWED_SUFFIXES = ('-important', '-zoom', '-homework', '-reports', '-cancellation')
 
+                    subs_to_send = []
                     for sub in user_subs:
                         personal_mention = False
                         if sub['user_name'] and ('@[' + sub['user_name']) in msg_text:
@@ -286,6 +288,11 @@ def handler(event: dict, context) -> dict:
                                 log(f"[Push] SKIP non-lead teacher {sub.get('user_name')} ({sub['user_id']})")
                                 continue
 
+                        sub['_mention'] = personal_mention
+                        subs_to_send.append(sub)
+
+                    def send_one_push(sub):
+                        personal_mention = sub['_mention']
                         is_apple = 'apple' in sub['endpoint'].lower()
                         log(f"[Push] Sending to {sub.get('user_name')} ({sub['user_id']}) apple={is_apple} endpoint={sub['endpoint'][:80]}")
 
@@ -304,7 +311,9 @@ def handler(event: dict, context) -> dict:
                                 },
                                 data=payload,
                                 vapid_private_key=vapid_private,
-                                vapid_claims={'sub': 'mailto:push@lineya.school'}
+                                vapid_claims={'sub': 'mailto:push@lineya.school'},
+                                ttl=300,
+                                headers={'Urgency': 'high', 'Topic': 'msg'}
                             )
                             log(f"[Push] OK for {sub.get('user_name')}")
                         except WebPushException as e:
@@ -314,6 +323,10 @@ def handler(event: dict, context) -> dict:
                                 log(f"[Push] Response status: {getattr(resp_body, 'status_code', 'unknown')}, body: {getattr(resp_body, 'text', '')[:200]}")
                         except Exception as e:
                             log(f"[Push] Error for {sub.get('user_name')}: {e}")
+
+                    if subs_to_send:
+                        with ThreadPoolExecutor(max_workers=min(len(subs_to_send), 10)) as executor:
+                            list(executor.map(send_one_push, subs_to_send))
                 except Exception as e:
                     log(f"[Push] Send error: {e}")
 
