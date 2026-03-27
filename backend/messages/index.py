@@ -312,8 +312,7 @@ def handler(event: dict, context) -> dict:
                                 data=payload,
                                 vapid_private_key=vapid_private,
                                 vapid_claims={'sub': 'mailto:push@lineya.school'},
-                                ttl=300,
-                                headers={'Urgency': 'high', 'Topic': 'msg'}
+                                ttl=300
                             )
                             log(f"[Push] OK for {sub.get('user_name')}")
                         except WebPushException as e:
