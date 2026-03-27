@@ -65,6 +65,7 @@ type ChatMainAreaProps = {
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAttachment: (index: number) => void;
   onCancelReply: () => void;
+  isSending?: boolean;
 };
 
 const ChatMainArea = ({
@@ -112,6 +113,7 @@ const ChatMainArea = ({
   onImageUpload,
   onRemoveAttachment,
   onCancelReply,
+  isSending,
 }: ChatMainAreaProps) => {
   if (selectedChat && selectedChatData) {
     return (
@@ -168,6 +170,7 @@ const ChatMainArea = ({
           onRemoveAttachment={onRemoveAttachment}
           replyTo={replyTo}
           onCancelReply={onCancelReply}
+          isSending={isSending}
           disabled={
             (selectedTopic?.endsWith('-important') && userRole !== 'admin') ||
             (selectedTopic?.endsWith('-payment') && userRole === 'teacher')

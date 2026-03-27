@@ -328,9 +328,11 @@ export const useChatLogic = () => {
   });
   const executedScheduledIds = useRef<Set<string>>(new Set());
   const activeSendsRef = useRef(0);
+  const [isSending, setIsSending] = useState(false);
 
   const sendWithRetry = (msgId: string, targetId: string, payload: Parameters<typeof apiSendMessage>[0], attempt = 0) => {
     activeSendsRef.current++;
+    if (attempt === 0) setIsSending(true);
     const controller = new AbortController();
     const hasAttachments = (payload.attachments?.length ?? 0) > 0;
     const timeout = setTimeout(() => controller.abort(), hasAttachments ? 60000 : 10000);
@@ -357,6 +359,7 @@ export const useChatLogic = () => {
       }));
     }).finally(() => {
       activeSendsRef.current = Math.max(0, activeSendsRef.current - 1);
+      if (activeSendsRef.current === 0) setIsSending(false);
     });
   };
 
@@ -2171,5 +2174,6 @@ export const useChatLogic = () => {
     handleCancelScheduledMessage,
     muteVersion,
     messagesLoading,
+    isSending,
   };
 };

@@ -93,6 +93,7 @@ const Index = () => {
     handleCancelScheduledMessage,
     muteVersion,
     messagesLoading,
+    isSending,
   } = useChatLogic();
 
   const getPrivateChatDisplayName = (chat: { type: string; name: string; participants?: string[] }) => {
@@ -269,6 +270,7 @@ const Index = () => {
             onImageUpload={handleImageUpload}
             onRemoveAttachment={removeAttachment}
             onCancelReply={handleCancelReply}
+            isSending={isSending}
           />
         </div>
 

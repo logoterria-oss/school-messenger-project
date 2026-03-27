@@ -41,6 +41,7 @@ type MessageInputProps = {
   mentionableUsers?: MentionableUser[];
   replyTo?: { id: string; sender: string; text: string } | null;
   onCancelReply?: () => void;
+  isSending?: boolean;
 };
 
 export const MessageInput = ({
@@ -58,6 +59,7 @@ export const MessageInput = ({
   mentionableUsers,
   replyTo,
   onCancelReply,
+  isSending,
 }: MessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -198,6 +200,17 @@ export const MessageInput = ({
 
   return (
     <div className="bg-card/80 backdrop-blur-sm border-t border-border/60 px-3 md:px-5 py-3">
+      {isSending && (
+        <div className="mb-2">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-xs text-muted-foreground">Отправка...</span>
+          </div>
+          <div className="h-1 w-full bg-accent rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full animate-[sending_1.5s_ease-in-out_infinite]" style={{width: '60%'}} />
+          </div>
+        </div>
+      )}
       {hintMessage && (
         <div className="mb-2 flex items-center gap-2 px-3 py-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg">
           <Icon name="Info" size={14} className="text-amber-500 flex-shrink-0" />
@@ -442,9 +455,17 @@ export const MessageInput = ({
 
             <button
               onClick={flushAndSend}
-              className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors"
+              disabled={isSending}
+              className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <Icon name="ArrowUp" size={16} />
+              {isSending ? (
+                <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+              ) : (
+                <Icon name="ArrowUp" size={16} />
+              )}
             </button>
           </div>
         </div>
