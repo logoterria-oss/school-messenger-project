@@ -89,6 +89,7 @@ const Index = () => {
     handleForwardMessage,
     handleScheduleMessage,
     handleCancelScheduledMessage,
+    handleRetryMessage,
     muteVersion,
     messagesLoading,
     isSending,
@@ -260,6 +261,7 @@ const Index = () => {
             onDeleteMessage={handleDeleteMessage}
             onScrollComplete={() => setScrollToMessageId(null)}
             onCancelScheduledMessage={handleCancelScheduledMessage}
+            onRetryMessage={handleRetryMessage}
             onMessageChange={handleTyping}
             onSendMessage={handleSendMessage}
             onScheduleMessage={handleScheduleMessage}

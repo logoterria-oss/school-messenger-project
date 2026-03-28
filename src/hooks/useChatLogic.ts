@@ -47,7 +47,9 @@ const mergeMessages = (existing: Message[], fromApi: Message[]): Message[] => {
   const apiIds = new Set(fromApi.map(m => m.id));
   const merged = new Map<string, Message>();
   existing.forEach(msg => {
-    if (msg.status === 'sending' || msg.scheduledAt || apiIds.has(msg.id)) {
+    // Keep: sending, error, scheduled, or already confirmed by API
+    // Also keep 'delivered' own messages that haven't appeared in API yet (race condition)
+    if (msg.status === 'sending' || msg.status === 'error' || msg.scheduledAt || apiIds.has(msg.id) || (msg.isOwn && msg.status === 'delivered')) {
       merged.set(msg.id, msg);
     }
   });
@@ -328,16 +330,19 @@ export const useChatLogic = () => {
   const executedScheduledIds = useRef<Set<string>>(new Set());
   const activeSendsRef = useRef(0);
   const [isSending, setIsSending] = useState(false);
+  const pendingPayloads = useRef<Map<string, { targetId: string; payload: Parameters<typeof apiSendMessage>[0] }>>(new Map());
 
   const sendWithRetry = (msgId: string, targetId: string, payload: Parameters<typeof apiSendMessage>[0], attempt = 0) => {
+    if (attempt === 0) pendingPayloads.current.set(msgId, { targetId, payload });
     activeSendsRef.current++;
     if (attempt === 0) setIsSending(true);
     const controller = new AbortController();
     const hasAttachments = (payload.attachments?.length ?? 0) > 0;
-    const timeout = setTimeout(() => controller.abort(), hasAttachments ? 60000 : 10000);
+    const timeout = setTimeout(() => controller.abort(), hasAttachments ? 60000 : 20000);
 
     apiSendMessage(payload, controller.signal).then(() => {
       clearTimeout(timeout);
+      pendingPayloads.current.delete(msgId);
       setChatMessages(prev => ({
         ...prev,
         [targetId]: (prev[targetId] || []).map(msg =>
@@ -1595,6 +1600,19 @@ export const useChatLogic = () => {
     apiDeleteMessage(userId, messageId).catch(() => {});
   };
 
+  const handleRetryMessage = (message: Message) => {
+    const pending = pendingPayloads.current.get(message.id);
+    if (!pending) return;
+    const { targetId, payload } = pending;
+    setChatMessages(prev => ({
+      ...prev,
+      [targetId]: (prev[targetId] || []).map(msg =>
+        msg.id === message.id ? { ...msg, status: 'sending' } : msg
+      )
+    }));
+    sendWithRetry(message.id, targetId, payload, 0);
+  };
+
   const handleAddStudent = async (name: string, phone: string, password: string) => {
     const newUser: User = {
       id: Date.now().toString(),
@@ -2175,6 +2193,7 @@ export const useChatLogic = () => {
     handleBackToChat,
     handleReaction,
     handleDeleteMessage,
+    handleRetryMessage,
     handleAddStudent,
     handleAddParent,
     handleAddTeacher,

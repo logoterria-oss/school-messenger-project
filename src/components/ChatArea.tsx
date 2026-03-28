@@ -80,6 +80,7 @@ type ChatAreaProps = {
   onCancelScheduledMessage?: (messageId: string) => void;
   muteVersion?: number;
   messagesLoading?: boolean;
+  onRetryMessage?: (message: Message) => void;
 };
 
 const TopicMuteButton = ({ topicId }: { topicId: string }) => {
@@ -120,7 +121,7 @@ const canDeleteMessage = (message: Message, currentUserId?: string, currentUserR
   return false;
 };
 
-export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, onDeleteMessage, allUsers, scrollToMessageId, onScrollComplete, onCancelScheduledMessage, muteVersion, messagesLoading }: ChatAreaProps) => {
+export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, selectedTopic, onTopicSelect, typingUsers, userRole, onOpenChatInfo, chatId, participantsCount, onMobileBack, userId, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onReply, onForward, onDeleteMessage, allUsers, scrollToMessageId, onScrollComplete, onCancelScheduledMessage, muteVersion, messagesLoading, onRetryMessage }: ChatAreaProps) => {
   const scrollTargetRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -339,6 +340,7 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
                       canDelete={canDeleteMessage(message, userId, userRole, allUsers)}
                       isGrouped={!!isGrouped}
                       onCancelScheduled={message.scheduledAt ? onCancelScheduledMessage : undefined}
+                      onRetry={onRetryMessage}
                     />
                   </div>
                 </div>

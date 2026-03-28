@@ -37,6 +37,7 @@ type MessageBubbleProps = {
   canDelete?: boolean;
   isGrouped?: boolean;
   onCancelScheduled?: (messageId: string) => void;
+  onRetry?: (message: Message) => void;
 };
 
 const formatScheduledTime = (isoStr: string): string => {
@@ -79,7 +80,7 @@ function linkify(text: string): (string | JSX.Element)[] {
   });
 }
 
-export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelete, canDelete, isGrouped, onCancelScheduled }: MessageBubbleProps) => {
+export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelete, canDelete, isGrouped, onCancelScheduled, onRetry }: MessageBubbleProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -146,12 +147,24 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
                 </span>
                 <span className="text-[11px] text-muted-foreground/70">{message.timestamp}</span>
                 {message.isOwn && message.status && (
-                  <span className="flex items-center">
+                  <span className="flex items-center gap-1">
                     {message.status === 'sending' && <Icon name="Clock" size={12} className="text-muted-foreground/50" />}
                     {message.status === 'sent' && <Icon name="Check" size={12} className="text-muted-foreground/50" />}
                     {message.status === 'delivered' && <Icon name="CheckCheck" size={12} className="text-muted-foreground/50" />}
                     {message.status === 'read' && <Icon name="CheckCheck" size={12} className="text-primary" />}
-                    {message.status === 'error' && <Icon name="AlertCircle" size={12} className="text-destructive" />}
+                    {message.status === 'error' && (
+                      <>
+                        <Icon name="AlertCircle" size={12} className="text-destructive" />
+                        {onRetry && (
+                          <button
+                            onClick={() => onRetry(message)}
+                            className="text-[10px] text-destructive underline underline-offset-2 hover:text-destructive/80 leading-none"
+                          >
+                            Повторить
+                          </button>
+                        )}
+                      </>
+                    )}
                   </span>
                 )}
               </div>

@@ -57,6 +57,7 @@ type ChatMainAreaProps = {
   onDeleteMessage: (messageId: string) => void;
   onScrollComplete: () => void;
   onCancelScheduledMessage: (messageId: string) => void;
+  onRetryMessage?: (message: Message) => void;
   onMessageChange: (text: string) => void;
   onSendMessage: () => void;
   onScheduleMessage: (date: Date) => void;
@@ -104,6 +105,7 @@ const ChatMainArea = ({
   onDeleteMessage,
   onScrollComplete,
   onCancelScheduledMessage,
+  onRetryMessage,
   onMessageChange,
   onSendMessage,
   onScheduleMessage,
@@ -146,6 +148,7 @@ const ChatMainArea = ({
           scrollToMessageId={scrollToMessageId}
           onScrollComplete={onScrollComplete}
           onCancelScheduledMessage={onCancelScheduledMessage}
+          onRetryMessage={onRetryMessage}
           muteVersion={muteVersion}
           messagesLoading={messagesLoading}
           participantsCount={(() => {
