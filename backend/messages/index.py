@@ -304,6 +304,8 @@ def handler(event: dict, context) -> dict:
                         sub['_mention'] = personal_mention
                         subs_to_send.append(sub)
 
+                    dead_endpoints = []
+
                     def send_one_push(sub):
                         personal_mention = sub['_mention']
                         is_apple = 'apple' in sub['endpoint'].lower()
@@ -332,13 +334,30 @@ def handler(event: dict, context) -> dict:
                             log(f"[Push] WebPushException for {sub.get('user_name')}: {e}")
                             resp_body = getattr(e, 'response', None)
                             if resp_body:
-                                log(f"[Push] Response status: {getattr(resp_body, 'status_code', 'unknown')}, body: {getattr(resp_body, 'text', '')[:200]}")
+                                status_code = getattr(resp_body, 'status_code', None)
+                                log(f"[Push] Response status: {status_code}, body: {getattr(resp_body, 'text', '')[:200]}")
+                                if status_code in (404, 410):
+                                    log(f"[Push] Dead subscription detected for {sub.get('user_name')}, marking for removal")
+                                    dead_endpoints.append(sub['endpoint'])
                         except Exception as e:
                             log(f"[Push] Error for {sub.get('user_name')}: {e}")
 
                     if subs_to_send:
                         with ThreadPoolExecutor(max_workers=min(len(subs_to_send), 10)) as executor:
                             list(executor.map(send_one_push, subs_to_send))
+
+                    if dead_endpoints:
+                        try:
+                            cleanup_conn = psycopg2.connect(os.environ['DATABASE_URL'])
+                            cleanup_cur = cleanup_conn.cursor()
+                            for ep in dead_endpoints:
+                                cleanup_cur.execute("DELETE FROM push_subscriptions WHERE endpoint = %s", (ep,))
+                                log(f"[Push] Removed dead subscription: {ep[:80]}")
+                            cleanup_conn.commit()
+                            cleanup_cur.close()
+                            cleanup_conn.close()
+                        except Exception as e:
+                            log(f"[Push] Failed to cleanup dead subscriptions: {e}")
                 except Exception as e:
                     log(f"[Push] Send error: {e}")
 

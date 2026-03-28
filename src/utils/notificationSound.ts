@@ -153,6 +153,7 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
       applicationServerKey: urlBase64ToUint8Array(vapidKey),
     });
     console.log('[Push] Subscribed:', subscription.endpoint);
+    localStorage.setItem(`push_sub_ts_${userId}`, String(Date.now()));
 
     return await sendSubscriptionToServer(subscription, userId);
   } catch (err) {
@@ -208,11 +209,24 @@ export async function ensurePushSubscription(userId: string): Promise<void> {
       keysMatch = currentArr.length === expectedKey.length && currentArr.every((v, i) => v === expectedKey[i]);
     }
     if (keysMatch) {
-      await sendSubscriptionToServer(existing, userId);
-      return;
+      const isApple = existing.endpoint.includes('apple.com');
+      const subAgeKey = `push_sub_ts_${userId}`;
+      const savedTs = localStorage.getItem(subAgeKey);
+      const now = Date.now();
+      const MAX_AGE_MS = 20 * 24 * 60 * 60 * 1000;
+      if (isApple && savedTs && now - parseInt(savedTs, 10) > MAX_AGE_MS) {
+        console.log('[Push] Apple subscription older than 20 days, forcing resubscribe');
+        await existing.unsubscribe();
+        localStorage.removeItem(subAgeKey);
+      } else {
+        if (!savedTs) localStorage.setItem(subAgeKey, String(now));
+        await sendSubscriptionToServer(existing, userId);
+        return;
+      }
+    } else {
+      console.log('[Push] VAPID key changed, resubscribing...');
+      await existing.unsubscribe();
     }
-    console.log('[Push] VAPID key changed, resubscribing...');
-    await existing.unsubscribe();
   }
 
   try {
@@ -221,6 +235,7 @@ export async function ensurePushSubscription(userId: string): Promise<void> {
       applicationServerKey: urlBase64ToUint8Array(vapidKey),
     });
     console.log('[Push] Resubscribed:', newSub.endpoint);
+    localStorage.setItem(`push_sub_ts_${userId}`, String(Date.now()));
     await sendSubscriptionToServer(newSub, userId);
   } catch (err) {
     console.error('[Push] Resubscribe failed:', err);
