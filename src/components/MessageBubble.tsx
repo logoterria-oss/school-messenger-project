@@ -1,44 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import Icon from '@/components/ui/icon';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Message } from '@/types/chat.types';
-
-const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
-
-type MessageBubbleProps = {
-  message: Message;
-  onReaction: (messageId: string, emoji: string) => void;
-  onReply?: (message: Message) => void;
-  onForward?: (message: Message) => void;
-  onDelete?: (messageId: string) => void;
-  canDelete?: boolean;
-  isGrouped?: boolean;
-  onCancelScheduled?: (messageId: string) => void;
-  onRetry?: (message: Message) => void;
-};
+import { MessageAttachments } from './message/MessageAttachments';
+import { MessageImageViewer } from './message/MessageImageViewer';
+import { MessageActions } from './message/MessageActions';
 
 const formatScheduledTime = (isoStr: string): string => {
   const d = new Date(isoStr);
@@ -80,44 +46,24 @@ function linkify(text: string): (string | JSX.Element)[] {
   });
 }
 
+type MessageBubbleProps = {
+  message: Message;
+  onReaction: (messageId: string, emoji: string) => void;
+  onReply?: (message: Message) => void;
+  onForward?: (message: Message) => void;
+  onDelete?: (messageId: string) => void;
+  canDelete?: boolean;
+  isGrouped?: boolean;
+  onCancelScheduled?: (messageId: string) => void;
+  onRetry?: (message: Message) => void;
+};
+
 export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelete, canDelete, isGrouped, onCancelScheduled, onRetry }: MessageBubbleProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const images = message.attachments?.filter(a => a.type === 'image') || [];
   const files = message.attachments?.filter(a => a.type === 'file') || [];
-
-  const openImage = (index: number) => setSelectedImageIndex(index);
-  const closeImage = () => setSelectedImageIndex(null);
-
-  useEffect(() => {
-    if (selectedImageIndex === null) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        setSelectedImageIndex(prev => (prev !== null && prev < images.length - 1) ? prev + 1 : prev);
-      }
-      if (e.key === 'ArrowLeft') {
-        setSelectedImageIndex(prev => (prev !== null && prev > 0) ? prev - 1 : prev);
-      }
-      if (e.key === 'Escape') setSelectedImageIndex(null);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedImageIndex, images.length]);
-
-  const getGridLayout = (count: number) => {
-    if (count === 1) return 'grid-cols-1';
-    if (count === 2) return 'grid-cols-2';
-    if (count === 3) return 'grid-cols-3';
-    return 'grid-cols-2';
-  };
-
-  const getImageSize = (count: number, idx: number) => {
-    if (count === 1) return 'aspect-square max-w-xs';
-    if (count === 2) return 'aspect-square';
-    if (count === 3 && idx === 0) return 'col-span-3 aspect-video';
-    return 'aspect-square';
-  };
 
   const senderInitial = message.sender ? message.sender.charAt(0).toUpperCase() : '?';
 
@@ -189,63 +135,12 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
                   )}
                 </div>
               </div>
-              {images.length > 0 && (
-                <div className="mt-2">
-                  <div className={`grid gap-1.5 ${getGridLayout(Math.min(images.length, 4))}`}>
-                    {images.slice(0, 4).map((img, idx) => (
-                      <div
-                        key={idx}
-                        className={`${getImageSize(Math.min(images.length, 4), idx)} overflow-hidden rounded-lg cursor-pointer relative group/img`}
-                        onClick={() => openImage(idx)}
-                      >
-                        <img
-                          src={img.fileUrl}
-                          alt={`Изображение ${idx + 1}`}
-                          className="w-full h-full object-cover group-hover/img:brightness-90 transition-all"
-                          loading="lazy"
-                        />
-                        {images.length > 4 && idx === 3 && (
-                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                            <span className="text-white text-3xl font-medium">+{images.length - 4}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {files.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {files.map((file, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-2 bg-background/60 rounded-lg">
-                      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Icon name="FileText" size={16} className="text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">{file.fileName}</p>
-                        <p className="text-[10px] text-muted-foreground">{file.fileSize}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="flex-shrink-0 h-7 w-7"
-                        onClick={() => {
-                          if (file.fileUrl) {
-                            const a = document.createElement('a');
-                            a.href = file.fileUrl;
-                            a.download = file.fileName || 'file';
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                          }
-                        }}
-                      >
-                        <Icon name="Download" size={14} />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <MessageAttachments
+                images={images}
+                files={files}
+                onOpenImage={setSelectedImageIndex}
+                compact={true}
+              />
             </div>
           )}
 
@@ -270,70 +165,13 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
             </p>
           )}
 
-          {!message.forwardedFrom && images.length > 0 && (
-            <div className="mt-2">
-              <div className={`grid gap-1.5 ${getGridLayout(Math.min(images.length, 4))} max-w-[calc(100vw-80px)] md:max-w-sm`}>
-                {images.slice(0, 4).map((img, idx) => (
-                  <div
-                    key={idx}
-                    className={`${getImageSize(Math.min(images.length, 4), idx)} overflow-hidden rounded-lg cursor-pointer relative group/img`}
-                    onClick={() => openImage(idx)}
-                  >
-                    <img
-                      src={img.fileUrl}
-                      alt={`Изображение ${idx + 1}`}
-                      className="w-full h-full object-cover group-hover/img:brightness-90 transition-all"
-                      loading="lazy"
-                    />
-                    {images.length > 4 && idx === 3 && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="text-white text-3xl font-medium">+{images.length - 4}</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!message.forwardedFrom && files.length > 0 && (
-            <div className="mt-2 space-y-1">
-              {files.map((file, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Icon name="FileText" size={20} className="text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{file.fileName}</p>
-                    <p className="text-xs text-muted-foreground">{file.fileSize}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="flex-shrink-0 h-8 w-8"
-                    onClick={async () => {
-                      if (!file.fileUrl) return;
-                      try {
-                        const resp = await fetch(file.fileUrl);
-                        const blob = await resp.blob();
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = file.fileName || 'file';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      } catch {
-                        window.open(file.fileUrl, '_blank');
-                      }
-                    }}
-                  >
-                    <Icon name="Download" size={16} />
-                  </Button>
-                </div>
-              ))}
-            </div>
+          {!message.forwardedFrom && (
+            <MessageAttachments
+              images={images}
+              files={files}
+              onOpenImage={setSelectedImageIndex}
+              compact={false}
+            />
           )}
 
           {message.scheduledAt && (
@@ -369,14 +207,9 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between gap-3 pb-1 border-b border-border/50">
                         <span className="text-base">{reaction.emoji}</span>
-                        <button
-                          onClick={() => onReaction(message.id, reaction.emoji)}
-                          className="text-[11px] text-primary hover:underline"
-                        >
-                          {reaction.users?.includes('Вы') ? 'Убрать' : 'Поставить'}
-                        </button>
+                        <span className="text-xs text-muted-foreground">{reaction.count}</span>
                       </div>
-                      {reaction.users?.map((user, uidx) => (
+                      {reaction.users && reaction.users.map((user, uidx) => (
                         <p key={uidx} className="text-xs text-foreground">{user}</p>
                       ))}
                     </div>
@@ -387,122 +220,24 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
           )}
         </div>
 
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5 flex items-center gap-0.5">
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="w-7 h-7 rounded-md hover:bg-accent flex items-center justify-center">
-                <Icon name="SmilePlus" size={15} className="text-muted-foreground" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2" side="top">
-              <div className="flex gap-1">
-                {REACTIONS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => onReaction(message.id, emoji)}
-                    className="w-8 h-8 rounded-md hover:bg-accent flex items-center justify-center transition-transform hover:scale-110"
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="w-7 h-7 rounded-md hover:bg-accent flex items-center justify-center">
-                <Icon name="MoreHorizontal" size={15} className="text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top" className="min-w-[180px]">
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => onReply?.(message)}
-              >
-                <Icon name="Reply" size={16} className="text-muted-foreground" />
-                <span>Ответить</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => onForward?.(message)}
-              >
-                <Icon name="Forward" size={16} className="text-muted-foreground" />
-                <span>Переслать</span>
-              </DropdownMenuItem>
-              {canDelete && onDelete && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="cursor-pointer text-destructive focus:text-destructive"
-                    onClick={() => setShowDeleteConfirm(true)}
-                  >
-                    <Icon name="Trash2" size={16} />
-                    <span>Удалить</span>
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <MessageActions
+          message={message}
+          onReaction={onReaction}
+          onReply={onReply}
+          onForward={onForward}
+          onDelete={onDelete}
+          canDelete={canDelete}
+          showDeleteConfirm={showDeleteConfirm}
+          onShowDeleteConfirm={setShowDeleteConfirm}
+        />
       </div>
 
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Удалить сообщение?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Сообщение будет удалено без возможности восстановления.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => onDelete?.(message.id)}
-            >
-              Удалить
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {selectedImageIndex !== null && images[selectedImageIndex] && (
-        <Dialog open={true} onOpenChange={closeImage}>
-          <DialogContent className="max-w-[95vw] md:max-w-4xl max-h-[90vh] p-0 bg-black/95 border-none">
-            <DialogTitle className="sr-only">Просмотр изображения</DialogTitle>
-            <div className="relative flex items-center justify-center min-h-[200px] md:min-h-[400px]">
-              <img
-                src={images[selectedImageIndex].fileUrl}
-                alt={`Изображение ${selectedImageIndex + 1}`}
-                className="max-w-full max-h-[85vh] object-contain"
-              />
-              {selectedImageIndex > 0 && (
-                <button
-                  onClick={() => setSelectedImageIndex(prev => prev !== null ? prev - 1 : null)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-                >
-                  <Icon name="ChevronLeft" size={24} className="text-white" />
-                </button>
-              )}
-              {selectedImageIndex < images.length - 1 && (
-                <button
-                  onClick={() => setSelectedImageIndex(prev => prev !== null ? prev + 1 : null)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-                >
-                  <Icon name="ChevronRight" size={24} className="text-white" />
-                </button>
-              )}
-              <button
-                onClick={closeImage}
-                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-              >
-                <Icon name="X" size={20} className="text-white" />
-              </button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      <MessageImageViewer
+        images={images}
+        selectedIndex={selectedImageIndex}
+        onClose={() => setSelectedImageIndex(null)}
+        onSelect={setSelectedImageIndex}
+      />
     </div>
   );
 };
