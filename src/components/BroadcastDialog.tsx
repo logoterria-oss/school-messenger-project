@@ -62,6 +62,7 @@ export const BroadcastDialog = ({
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [message, setMessage] = useState('');
   const [showConfirmAll, setShowConfirmAll] = useState(false);
+  const [groupSearch, setGroupSearch] = useState('');
 
   const availableTopics =
     userRole === 'admin'
@@ -71,6 +72,12 @@ export const BroadcastDialog = ({
   const studentGroups = groups.filter(
     (g) => g.type === 'group' && g.id !== 'teachers-group'
   );
+
+  const filteredGroups = groupSearch.trim()
+    ? studentGroups.filter((g) =>
+        g.name.toLowerCase().includes(groupSearch.trim().toLowerCase())
+      )
+    : studentGroups;
 
   const allSelected = selectedGroups.length === studentGroups.length && studentGroups.length > 0;
 
@@ -131,11 +138,24 @@ export const BroadcastDialog = ({
                 </button>
               </div>
 
+              <div className="relative mb-2">
+                <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Поиск группы..."
+                  value={groupSearch}
+                  onChange={(e) => setGroupSearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border/60 bg-background focus:outline-none focus:ring-1 focus:ring-primary/40"
+                />
+              </div>
+
               {studentGroups.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Нет доступных групп</p>
+              ) : filteredGroups.length === 0 ? (
+                <p className="text-sm text-muted-foreground px-1">Группы не найдены</p>
               ) : (
                 <div className="rounded-lg border border-border/60 divide-y divide-border/40 overflow-hidden">
-                  {studentGroups.map((group) => (
+                  {filteredGroups.map((group) => (
                     <label
                       key={group.id}
                       className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-accent/50 cursor-pointer transition-colors"
