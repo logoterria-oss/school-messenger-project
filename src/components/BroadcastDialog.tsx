@@ -63,6 +63,7 @@ export const BroadcastDialog = ({
   const [message, setMessage] = useState('');
   const [showConfirmAll, setShowConfirmAll] = useState(false);
   const [groupSearch, setGroupSearch] = useState('');
+  const [groupsOpen, setGroupsOpen] = useState(false);
 
   const availableTopics =
     userRole === 'admin'
@@ -128,59 +129,82 @@ export const BroadcastDialog = ({
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
             {/* Группы */}
             <div>
-              <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium">Группы получателей</p>
-                <button
-                  onClick={handleSelectAll}
-                  className="text-xs text-primary hover:underline"
-                >
-                  {allSelected ? 'Снять все' : 'Выбрать все'}
-                </button>
+                {groupsOpen && (
+                  <button
+                    onClick={handleSelectAll}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    {allSelected ? 'Снять все' : 'Выбрать все'}
+                  </button>
+                )}
               </div>
 
-              <div className="relative mb-2">
-                <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Поиск группы..."
-                  value={groupSearch}
-                  onChange={(e) => setGroupSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border/60 bg-background focus:outline-none focus:ring-1 focus:ring-primary/40"
-                />
-              </div>
+              {/* Триггер-кнопка */}
+              <button
+                type="button"
+                onClick={() => setGroupsOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border border-border/60 bg-background hover:bg-accent/50 transition-colors text-sm"
+              >
+                <span className={selectedGroups.length === 0 ? 'text-muted-foreground' : 'text-foreground'}>
+                  {selectedGroups.length === 0
+                    ? 'Выберите группы...'
+                    : selectedGroups.length === studentGroups.length
+                    ? 'Все группы'
+                    : `Выбрано групп: ${selectedGroups.length}`}
+                </span>
+                <Icon name={groupsOpen ? 'ChevronUp' : 'ChevronDown'} size={15} className="text-muted-foreground flex-shrink-0" />
+              </button>
 
-              {studentGroups.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Нет доступных групп</p>
-              ) : filteredGroups.length === 0 ? (
-                <p className="text-sm text-muted-foreground px-1">Группы не найдены</p>
-              ) : (
-                <div className="rounded-lg border border-border/60 divide-y divide-border/40 overflow-hidden">
-                  {filteredGroups.map((group) => (
-                    <label
-                      key={group.id}
-                      className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-accent/50 cursor-pointer transition-colors"
-                    >
-                      <Checkbox
-                        checked={selectedGroups.includes(group.id)}
-                        onCheckedChange={() => toggleGroup(group.id)}
-                        id={`group-${group.id}`}
+              {groupsOpen && (
+                <div className="mt-1.5 rounded-lg border border-border/60 overflow-hidden">
+                  <div className="p-2 border-b border-border/40">
+                    <div className="relative">
+                      <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Поиск группы..."
+                        value={groupSearch}
+                        onChange={(e) => setGroupSearch(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-border/60 bg-background focus:outline-none focus:ring-1 focus:ring-primary/40"
                       />
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        {group.avatar ? (
-                          <img
-                            src={group.avatar}
-                            alt=""
-                            className="w-7 h-7 rounded-md object-cover flex-shrink-0"
+                    </div>
+                  </div>
+                  <div className="max-h-52 overflow-y-auto divide-y divide-border/40">
+                    {studentGroups.length === 0 ? (
+                      <p className="text-sm text-muted-foreground px-3.5 py-2.5">Нет доступных групп</p>
+                    ) : filteredGroups.length === 0 ? (
+                      <p className="text-sm text-muted-foreground px-3.5 py-2.5">Группы не найдены</p>
+                    ) : (
+                      filteredGroups.map((group) => (
+                        <label
+                          key={group.id}
+                          className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-accent/50 cursor-pointer transition-colors"
+                        >
+                          <Checkbox
+                            checked={selectedGroups.includes(group.id)}
+                            onCheckedChange={() => toggleGroup(group.id)}
+                            id={`group-${group.id}`}
                           />
-                        ) : (
-                          <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Icon name="Users" size={14} className="text-primary" />
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {group.avatar ? (
+                              <img
+                                src={group.avatar}
+                                alt=""
+                                className="w-7 h-7 rounded-md object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <Icon name="Users" size={14} className="text-primary" />
+                              </div>
+                            )}
+                            <span className="text-sm truncate">{group.name}</span>
                           </div>
-                        )}
-                        <span className="text-sm truncate">{group.name}</span>
-                      </div>
-                    </label>
-                  ))}
+                        </label>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
             </div>
