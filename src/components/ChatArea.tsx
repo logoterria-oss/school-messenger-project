@@ -319,7 +319,17 @@ export const ChatArea = ({ messages, onReaction, chatName, isGroup, topics, sele
             })().map((message, index, sortedMessages) => {
               const prevMessage = index > 0 ? sortedMessages[index - 1] : null;
               const showDate = message.date && (!prevMessage || getDateKey(prevMessage.date) !== getDateKey(message.date));
-              const isGrouped = !showDate && prevMessage && prevMessage.senderId === message.senderId && prevMessage.sender === message.sender && !message.scheduledAt && !prevMessage.scheduledAt;
+              const getMessageMinutes = (msg: typeof message) => {
+                if (!msg.date || !msg.timestamp) return null;
+                const [h, m] = msg.timestamp.split(':').map(Number);
+                const d = new Date(msg.date);
+                d.setHours(h, m, 0, 0);
+                return d.getTime();
+              };
+              const timeDiff = prevMessage
+                ? Math.abs((getMessageMinutes(message) ?? 0) - (getMessageMinutes(prevMessage) ?? 0))
+                : Infinity;
+              const isGrouped = !showDate && prevMessage && prevMessage.senderId === message.senderId && prevMessage.sender === message.sender && !message.scheduledAt && !prevMessage.scheduledAt && timeDiff < 3 * 60 * 1000;
 
               return (
                 <div key={message.id}>
