@@ -90,6 +90,7 @@ const Index = () => {
     handleScheduleMessage,
     handleCancelScheduledMessage,
     handleRetryMessage,
+    handleBroadcast,
     muteVersion,
     messagesLoading,
     isSending,
@@ -180,6 +181,7 @@ const Index = () => {
           onSelectChat={handleSelectChatMobile}
           onTopicSelect={handleSelectTopic}
           onArchiveChat={handleArchiveChat}
+          onBroadcast={handleBroadcast}
         />
       </div>
 

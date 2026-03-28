@@ -1062,6 +1062,60 @@ export const useChatLogic = () => {
     });
   };
 
+  const handleBroadcast = (groupIds: string[], topicSuffix: string, text: string) => {
+    const now = new Date();
+    const nowISO = now.toISOString();
+    const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Педагог');
+    const defaultAvatars: Record<string, string> = {
+      admin: 'https://cdn.poehali.dev/files/Админ.jpg',
+      teacher: 'https://cdn.poehali.dev/files/Педагог.jpg',
+    };
+    const senderAvatar = allUsers.find(u => u.id === userId)?.avatar || defaultAvatars[userRole || ''];
+    const timestamp = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+    groupIds.forEach((groupId) => {
+      const topicId = `${groupId}-${topicSuffix}`;
+      const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${groupId}`;
+
+      const newMsg: Message = {
+        id: messageId,
+        text,
+        sender: senderName,
+        senderId: userId,
+        senderRole: userRole || undefined,
+        senderAvatar,
+        timestamp,
+        date: nowISO,
+        isOwn: true,
+        status: 'sending',
+      };
+
+      setChatMessages(prev => ({
+        ...prev,
+        [topicId]: [...(prev[topicId] || []), newMsg],
+      }));
+
+      setChats(prev => prev.map(chat =>
+        chat.id === groupId
+          ? { ...chat, lastMessage: `${senderName}: ${text.slice(0, 40)}${text.length > 40 ? '...' : ''}`, timestamp }
+          : chat
+      ));
+
+      const payload = {
+        id: messageId,
+        chatId: groupId,
+        topicId,
+        senderId: userId,
+        senderName: userName,
+        text,
+        createdAt: nowISO,
+        attachments: [],
+      };
+
+      sendWithRetry(messageId, topicId, payload);
+    });
+  };
+
   const executeScheduledMessage = (scheduled: ScheduledMessage) => {
     if (executedScheduledIds.current.has(scheduled.id)) return;
     executedScheduledIds.current.add(scheduled.id);
@@ -2217,6 +2271,7 @@ export const useChatLogic = () => {
     handleForwardMessage,
     handleScheduleMessage,
     handleCancelScheduledMessage,
+    handleBroadcast,
     muteVersion,
     messagesLoading,
     isSending,

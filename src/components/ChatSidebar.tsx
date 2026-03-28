@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ChatList } from './sidebar/ChatList';
 import { PushBanner } from './sidebar/PushBanner';
+import { BroadcastDialog } from './BroadcastDialog';
 import type { Chat, Topic, UserRole } from './sidebar/types';
 import type { Conclusion } from '@/types/chat.types';
 
@@ -36,6 +37,7 @@ type ChatSidebarProps = {
   onCreateGroup?: () => void;
   onAddAdmin?: () => void;
   onArchiveChat?: (chatId: string, archive: boolean) => void;
+  onBroadcast?: (groupIds: string[], topic: string, message: string) => void;
 };
 
 const formatDate = (dateStr: string) => {
@@ -112,9 +114,10 @@ const GeneralInfoContent = ({ schedule, conclusions }: { schedule?: string; conc
   </div>
 );
 
-export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onArchiveChat }: ChatSidebarProps) => {
+export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], selectedChat, selectedTopic, groupTopics, onSelectChat, onTopicSelect, onLogout, onOpenProfile, onOpenSettings, onOpenUsers, onAddStudent, onAddParent, onAddTeacher, onCreateGroup, onAddAdmin, onArchiveChat, onBroadcast }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showGeneralInfo, setShowGeneralInfo] = useState(false);
+  const [showBroadcast, setShowBroadcast] = useState(false);
 
   const getRoleLabel = (user: { id: string; role?: string }) => {
     if (user.id === 'admin') return 'руководитель';
@@ -235,6 +238,19 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           </DropdownMenu>
         </div>
 
+        {(userRole === 'admin' || userRole === 'teacher') && (
+          <button
+            onClick={() => setShowBroadcast(true)}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-primary/8 hover:bg-primary/15 border border-primary/20 text-primary transition-colors mb-3 group"
+          >
+            <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+              <Icon name="Megaphone" size={15} />
+            </div>
+            <span className="text-[13px] font-semibold flex-1 text-left">Отправить рассылку</span>
+            <Icon name="ChevronRight" size={14} className="opacity-50" />
+          </button>
+        )}
+
         <div className="relative">
           <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
           <Input
@@ -320,6 +336,17 @@ export const ChatSidebar = ({ userRole, userName, userId, chats, allUsers = [], 
           groupTopics={groupTopics}
         />
       )}
+
+      <BroadcastDialog
+        open={showBroadcast}
+        onOpenChange={setShowBroadcast}
+        userRole={userRole}
+        groups={chats}
+        onSend={(groupIds, topic, message) => {
+          onBroadcast?.(groupIds, topic, message);
+          setShowBroadcast(false);
+        }}
+      />
     </div>
   );
 };
