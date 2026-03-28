@@ -201,8 +201,10 @@ def handler(event: dict, context) -> dict:
             
             result = cur.fetchone()
 
-            for att in attachments:
-                att_id = f"{message_id}-{att.get('type')}-{datetime.now().timestamp()}"
+            if attachments:
+                cur.execute("DELETE FROM attachments WHERE message_id = %s", (message_id,))
+            for i, att in enumerate(attachments):
+                att_id = f"{message_id}-{i}"
                 file_url = att.get('fileUrl')
                 if file_url and file_url.startswith('data:'):
                     cdn_url = upload_base64_to_s3(file_url)
