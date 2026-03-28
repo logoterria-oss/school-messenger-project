@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import { getPushStatus, subscribeToPush, type PushStatus } from '@/utils/notificationSound';
+import { getPushStatus, subscribeToPush, ensurePushSubscription, type PushStatus } from '@/utils/notificationSound';
 import {
   Dialog,
   DialogContent,
@@ -157,10 +157,23 @@ export const PushBanner = ({ userId }: PushBannerProps) => {
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+  const autoResubscribeRef = useRef(false);
+
   useEffect(() => {
+    autoResubscribeRef.current = false;
     console.log('[PushBanner] init, isMobile:', isMobile, 'userId:', userId, 'ua:', navigator.userAgent);
-    getPushStatus().then(s => {
+    getPushStatus().then(async s => {
       console.log('[PushBanner] status:', s);
+      // Если разрешение есть, но подписка потеряна (например после обновления SW) — тихо переподписываемся
+      if (s === 'unsubscribed' && userId && !autoResubscribeRef.current) {
+        autoResubscribeRef.current = true;
+        console.log('[PushBanner] permission granted but no subscription, auto-resubscribing...');
+        await ensurePushSubscription(userId);
+        const refreshed = await getPushStatus();
+        console.log('[PushBanner] after auto-resubscribe:', refreshed);
+        setStatus(refreshed);
+        return;
+      }
       setStatus(s);
     }).catch(err => {
       console.error('[PushBanner] getPushStatus error:', err);

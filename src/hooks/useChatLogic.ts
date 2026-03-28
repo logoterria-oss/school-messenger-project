@@ -437,7 +437,8 @@ export const useChatLogic = () => {
     // Без этого мьюты админа блокируют пуши родителю на том же устройстве.
     initNotificationSettingsForUser(userId);
     requestNotificationPermission();
-    ensurePushSubscription(userId);
+    // Задержка нужна чтобы SW успел активироваться после загрузки страницы (особенно на iOS)
+    const pushTimer = setTimeout(() => { ensurePushSubscription(userId); }, 2000);
 
     const STUDENT_ALLOWED_SUFFIXES = ['-important', '-zoom', '-homework', '-reports', '-cancellation'];
     const isTopicAccessible = (topicId: string | undefined) => {
@@ -741,6 +742,7 @@ export const useChatLogic = () => {
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
+      clearTimeout(pushTimer);
       clearInterval(pollInterval);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };

@@ -119,8 +119,34 @@ export async function getPushStatus(): Promise<PushStatus> {
 
   if (Notification.permission === 'denied') return 'denied';
 
-  const reg = swRegistration || await registerServiceWorker();
+  // Всегда получаем актуальную регистрацию SW из браузера, не полагаясь на кешированную переменную
+  let reg = swRegistration;
+  if (!reg) {
+    try {
+      const existing = await navigator.serviceWorker.getRegistration('/sw.js');
+      if (existing) {
+        swRegistration = existing;
+        reg = existing;
+      } else {
+        reg = await registerServiceWorker();
+      }
+    } catch {
+      reg = await registerServiceWorker();
+    }
+  }
   if (!reg) return 'unsupported';
+
+  // Ждём, пока SW станет активным (важно для iOS после первого запуска)
+  if (reg.installing || reg.waiting) {
+    await new Promise<void>(resolve => {
+      const sw = reg!.installing || reg!.waiting;
+      if (!sw) { resolve(); return; }
+      sw.addEventListener('statechange', function handler() {
+        if (sw.state === 'activated') { sw.removeEventListener('statechange', handler); resolve(); }
+      });
+      setTimeout(resolve, 3000);
+    });
+  }
 
   const sub = await reg.pushManager.getSubscription();
   if (sub) return 'subscribed';
@@ -191,8 +217,42 @@ export async function unsubscribeFromPush(userId: string): Promise<boolean> {
 export async function ensurePushSubscription(userId: string): Promise<void> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
-  const reg = swRegistration || await registerServiceWorker();
+  // Получаем актуальную регистрацию SW из браузера
+  let reg = swRegistration;
+  if (!reg) {
+    try {
+      const existing = await navigator.serviceWorker.getRegistration('/sw.js');
+      if (existing) { swRegistration = existing; reg = existing; }
+      else { reg = await registerServiceWorker(); }
+    } catch {
+      reg = await registerServiceWorker();
+    }
+  }
   if (!reg) return;
+
+  // Ждём активации SW — критично для iOS
+  if (reg.installing || reg.waiting) {
+    await new Promise<void>(resolve => {
+      const sw = reg!.installing || reg!.waiting;
+      if (!sw) { resolve(); return; }
+      sw.addEventListener('statechange', function handler() {
+        if (sw.state === 'activated') { sw.removeEventListener('statechange', handler); resolve(); }
+      });
+      setTimeout(resolve, 4000);
+    });
+  }
+
+  // Убедимся что SW контролирует страницу
+  if (!navigator.serviceWorker.controller) {
+    await new Promise<void>(resolve => {
+      const onControllerChange = () => {
+        navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+        resolve();
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+      setTimeout(resolve, 3000);
+    });
+  }
 
   if (Notification.permission !== 'granted') return;
 
