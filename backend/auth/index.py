@@ -62,8 +62,15 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Неверный логин или пароль'})
                 }
 
-            role_names = {'admin': 'админ', 'teacher': 'педагог', 'parent': 'родитель', 'student': 'ученик'}
-            if expected_role and user['role'] != expected_role:
+            role_names = {'admin': 'админ', 'teacher': 'педагог', 'parent': 'родитель', 'student': 'ученик', 'tech_specialist': 'технический специалист'}
+            admin_roles = {'admin', 'tech_specialist'}
+            def roles_match(actual, expected):
+                if actual == expected:
+                    return True
+                if expected == 'admin' and actual in admin_roles:
+                    return True
+                return False
+            if expected_role and not roles_match(user['role'], expected_role):
                 return {
                     'statusCode': 403,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},

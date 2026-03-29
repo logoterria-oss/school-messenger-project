@@ -1,0 +1,1 @@
+UPDATE users SET role = 'tech_specialist' WHERE id = 'admin-1774170658806';
