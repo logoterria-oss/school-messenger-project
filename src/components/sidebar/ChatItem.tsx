@@ -90,8 +90,11 @@ export const ChatItem = memo(({ chat, isSelected, onClick, isAdmin, onArchive, t
                   <Badge className="text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold bg-primary text-white">
                     @
                   </Badge>
-                ) : onlyMentionBadge ? null
-                : chat.unread > 0 && !isMuted ? (
+                ) : onlyMentionBadge ? (
+                  (chat.unread > 0 || chat.hasMutedUnread) ? (
+                    <div className="w-[10px] h-[10px] rounded-full bg-muted-foreground/40 flex-shrink-0" />
+                  ) : null
+                ) : chat.unread > 0 && !isMuted ? (
                   <Badge className="text-[10px] px-1.5 py-0 h-[18px] min-w-[18px] rounded-md flex items-center justify-center font-semibold bg-primary text-white">
                     {chat.unread}
                   </Badge>

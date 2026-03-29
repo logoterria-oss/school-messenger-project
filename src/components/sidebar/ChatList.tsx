@@ -40,7 +40,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
 
   const query = searchQuery.toLowerCase().trim();
 
-  const isAdmin = userRole === 'admin';
+  const isAdmin = userRole === 'admin' || userRole === 'tech_specialist';
   const isTeacher = userRole === 'teacher';
   const isSupervisor = userId === SUPERVISOR_ID;
 
@@ -142,6 +142,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
       <div className="flex-1 overflow-y-auto sidebar-scroll-left">
         {beforeFolder.map((chat) => {
           const displayChat = getDisplayChat(chat);
+          const groupOnlyMention = userRole === 'tech_specialist' && chat.type === 'group';
           return (
             <ChatItem
               key={chat.id}
@@ -151,6 +152,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
               isAdmin={isAdmin}
               onArchive={onArchiveChat}
               topicIds={groupTopics?.[chat.id]?.map(t => t.id)}
+              onlyMentionBadge={groupOnlyMention}
             />
           );
         })}
@@ -194,6 +196,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
 
         {afterFolder.map((chat) => {
           const displayChat = getDisplayChat(chat);
+          const groupOnlyMention = userRole === 'tech_specialist' && chat.type === 'group';
           return (
             <ChatItem
               key={chat.id}
@@ -203,6 +206,7 @@ export const ChatList = ({ chats, allUsers, userRole, userId, selectedChat, onSe
               isAdmin={isAdmin}
               onArchive={onArchiveChat}
               topicIds={groupTopics?.[chat.id]?.map(t => t.id)}
+              onlyMentionBadge={groupOnlyMention}
             />
           );
         })}
