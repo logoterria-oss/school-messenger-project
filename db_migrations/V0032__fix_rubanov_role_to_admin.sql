@@ -1,0 +1,1 @@
+UPDATE users SET role = 'admin' WHERE id = 'admin-1774170658806';
