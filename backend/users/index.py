@@ -10,6 +10,22 @@ def normalize_phone(phone_str):
         normalized = '7' + normalized[1:]
     return normalized
 
+def format_user(user_dict):
+    d = dict(user_dict)
+    result = {}
+    for k, v in d.items():
+        if k == 'available_slots':
+            result['availableSlots'] = v or []
+        elif k == 'education_docs':
+            result['educationDocs'] = v or []
+        elif k == 'lesson_forms':
+            result['lessonForms'] = v
+        elif k in ('created_at', 'updated_at'):
+            continue
+        else:
+            result[k] = v
+    return result
+
 def handler(event: dict, context) -> dict:
     '''API для управления пользователями и группами'''
     method = event.get('httpMethod', 'GET')
@@ -36,7 +52,7 @@ def handler(event: dict, context) -> dict:
             if user_id:
                 # Получить данные конкретного пользователя
                 cur.execute("""
-                    SELECT id, name, phone, role, password, avatar, available_slots, education_docs
+                    SELECT id, name, phone, role, password, avatar, available_slots, education_docs, lesson_forms
                     FROM users WHERE id = %s
                 """, (user_id,))
                 user = cur.fetchone()
@@ -51,12 +67,12 @@ def handler(event: dict, context) -> dict:
                 return {
                     'statusCode': 200,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'user': dict(user)}, default=str)
+                    'body': json.dumps({'user': format_user(user)}, default=str)
                 }
             else:
                 # Получить всех пользователей
                 cur.execute("""
-                    SELECT id, name, phone, role, password, avatar, available_slots, education_docs
+                    SELECT id, name, phone, role, password, avatar, available_slots, education_docs, lesson_forms
                     FROM users ORDER BY name
                 """)
                 users = cur.fetchall()
@@ -64,7 +80,7 @@ def handler(event: dict, context) -> dict:
                 return {
                     'statusCode': 200,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'users': [dict(u) for u in users]}, default=str)
+                    'body': json.dumps({'users': [format_user(u) for u in users]}, default=str)
                 }
 
         elif method == 'POST':
@@ -101,9 +117,9 @@ def handler(event: dict, context) -> dict:
             avatar = data.get('avatar') or default_avatars.get(data['role'])
 
             cur.execute("""
-                INSERT INTO users (id, name, phone, email, password, role, avatar, available_slots, education_docs)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, name, phone, role, password
+                INSERT INTO users (id, name, phone, email, password, role, avatar, available_slots, education_docs, lesson_forms)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, name, phone, role, password, lesson_forms
             """, (
                 data['id'],
                 data['name'],
@@ -113,7 +129,8 @@ def handler(event: dict, context) -> dict:
                 data['role'],
                 avatar,
                 data.get('availableSlots', []),
-                data.get('educationDocs', [])
+                data.get('educationDocs', []),
+                data.get('lessonForms')
             ))
 
             user = cur.fetchone()
@@ -181,6 +198,9 @@ def handler(event: dict, context) -> dict:
             if 'avatar' in data:
                 updates.append('avatar = %s')
                 values.append(data['avatar'])
+            if 'lessonForms' in data:
+                updates.append('lesson_forms = %s')
+                values.append(data['lessonForms'])
 
             if not updates:
                 return {
@@ -192,7 +212,7 @@ def handler(event: dict, context) -> dict:
             updates.append('updated_at = NOW()')
             values.append(user_id)
 
-            query = f"UPDATE users SET {', '.join(updates)} WHERE id = %s RETURNING id, name, phone, role, password, avatar, available_slots, education_docs"
+            query = f"UPDATE users SET {', '.join(updates)} WHERE id = %s RETURNING id, name, phone, role, password, avatar, available_slots, education_docs, lesson_forms"
             cur.execute(query, values)
             
             user = cur.fetchone()
@@ -208,7 +228,7 @@ def handler(event: dict, context) -> dict:
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'user': dict(user)}, default=str)
+                'body': json.dumps({'user': format_user(user)}, default=str)
             }
 
         elif method == 'DELETE':

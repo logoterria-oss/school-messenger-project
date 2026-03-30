@@ -56,11 +56,13 @@ const ChatInfoPanel = ({
     (userRole === 'teacher' || userRole === 'admin');
 
   let partnerSlotsData: { name: string; slots: string[] } | undefined;
+  let partnerLessonFormsData: { name: string; lessonForms?: 'individual' | 'group' | 'both' } | undefined;
   if (isPrivateTeacherTeacherChat) {
     const partnerId = chatParticipants.find(id => id !== userId);
     const partner = partnerId ? allUsers.find(u => u.id === partnerId) : undefined;
     if (partner && partner.role === 'teacher') {
       partnerSlotsData = { name: partner.name, slots: partner.availableSlots || [] };
+      partnerLessonFormsData = { name: partner.name, lessonForms: partner.lessonForms };
     }
   }
 
@@ -78,7 +80,7 @@ const ChatInfoPanel = ({
       return (
         <Suspense fallback={null}>
           <TeacherAdminChatInfo
-            key={`teacher-info-${teacherData.id}-${teacherData.phone}-${teacherData.email}-${teacherData.availableSlots?.length || 0}`}
+            key={`teacher-info-${teacherData.id}-${teacherData.phone}-${teacherData.email}-${teacherData.availableSlots?.length || 0}-${teacherData.lessonForms || ''}`}
             isOpen={showChatInfo}
             onClose={onCloseChatInfo}
             teacherInfo={{
@@ -88,6 +90,7 @@ const ChatInfoPanel = ({
               email: teacherData.email || '',
               availableSlots: teacherData.availableSlots || [],
               educationDocs: teacherData.educationDocs || [],
+              lessonForms: teacherData.lessonForms,
             }}
             onUpdateTeacher={(updates) => onUpdateTeacher(teacherData.id, updates)}
             isAdmin={userRole === 'admin'}
@@ -121,6 +124,8 @@ const ChatInfoPanel = ({
           conclusions: currentChat?.conclusions || [],
         }}
         partnerSlots={partnerSlotsData}
+        partnerLessonForms={partnerLessonFormsData}
+        isPrivateTeacherChat={isPrivateTeacherTeacherChat && !!partnerSlotsData}
         allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         allAdmins={allUsers.filter(u => u.role === 'admin' && chatParticipants.includes(u.id)).map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         allStudents={allUsers.filter(u => u.role === 'student').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}

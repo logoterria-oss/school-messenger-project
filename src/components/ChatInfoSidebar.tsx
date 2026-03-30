@@ -56,9 +56,11 @@ type ChatInfoSidebarProps = {
   isArchived?: boolean;
   onArchive?: () => void;
   partnerSlots?: { name: string; slots: string[] };
+  partnerLessonForms?: { name: string; lessonForms?: 'individual' | 'group' | 'both' };
+  isPrivateTeacherChat?: boolean;
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onAddConclusion, onUpdateConclusion, onDeleteConclusion, chatName, onUpdateName, isArchived, onArchive, partnerSlots }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onAddConclusion, onUpdateConclusion, onDeleteConclusion, chatName, onUpdateName, isArchived, onArchive, partnerSlots, partnerLessonForms, isPrivateTeacherChat = false }: ChatInfoSidebarProps) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState('');
 
@@ -80,95 +82,144 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6">
-          {chatName && !isTeachersGroup && isAdminOrTeacher && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
-                  <Icon name="MessageSquare" size={16} />
-                  Название группы
-                </h4>
-                {isAdmin && !isEditingName && onUpdateName && (
-                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setEditName(chatName); setIsEditingName(true); }}>
-                    <Icon name="Pencil" size={14} className="mr-1" />
-                    Изменить
-                  </Button>
-                )}
-              </div>
-              {isEditingName ? (
-                <div className="space-y-3">
-                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Название группы" className="text-sm" />
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => { if (editName.trim()) { onUpdateName?.(editName.trim()); setIsEditingName(false); } }} className="flex-1">Сохранить</Button>
-                    <Button size="sm" variant="outline" onClick={() => setIsEditingName(false)} className="flex-1">Отмена</Button>
+          {isPrivateTeacherChat ? (
+            <>
+              {partnerSlots && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2 mb-3">
+                    <Icon name="Clock" size={16} />
+                    Свободные слоты {partnerSlots.name}
+                  </h4>
+                  <div className="space-y-2">
+                    {partnerSlots.slots.length > 0 ? (
+                      (() => {
+                        const grouped: Record<string, string[]> = {};
+                        partnerSlots.slots.forEach(slot => {
+                          const [day, time] = slot.split(' в ');
+                          if (!grouped[day]) grouped[day] = [];
+                          grouped[day].push(time);
+                        });
+                        return Object.entries(grouped).map(([day, times]) => (
+                          <div key={day} className="text-sm text-muted-foreground p-2 bg-accent rounded-lg">
+                            {day} в {times.join(', ')}
+                          </div>
+                        ));
+                      })()
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Нет свободных слотов</p>
+                    )}
                   </div>
                 </div>
-              ) : (
-                <div className="p-3 rounded-lg bg-accent/50 text-sm font-medium">{chatName}</div>
               )}
-            </div>
-          )}
 
-          <SidebarMembersSection
-            chatInfo={chatInfo}
-            isAdmin={isAdmin}
-            isTeachersGroup={isTeachersGroup}
-            allTeachers={allTeachers}
-            allStudents={allStudents}
-            allParents={allParents}
-            allAdmins={allAdmins}
-            participantIds={participantIds}
-            leadTeacherIds={leadTeacherIds}
-            leadAdminId={leadAdminId}
-            onUpdateLeadTeachers={onUpdateLeadTeachers}
-            onUpdateLeadAdmin={onUpdateLeadAdmin}
-            onUpdateParticipants={onUpdateParticipants}
-          />
-
-          {partnerSlots && (
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2 mb-3">
-                <Icon name="Clock" size={16} />
-                Свободные слоты {partnerSlots.name}
-              </h4>
-              <div className="space-y-2">
-                {partnerSlots.slots.length > 0 ? (
-                  (() => {
-                    const grouped: Record<string, string[]> = {};
-                    partnerSlots.slots.forEach(slot => {
-                      const [day, time] = slot.split(' в ');
-                      if (!grouped[day]) grouped[day] = [];
-                      grouped[day].push(time);
-                    });
-                    return Object.entries(grouped).map(([day, times]) => (
-                      <div key={day} className="text-sm text-muted-foreground p-2 bg-accent rounded-lg">
-                        {day} в {times.join(', ')}
+              {partnerLessonForms && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2 mb-3">
+                    <Icon name="BookOpen" size={16} />
+                    Формы уроков {partnerLessonForms.name}
+                  </h4>
+                  <div className="text-sm p-2.5 bg-accent rounded-lg">
+                    {partnerLessonForms.lessonForms === 'individual' && 'Только индивидуальные'}
+                    {partnerLessonForms.lessonForms === 'group' && 'Только групповые'}
+                    {partnerLessonForms.lessonForms === 'both' && 'Индивидуальные и групповые'}
+                    {!partnerLessonForms.lessonForms && <span className="text-muted-foreground">Не указано</span>}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {chatName && !isTeachersGroup && isAdminOrTeacher && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
+                      <Icon name="MessageSquare" size={16} />
+                      Название группы
+                    </h4>
+                    {isAdmin && !isEditingName && onUpdateName && (
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setEditName(chatName); setIsEditingName(true); }}>
+                        <Icon name="Pencil" size={14} className="mr-1" />
+                        Изменить
+                      </Button>
+                    )}
+                  </div>
+                  {isEditingName ? (
+                    <div className="space-y-3">
+                      <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Название группы" className="text-sm" />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => { if (editName.trim()) { onUpdateName?.(editName.trim()); setIsEditingName(false); } }} className="flex-1">Сохранить</Button>
+                        <Button size="sm" variant="outline" onClick={() => setIsEditingName(false)} className="flex-1">Отмена</Button>
                       </div>
-                    ));
-                  })()
-                ) : (
-                  <p className="text-sm text-muted-foreground">Нет свободных слотов</p>
-                )}
-              </div>
-            </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-lg bg-accent/50 text-sm font-medium">{chatName}</div>
+                  )}
+                </div>
+              )}
+
+              <SidebarMembersSection
+                chatInfo={chatInfo}
+                isAdmin={isAdmin}
+                isTeachersGroup={isTeachersGroup}
+                allTeachers={allTeachers}
+                allStudents={allStudents}
+                allParents={allParents}
+                allAdmins={allAdmins}
+                participantIds={participantIds}
+                leadTeacherIds={leadTeacherIds}
+                leadAdminId={leadAdminId}
+                onUpdateLeadTeachers={onUpdateLeadTeachers}
+                onUpdateLeadAdmin={onUpdateLeadAdmin}
+                onUpdateParticipants={onUpdateParticipants}
+              />
+
+              {partnerSlots && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2 mb-3">
+                    <Icon name="Clock" size={16} />
+                    Свободные слоты {partnerSlots.name}
+                  </h4>
+                  <div className="space-y-2">
+                    {partnerSlots.slots.length > 0 ? (
+                      (() => {
+                        const grouped: Record<string, string[]> = {};
+                        partnerSlots.slots.forEach(slot => {
+                          const [day, time] = slot.split(' в ');
+                          if (!grouped[day]) grouped[day] = [];
+                          grouped[day].push(time);
+                        });
+                        return Object.entries(grouped).map(([day, times]) => (
+                          <div key={day} className="text-sm text-muted-foreground p-2 bg-accent rounded-lg">
+                            {day} в {times.join(', ')}
+                          </div>
+                        ));
+                      })()
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Нет свободных слотов</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <SidebarScheduleSection
+                chatInfo={chatInfo}
+                isAdminOrTeacher={isAdminOrTeacher}
+                isTeachersGroup={isTeachersGroup}
+                onUpdateSchedule={onUpdateSchedule}
+                onAddConclusion={onAddConclusion}
+                onUpdateConclusion={onUpdateConclusion}
+                onDeleteConclusion={onDeleteConclusion}
+              />
+
+              <SidebarActions
+                isAdmin={isAdmin}
+                isTeachersGroup={isTeachersGroup}
+                isArchived={isArchived}
+                onArchive={onArchive}
+                onDeleteGroup={onDeleteGroup}
+              />
+            </>
           )}
-
-          <SidebarScheduleSection
-            chatInfo={chatInfo}
-            isAdminOrTeacher={isAdminOrTeacher}
-            isTeachersGroup={isTeachersGroup}
-            onUpdateSchedule={onUpdateSchedule}
-            onAddConclusion={onAddConclusion}
-            onUpdateConclusion={onUpdateConclusion}
-            onDeleteConclusion={onDeleteConclusion}
-          />
-
-          <SidebarActions
-            isAdmin={isAdmin}
-            isTeachersGroup={isTeachersGroup}
-            isArchived={isArchived}
-            onArchive={onArchive}
-            onDeleteGroup={onDeleteGroup}
-          />
         </div>
       </div>
     </div>

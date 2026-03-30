@@ -84,6 +84,7 @@ type User = {
   avatar?: string;
   availableSlots?: string[];
   educationDocs?: string[];
+  lessonForms?: 'individual' | 'group' | 'both';
 };
 
 // Кэшируем данные в памяти для мгновенной загрузки

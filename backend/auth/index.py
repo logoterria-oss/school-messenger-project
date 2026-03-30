@@ -46,7 +46,7 @@ def handler(event: dict, context) -> dict:
 
             normalized_login = normalize_phone(login)
             cur.execute(
-                "SELECT id, name, phone, role, password, avatar, available_slots, education_docs FROM users WHERE phone = %s AND password = %s",
+                "SELECT id, name, phone, role, password, avatar, available_slots, education_docs, lesson_forms FROM users WHERE phone = %s AND password = %s",
                 (normalized_login, password)
             )
             
@@ -88,7 +88,8 @@ def handler(event: dict, context) -> dict:
                         'password': user['password'],
                         'avatar': user['avatar'],
                         'availableSlots': user['available_slots'] or [],
-                        'educationDocs': user['education_docs'] or []
+                        'educationDocs': user['education_docs'] or [],
+                        'lessonForms': user['lesson_forms']
                     }
                 })
             }

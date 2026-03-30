@@ -1,0 +1,1 @@
+ALTER TABLE t_p86655125_school_messenger_pro.users ADD COLUMN lesson_forms text NULL;

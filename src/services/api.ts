@@ -18,6 +18,7 @@ export type User = {
   avatar?: string;
   availableSlots?: string[];
   educationDocs?: string[];
+  lessonForms?: 'individual' | 'group' | 'both';
 };
 
 export type Chat = {

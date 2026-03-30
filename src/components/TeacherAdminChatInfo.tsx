@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 
+type LessonFormsType = 'individual' | 'group' | 'both';
+
 type TeacherInfo = {
   id: string;
   name: string;
@@ -14,6 +16,7 @@ type TeacherInfo = {
   email: string;
   availableSlots: string[];
   educationDocs: string[];
+  lessonForms?: LessonFormsType;
 };
 
 type TeacherAdminChatInfoProps = {
@@ -168,7 +171,7 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
     <div className="fixed right-0 top-0 w-full md:w-[380px] bg-card border-l border-border flex flex-col z-50 shadow-lg" style={{ height: 'var(--app-height, 100dvh)' }}>
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-lg">Общая информация</h3>
+          <h3 className="font-semibold text-lg">Основное</h3>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <Icon name="X" size={20} />
           </Button>
@@ -240,6 +243,36 @@ export const TeacherAdminChatInfo = ({ isOpen, onClose, teacherInfo, onUpdateTea
               ) : (
                 <p className="text-sm text-muted-foreground">Нет свободных слотов</p>
               )}
+            </div>
+          </div>
+
+          {/* Формы уроков */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-sm font-medium">Формы уроков</Label>
+            </div>
+            <div className="space-y-2">
+              {(['individual', 'group', 'both'] as LessonFormsType[]).map((value) => {
+                const labels: Record<LessonFormsType, string> = {
+                  individual: 'Только индивидуальные',
+                  group: 'Только групповые',
+                  both: 'Индивидуальные и групповые',
+                };
+                const isSelected = teacherInfo.lessonForms === value;
+                return (
+                  <button
+                    key={value}
+                    className={`w-full text-left text-sm px-3 py-2.5 rounded-lg border transition-colors ${
+                      isSelected
+                        ? 'border-primary bg-primary/10 text-primary font-medium'
+                        : 'border-border bg-accent/50 text-muted-foreground hover:bg-accent'
+                    }`}
+                    onClick={() => onUpdateTeacher({ lessonForms: value })}
+                  >
+                    {labels[value]}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

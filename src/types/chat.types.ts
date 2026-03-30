@@ -1,5 +1,18 @@
 export type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
 
+export type User = {
+  id: string;
+  name: string;
+  role: UserRole;
+  phone: string;
+  email?: string;
+  password: string;
+  avatar?: string;
+  availableSlots?: string[];
+  educationDocs?: string[];
+  lessonForms?: 'individual' | 'group' | 'both';
+};
+
 export type TeacherAccount = {
   name: string;
   phone: string;
