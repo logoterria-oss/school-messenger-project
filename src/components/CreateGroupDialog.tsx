@@ -7,11 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
+import { isAdminRole } from '@/types/chat.types';
 
 type User = {
   id: string;
   name: string;
-  role: 'teacher' | 'parent' | 'student' | 'admin';
+  role: string;
   phone: string;
   email?: string;
   password: string;
@@ -50,7 +51,7 @@ const CreateGroupDialog = ({ open, onClose, onCreate, allUsers }: CreateGroupDia
   const [isCreating, setIsCreating] = useState(false);
 
   const teachers = allUsers.filter(u => u.role === 'teacher');
-  const admins = allUsers.filter(u => u.role === 'admin' && u.id !== SUPERVISOR_ID);
+  const admins = allUsers.filter(u => isAdminRole(u.role) && u.id !== SUPERVISOR_ID);
   const parents = allUsers.filter(u => u.role === 'parent');
   const students = allUsers.filter(u => u.role === 'student');
 

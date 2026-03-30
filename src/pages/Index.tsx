@@ -8,7 +8,7 @@ import { AllUsersView } from '@/components/AllUsersView';
 import ChatMainArea from '@/components/index/ChatMainArea';
 import ChatInfoPanel from '@/components/index/ChatInfoPanel';
 import IndexDialogs from '@/components/index/IndexDialogs';
-import { Message } from '@/types/chat.types';
+import { Message, isAdminRole } from '@/types/chat.types';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -118,9 +118,9 @@ const Index = () => {
   const isPrivateTeacherAdminChat = selectedChatData?.type === 'private' && 
     selectedChatData?.participants?.some(pid => {
       const pUser = allUsers.find(u => u.id === pid);
-      return pUser?.role === 'admin';
+      return isAdminRole(pUser?.role);
     }) && 
-    (userRole === 'admin' || userRole === 'teacher');
+    (isAdminRole(userRole) || userRole === 'teacher');
 
   const handleSelectChatMobile = (chatId: string) => {
     handleSelectChat(chatId);

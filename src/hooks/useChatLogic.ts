@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { UserRole, AttachedFile, Message, Chat, GroupTopics } from '@/types/chat.types';
+import { UserRole, AttachedFile, Message, Chat, GroupTopics, isAdminRole } from '@/types/chat.types';
 import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
@@ -524,18 +524,18 @@ export const useChatLogic = () => {
             const withStaff = ensureStaffChats(userRole!, userId, deduped, allUsers);
             setGroupTopics(mappedTopics);
             setChats(withStaff.map(c => c.type === 'group' && mappedTopics[c.id] ? recalcGroupUnread(c, mappedTopics[c.id]) : c));
-            if (userRole === 'admin') {
+            if (isAdminRole(userRole)) {
               const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
               applyAdminDefaults(allTopicIds);
               setMuteVersion(v => v + 1);
             }
-            if (userRole === 'teacher' || userRole === 'admin') {
+            if (userRole === 'teacher' || isAdminRole(userRole)) {
               const nonLeadIds: string[] = [];
               for (const c of withStaff) {
                 if (c.type !== 'group' || c.id === 'teachers-group') continue;
                 const isNonLead = userRole === 'teacher'
                   ? (!c.leadTeachers || c.leadTeachers.length === 0 || !c.leadTeachers.includes(userId))
-                  : (userRole === 'admin' && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
+                  : (isAdminRole(userRole) && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
                 if (isNonLead) {
                   nonLeadIds.push(c.id);
                   if (mappedTopics[c.id]) {
@@ -570,18 +570,18 @@ export const useChatLogic = () => {
           const withStaff = ensureStaffChats(userRole!, userId, deduped, resolvedUsers);
           setGroupTopics(mappedTopics);
           setChats(withStaff.map(c => c.type === 'group' && mappedTopics[c.id] ? recalcGroupUnread(c, mappedTopics[c.id]) : c));
-          if (userRole === 'admin') {
+          if (isAdminRole(userRole)) {
             const allTopicIds = Object.values(mappedTopics).flat().map(t => t.id);
             applyAdminDefaults(allTopicIds);
             setMuteVersion(v => v + 1);
           }
-          if (userRole === 'teacher' || userRole === 'admin') {
+          if (userRole === 'teacher' || isAdminRole(userRole)) {
             const nonLeadTopicIds: string[] = [];
             for (const c of withStaff) {
               if (c.type !== 'group' || c.id === 'teachers-group') continue;
               const isNonLead = userRole === 'teacher'
                 ? (!c.leadTeachers || c.leadTeachers.length === 0 || !c.leadTeachers.includes(userId))
-                : (userRole === 'admin' && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
+                : (isAdminRole(userRole) && userId !== SUPERVISOR_ID && c.leadAdmin && c.leadAdmin !== userId);
               if (isNonLead) {
                 nonLeadTopicIds.push(c.id);
                 if (mappedTopics[c.id]) {
@@ -633,7 +633,7 @@ export const useChatLogic = () => {
         const isCurrentChat = data.chatId === selectedChat && (!data.topicId || data.topicId === selectedTopic);
         if (!isCurrentChat) {
           const mentionTag = userName ? `@[${userName}` : null;
-          const adminMentionTag = userRole === 'admin' ? '@[админ' : null;
+          const adminMentionTag = isAdminRole(userRole) ? '@[админ' : null;
           const addedMsgs = newMsgs.filter(m => !prevMsgs.some(pm => pm.id === m.id) && !m.isOwn);
           const hasMention = addedMsgs.some(m => {
             if (!m.text) return false;
@@ -986,7 +986,7 @@ export const useChatLogic = () => {
     const targetId = currentTopic || currentChat;
     const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     
-    const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Пользователь');
+    const senderName = userName || (isAdminRole(userRole) ? 'Администратор' : 'Пользователь');
     const defaultAvatars: Record<string, string> = {
       admin: 'https://cdn.poehali.dev/files/Админ.jpg',
       teacher: 'https://cdn.poehali.dev/files/Педагог.jpg',
@@ -1209,7 +1209,7 @@ export const useChatLogic = () => {
 
     const targetId = selectedTopic || selectedChat;
     const messageId = `scheduled-${Date.now()}`;
-    const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Пользователь');
+    const senderName = userName || (isAdminRole(userRole) ? 'Администратор' : 'Пользователь');
     const defaultAvatars: Record<string, string> = {
       admin: 'https://cdn.poehali.dev/files/Админ.jpg',
       teacher: 'https://cdn.poehali.dev/files/Педагог.jpg',
@@ -1335,7 +1335,7 @@ export const useChatLogic = () => {
     setUserRole(role);
     setUserName(name || '');
     
-    const currentUserId = apiUserId || allUsers.find(u => u.name === name && u.role === role)?.id || (role === 'admin' ? 'admin' : '');
+    const currentUserId = apiUserId || allUsers.find(u => u.name === name && u.role === role)?.id || (isAdminRole(role) ? 'admin' : '');
     setUserId(currentUserId);
     
     setIsAuthenticated(true);
@@ -1351,10 +1351,10 @@ export const useChatLogic = () => {
     resetNotificationState();
 
     const ensureTeachersGroup = (role: UserRole) => {
-      if (role !== 'teacher' && role !== 'admin') return;
+      if (role !== 'teacher' && !isAdminRole(role)) return;
       const teachersGroupId = 'teachers-group';
       const allTeacherIds = allUsers.filter(u => u.role === 'teacher').map(u => u.id);
-      const allAdminIds = allUsers.filter(u => u.role === 'admin').map(u => u.id);
+      const allAdminIds = allUsers.filter(u => isAdminRole(u.role)).map(u => u.id);
       const allStaffIds = [...new Set([...allTeacherIds, ...allAdminIds])];
       createChat({
         id: teachersGroupId,
@@ -1415,7 +1415,7 @@ export const useChatLogic = () => {
     currentChats: Chat[],
     users: User[]
   ): Chat[] => {
-    if (role !== 'teacher' && role !== 'admin') return currentChats;
+    if (role !== 'teacher' && !isAdminRole(role)) return currentChats;
 
     const isLocalFallbackId = (id: string) => /^teacher-\d+$/.test(id);
     const apiUsers = users.filter(u => !isLocalFallbackId(u.id));
@@ -1475,7 +1475,7 @@ export const useChatLogic = () => {
       });
 
       // LS with admins (non-supervisor)
-      const admins = apiUsers.filter(u => u.role === 'admin' && u.id !== SUPERVISOR_ID);
+      const admins = apiUsers.filter(u => isAdminRole(u.role) && u.id !== SUPERVISOR_ID);
       admins.forEach(adm => {
         if (!hasPrivateChatWith(adm.id)) {
           const ids = [adm.id, currentUserId].sort();
@@ -1497,7 +1497,7 @@ export const useChatLogic = () => {
       });
     }
 
-    if (role === 'admin') {
+    if (isAdminRole(role)) {
       const isSupervisor = currentUserId === SUPERVISOR_ID;
 
       // LS with all teachers
@@ -1541,7 +1541,7 @@ export const useChatLogic = () => {
       }
 
       // LS with other admins
-      const otherAdmins = apiUsers.filter(u => u.role === 'admin' && u.id !== currentUserId && u.id !== SUPERVISOR_ID);
+      const otherAdmins = apiUsers.filter(u => isAdminRole(u.role) && u.id !== currentUserId && u.id !== SUPERVISOR_ID);
       otherAdmins.forEach(adm => {
         if (!hasPrivateChatWith(adm.id)) {
           const ids = [adm.id, currentUserId].sort();
@@ -1839,7 +1839,7 @@ export const useChatLogic = () => {
       ...prev,
       [groupId]: topics.map(t => ({ ...t, lastMessage: '', timestamp: '', unread: 0 })),
     }));
-    if (userRole === 'admin') {
+    if (isAdminRole(userRole)) {
       applyAdminDefaults(topics.map(t => t.id));
       setMuteVersion(v => v + 1);
       const isNonLeadAdmin = userId !== SUPERVISOR_ID && leadAdmin && leadAdmin !== userId;
@@ -2027,7 +2027,7 @@ export const useChatLogic = () => {
     let finalParticipants = participantIds;
     if (chat?.type === 'group') {
       const teacherAndAdminIds = allUsers
-        .filter(u => u.role === 'teacher' || u.role === 'admin')
+        .filter(u => u.role === 'teacher' || isAdminRole(u.role))
         .map(u => u.id);
       finalParticipants = [...new Set([...participantIds, ...teacherAndAdminIds, SUPERVISOR_ID])];
     }
@@ -2070,7 +2070,7 @@ export const useChatLogic = () => {
 
   const handleForwardMessage = async (message: Message, targetChatId: string, targetTopicId?: string, comment?: string): Promise<string> => {
     const messageId = Date.now().toString();
-    const senderName = userName || (userRole === 'admin' ? 'Администратор' : 'Пользователь');
+    const senderName = userName || (isAdminRole(userRole) ? 'Администратор' : 'Пользователь');
     const targetId = targetTopicId || targetChatId;
 
     const sourceChatName = chats.find(c => c.id === selectedChat)?.name || '';

@@ -1,4 +1,7 @@
-export type UserRole = 'admin' | 'teacher' | 'parent' | 'student';
+export type UserRole = 'admin' | 'teacher' | 'parent' | 'student' | 'tech_specialist';
+
+export const ADMIN_ROLES: ReadonlySet<string> = new Set(['admin', 'tech_specialist']);
+export const isAdminRole = (role?: string | null): boolean => !!role && ADMIN_ROLES.has(role);
 
 export type User = {
   id: string;

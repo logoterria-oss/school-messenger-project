@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { ChatInfoSidebar } from '@/components/ChatInfoSidebar';
 import { TeacherAdminChatInfo } from '@/components/TeacherAdminChatInfo';
-import { Chat, User } from '@/types/chat.types';
+import { Chat, User, isAdminRole } from '@/types/chat.types';
 
 type ChatInfoPanelProps = {
   selectedChat: string | null;
@@ -53,12 +53,12 @@ const ChatInfoPanel = ({
 
   const hasAdminParticipant = chatParticipants.some(pid => {
     const pUser = allUsers.find(u => u.id === pid);
-    return pUser?.role === 'admin';
+    return isAdminRole(pUser?.role);
   });
 
   const isPrivateTeacherTeacherChat = currentChat?.type === 'private' && 
     !hasAdminParticipant &&
-    (userRole === 'teacher' || userRole === 'admin');
+    (userRole === 'teacher' || isAdminRole(userRole));
 
   let partnerSlotsData: { name: string; slots: string[] } | undefined;
   let partnerLessonFormsData: { name: string; lessonForms?: 'individual' | 'group' | 'both' } | undefined;
@@ -74,7 +74,7 @@ const ChatInfoPanel = ({
   if (isPrivateTeacherAdminChat) {
     let teacherData;
 
-    if (userRole === 'admin') {
+    if (isAdminRole(userRole)) {
       const teacherId = chatParticipants.find(id => id !== userId);
       teacherData = allUsers.find(u => u.id === teacherId && u.role === 'teacher');
     } else if (userRole === 'teacher') {
@@ -98,7 +98,7 @@ const ChatInfoPanel = ({
               lessonForms: teacherData.lessonForms,
             }}
             onUpdateTeacher={(updates) => onUpdateTeacher(teacherData.id, updates)}
-            isAdmin={userRole === 'admin'}
+            isAdmin={isAdminRole(userRole)}
             isArchived={currentChat?.isArchived}
             onArchive={() => {
               if (selectedChat) {
@@ -132,7 +132,7 @@ const ChatInfoPanel = ({
         partnerLessonForms={partnerLessonFormsData}
         isPrivateTeacherChat={isPrivateTeacherTeacherChat && !!partnerSlotsData}
         allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
-        allAdmins={allUsers.filter(u => u.role === 'admin' && chatParticipants.includes(u.id)).map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
+        allAdmins={allUsers.filter(u => isAdminRole(u.role) && chatParticipants.includes(u.id)).map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         allStudents={allUsers.filter(u => u.role === 'student').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         allParents={allUsers.filter(u => u.role === 'parent').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         participantIds={chatParticipants}
