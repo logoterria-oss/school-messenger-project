@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { AttachedFile } from '@/types/chat.types';
 
@@ -64,23 +63,22 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                   <p className="text-xs font-medium truncate">{file.fileName}</p>
                   <p className="text-[10px] text-muted-foreground">{file.fileSize}</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="flex-shrink-0 h-7 w-7"
-                  onClick={() => {
-                    if (file.fileUrl) {
-                      const a = document.createElement('a');
-                      a.href = file.fileUrl;
-                      a.download = file.fileName || 'file';
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
+                <a
+                  href={file.fileUrl || '#'}
+                  download={file.fileName || 'file'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-accent transition-colors"
+                  onClick={(e) => {
+                    if (!file.fileUrl) { e.preventDefault(); return; }
+                    if (file.fileUrl.startsWith('data:')) {
+                      e.preventDefault();
+                      window.open(file.fileUrl, '_blank');
                     }
                   }}
                 >
                   <Icon name="Download" size={14} />
-                </Button>
+                </a>
               </div>
             ) : (
               <div key={idx} className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm">
@@ -91,30 +89,22 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                   <p className="text-sm font-medium truncate">{file.fileName}</p>
                   <p className="text-xs text-muted-foreground">{file.fileSize}</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="flex-shrink-0 h-8 w-8"
-                  onClick={async () => {
-                    if (!file.fileUrl) return;
-                    try {
-                      const resp = await fetch(file.fileUrl);
-                      const blob = await resp.blob();
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = file.fileName || 'file';
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                    } catch {
+                <a
+                  href={file.fileUrl || '#'}
+                  download={file.fileName || 'file'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-accent transition-colors"
+                  onClick={(e) => {
+                    if (!file.fileUrl) { e.preventDefault(); return; }
+                    if (file.fileUrl.startsWith('data:')) {
+                      e.preventDefault();
                       window.open(file.fileUrl, '_blank');
                     }
                   }}
                 >
                   <Icon name="Download" size={16} />
-                </Button>
+                </a>
               </div>
             )
           ))}
