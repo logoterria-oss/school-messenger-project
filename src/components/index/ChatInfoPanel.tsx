@@ -51,6 +51,19 @@ const ChatInfoPanel = ({
   const currentChat = chats.find(c => c.id === selectedChat);
   const chatParticipants = currentChat?.participants || [];
 
+  const isPrivateTeacherTeacherChat = currentChat?.type === 'private' && 
+    !currentChat?.participants?.includes('admin') &&
+    (userRole === 'teacher' || userRole === 'admin');
+
+  let partnerSlotsData: { name: string; slots: string[] } | undefined;
+  if (isPrivateTeacherTeacherChat) {
+    const partnerId = chatParticipants.find(id => id !== userId);
+    const partner = partnerId ? allUsers.find(u => u.id === partnerId) : undefined;
+    if (partner && partner.role === 'teacher') {
+      partnerSlotsData = { name: partner.name, slots: partner.availableSlots || [] };
+    }
+  }
+
   if (isPrivateTeacherAdminChat) {
     let teacherData;
 
@@ -104,9 +117,10 @@ const ChatInfoPanel = ({
           teachers: currentChat?.leadTeachers && currentChat.leadTeachers.length > 0
             ? allUsers.filter(u => u.role === 'teacher' && currentChat.leadTeachers!.includes(u.id))
             : [],
-          schedule: currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии',
+          schedule: currentChat?.type === 'group' ? (currentChat?.schedule || 'ПН в 18:00, ЧТ в 15:00 - групповые: нейропсихолог (пед. Нонна Мельникова): развитие регуляторных функций\n\nСБ в 12:00 - индивидуальные: логопед (пед. Валерия): развитие фонематических процессов (в т.ч. фонематического восприятия), коррекция ЛГНР, позднее - коррекция дизорфографии') : currentChat?.schedule,
           conclusions: currentChat?.conclusions || [],
         }}
+        partnerSlots={partnerSlotsData}
         allTeachers={allUsers.filter(u => u.role === 'teacher').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         allAdmins={allUsers.filter(u => u.role === 'admin' && chatParticipants.includes(u.id)).map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}
         allStudents={allUsers.filter(u => u.role === 'student').map(u => ({ id: u.id, name: u.name, avatar: u.avatar }))}

@@ -55,9 +55,10 @@ type ChatInfoSidebarProps = {
   onUpdateName?: (name: string) => void;
   isArchived?: boolean;
   onArchive?: () => void;
+  partnerSlots?: { name: string; slots: string[] };
 };
 
-export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onAddConclusion, onUpdateConclusion, onDeleteConclusion, chatName, onUpdateName, isArchived, onArchive }: ChatInfoSidebarProps) => {
+export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteGroup, isTeachersGroup = false, allTeachers = [], allAdmins = [], allStudents = [], allParents = [], participantIds = [], leadTeacherIds = [], leadAdminId, onUpdateLeadTeachers, onUpdateLeadAdmin, onUpdateParticipants, onUpdateSchedule, onAddConclusion, onUpdateConclusion, onDeleteConclusion, chatName, onUpdateName, isArchived, onArchive, partnerSlots }: ChatInfoSidebarProps) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState('');
 
@@ -122,6 +123,34 @@ export const ChatInfoSidebar = ({ isOpen, onClose, chatInfo, userRole, onDeleteG
             onUpdateLeadAdmin={onUpdateLeadAdmin}
             onUpdateParticipants={onUpdateParticipants}
           />
+
+          {partnerSlots && (
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2 mb-3">
+                <Icon name="Clock" size={16} />
+                Свободные слоты {partnerSlots.name}
+              </h4>
+              <div className="space-y-2">
+                {partnerSlots.slots.length > 0 ? (
+                  (() => {
+                    const grouped: Record<string, string[]> = {};
+                    partnerSlots.slots.forEach(slot => {
+                      const [day, time] = slot.split(' в ');
+                      if (!grouped[day]) grouped[day] = [];
+                      grouped[day].push(time);
+                    });
+                    return Object.entries(grouped).map(([day, times]) => (
+                      <div key={day} className="text-sm text-muted-foreground p-2 bg-accent rounded-lg">
+                        {day} в {times.join(', ')}
+                      </div>
+                    ));
+                  })()
+                ) : (
+                  <p className="text-sm text-muted-foreground">Нет свободных слотов</p>
+                )}
+              </div>
+            </div>
+          )}
 
           <SidebarScheduleSection
             chatInfo={chatInfo}
