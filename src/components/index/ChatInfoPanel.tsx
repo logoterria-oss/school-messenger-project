@@ -51,8 +51,13 @@ const ChatInfoPanel = ({
   const currentChat = chats.find(c => c.id === selectedChat);
   const chatParticipants = currentChat?.participants || [];
 
+  const hasAdminParticipant = chatParticipants.some(pid => {
+    const pUser = allUsers.find(u => u.id === pid);
+    return pUser?.role === 'admin';
+  });
+
   const isPrivateTeacherTeacherChat = currentChat?.type === 'private' && 
-    !currentChat?.participants?.includes('admin') &&
+    !hasAdminParticipant &&
     (userRole === 'teacher' || userRole === 'admin');
 
   let partnerSlotsData: { name: string; slots: string[] } | undefined;
@@ -70,8 +75,8 @@ const ChatInfoPanel = ({
     let teacherData;
 
     if (userRole === 'admin') {
-      const teacherId = chatParticipants.find(id => id !== 'admin');
-      teacherData = allUsers.find(u => u.id === teacherId);
+      const teacherId = chatParticipants.find(id => id !== userId);
+      teacherData = allUsers.find(u => u.id === teacherId && u.role === 'teacher');
     } else if (userRole === 'teacher') {
       teacherData = allUsers.find(u => u.id === userId);
     }

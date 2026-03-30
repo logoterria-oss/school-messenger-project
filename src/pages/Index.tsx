@@ -116,7 +116,10 @@ const Index = () => {
 
   const selectedChatData = chats.find(c => c.id === selectedChat);
   const isPrivateTeacherAdminChat = selectedChatData?.type === 'private' && 
-    selectedChatData?.participants?.includes('admin') && 
+    selectedChatData?.participants?.some(pid => {
+      const pUser = allUsers.find(u => u.id === pid);
+      return pUser?.role === 'admin';
+    }) && 
     (userRole === 'admin' || userRole === 'teacher');
 
   const handleSelectChatMobile = (chatId: string) => {
