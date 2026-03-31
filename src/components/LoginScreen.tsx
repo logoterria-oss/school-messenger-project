@@ -78,13 +78,6 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             ))}
           </div>
 
-          <button
-            onClick={() => setShowInstallHint(true)}
-            className="mt-5 mx-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-[#3BA662] bg-[#3BA662]/10 hover:bg-[#3BA662]/20 transition-colors max-lg:mt-4 max-lg:text-xs max-lg:px-4 max-lg:py-2"
-          >
-            <Icon name="Download" size={18} className="max-lg:w-4 max-lg:h-4" />
-            Добавить на главный экран
-          </button>
 
         </div>
 
