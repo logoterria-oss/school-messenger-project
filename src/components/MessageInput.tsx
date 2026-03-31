@@ -141,10 +141,13 @@ export const MessageInput = ({
   const insertMention = useCallback((user: MentionableUser) => {
     const before = messageText.slice(0, mentionStartPos);
     const after = messageText.slice(textareaRef.current?.selectionStart || messageText.length);
-    const label = user.role ? `${user.name} (${user.role})` : user.name;
-    const mention = `@[${label}]`;
+    const mention = `@[${user.name}]`;
     const newText = `${before}${mention} ${after}`;
+    setMessageText(newText);
     onMessageChange(newText);
+    if (textareaRef.current) {
+      textareaRef.current.value = newText;
+    }
     setShowMentions(false);
     setMentionQuery('');
     setMentionStartPos(-1);
