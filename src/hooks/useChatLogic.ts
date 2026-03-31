@@ -1576,7 +1576,7 @@ export const useChatLogic = () => {
     setSelectedChat(null);
     setSelectedGroup(null);
     setSelectedTopic(null);
-    setMessageText('');
+    messageTextRef.current = '';
     setAttachments([]);
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('userRole');
