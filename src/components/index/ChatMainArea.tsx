@@ -28,7 +28,7 @@ type ChatMainAreaProps = {
   messages: Message[];
   attachments: Array<{ name: string; type: string; url: string }>;
   groupTopics: Record<string, Array<{ id: string; name: string; icon: string }>>;
-  typingUsers: Array<{ userId: string; userName: string }>;
+  typingUsers: string[];
   allUsers: User[];
   chats: Chat[];
   userRole: string;

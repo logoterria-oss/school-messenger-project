@@ -4,7 +4,7 @@ import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
-import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction, addConclusion, updateConclusion, deleteConclusion, deleteMessage as apiDeleteMessage } from '@/services/api';
+import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction, addConclusion, updateConclusion, deleteConclusion, deleteMessage as apiDeleteMessage, sendTyping, stopTyping, getTypingUsers } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
 import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW, initNotificationSettingsForUser } from '@/utils/notificationSettings';
@@ -311,6 +311,9 @@ export const useChatLogic = () => {
   const [allUsers, setAllUsers] = useState<User[]>(loadUsersFromStorage);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isTypingRef = useRef(false);
 
   type ScheduledMessage = {
     id: string;
@@ -803,6 +806,38 @@ export const useChatLogic = () => {
     };
   }, [isAuthenticated, userId, selectedChat, selectedTopic]);
 
+  // Polling индикатора "печатает..." для групповых чатов
+  useEffect(() => {
+    if (!isAuthenticated || !userId || !selectedChat) {
+      setTypingUsers([]);
+      return;
+    }
+    // Только для групповых чатов — проверяем по selectedGroup
+    if (!selectedGroup) {
+      setTypingUsers([]);
+      return;
+    }
+
+    const pollTyping = () => {
+      if (document.hidden) return;
+      getTypingUsers(userId, selectedChat, selectedTopic || undefined).then(users => {
+        setTypingUsers(users);
+      }).catch(() => {});
+    };
+
+    pollTyping();
+    if (typingPollRef.current) clearInterval(typingPollRef.current);
+    typingPollRef.current = setInterval(pollTyping, 2000);
+
+    return () => {
+      if (typingPollRef.current) {
+        clearInterval(typingPollRef.current);
+        typingPollRef.current = null;
+      }
+      setTypingUsers([]);
+    };
+  }, [isAuthenticated, userId, selectedChat, selectedTopic, selectedGroup]);
+
   // Сохраняем данные в localStorage с debounce
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -976,7 +1011,17 @@ export const useChatLogic = () => {
     const currentGroup = selectedGroupRef.current;
 
     if (!currentChat || (!currentText.trim() && currentAttachments.length === 0)) return;
-    
+
+    // Останавливаем typing-индикатор при отправке сообщения
+    if (isTypingRef.current && userId) {
+      isTypingRef.current = false;
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+      stopTyping(userId, currentChat, selectedTopic || undefined);
+    }
+
     messageTextRef.current = '';
     setAttachments([]);
     setReplyTo(null);
@@ -1063,6 +1108,36 @@ export const useChatLogic = () => {
       replyToSender: currentReplyTo?.sender,
       replyToText: currentReplyTo?.text,
     });
+  };
+
+  // Обработчик набора текста — отправляет typing-статус на сервер
+  const handleTyping = (text: string) => {
+    if (!userId || !selectedChat || !userName) return;
+    // Только для групповых чатов
+    if (!selectedGroup) return;
+
+    if (text.trim().length > 0) {
+      // Отправить typing-событие
+      sendTyping(userId, selectedChat, selectedTopic || undefined, userName);
+      isTypingRef.current = true;
+
+      // Сбросить таймер автоматической остановки
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        isTypingRef.current = false;
+        stopTyping(userId, selectedChat, selectedTopic || undefined);
+      }, 3000);
+    } else {
+      // Поле очищено — сразу останавливаем
+      if (isTypingRef.current) {
+        isTypingRef.current = false;
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = null;
+        }
+        stopTyping(userId, selectedChat, selectedTopic || undefined);
+      }
+    }
   };
 
   const handleBroadcast = (groupIds: string[], topicSuffix: string, text: string) => {

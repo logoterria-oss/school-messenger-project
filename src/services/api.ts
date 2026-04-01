@@ -7,6 +7,7 @@ export const API_URLS = {
   chats: `${API_BASE}/7321ff36-8923-4d5f-ba35-61643bc89545`,
   messages: `${API_BASE}/7e041335-402a-4ff5-9199-6d3754f1d2d5`,
   push: `${API_BASE}/6f14d956-9bae-4666-99e7-38a5840a017b`,
+  typing: `${API_BASE}/8855f8c1-8ad6-41e0-9752-585db470dcfe`,
 };
 
 export type User = {
@@ -319,4 +320,45 @@ export async function sendMessage(message: {
 
   const data = await response.json();
   return data.message;
+}
+
+// Typing indicator
+export async function sendTyping(userId: string, chatId: string, topicId: string | undefined, userName: string): Promise<void> {
+  try {
+    await fetch(API_URLS.typing, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+      body: JSON.stringify({ chatId, topicId: topicId || '', userId, userName }),
+    });
+  } catch {
+    // игнорируем ошибки typing — не критично
+  }
+}
+
+export async function stopTyping(userId: string, chatId: string, topicId: string | undefined): Promise<void> {
+  try {
+    await fetch(API_URLS.typing, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+      body: JSON.stringify({ chatId, topicId: topicId || '', userId }),
+    });
+  } catch {
+    // игнорируем ошибки typing — не критично
+  }
+}
+
+export async function getTypingUsers(userId: string, chatId: string, topicId: string | undefined): Promise<string[]> {
+  try {
+    const url = new URL(API_URLS.typing);
+    url.searchParams.set('chatId', chatId);
+    if (topicId) url.searchParams.set('topicId', topicId);
+    const response = await fetch(url.toString(), {
+      headers: { 'X-User-Id': userId },
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.typingUsers || [];
+  } catch {
+    return [];
+  }
 }
