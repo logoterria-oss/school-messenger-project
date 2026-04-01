@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ import Icon from '@/components/ui/icon';
 import type { UserRole } from '@/types/chat.types';
 import type { Chat } from './sidebar/types';
 
-type Topic = 'important' | 'zoom' | 'homework' | 'reports' | 'payment' | 'cancellation';
+type Topic = 'important' | 'zoom' | 'homework' | 'reports' | 'payment' | 'cancellation' | 'admin-contact';
 
 type TopicOption = {
   id: Topic;
@@ -39,6 +39,7 @@ const ALL_TOPICS: TopicOption[] = [
   { id: 'reports', label: 'Отчеты', icon: 'FileText' },
   { id: 'payment', label: 'Оплата', icon: 'CreditCard' },
   { id: 'cancellation', label: 'Перенос/отмена', icon: 'CalendarX' },
+  { id: 'admin-contact', label: 'Связь с админом', icon: 'Headphones' },
 ];
 
 const TEACHER_TOPICS: Topic[] = ['zoom', 'homework', 'reports'];
@@ -113,10 +114,40 @@ export const BroadcastDialog = ({
   const canSend =
     selectedGroups.length > 0 && selectedTopic !== null && message.trim().length > 0;
 
+  // Track visible viewport for mobile keyboard handling
+  const [viewportStyle, setViewportStyle] = useState<React.CSSProperties>({});
+  useEffect(() => {
+    if (!open) return;
+    const updateViewport = () => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      // On mobile, when keyboard is open, visualViewport shrinks
+      // We reposition the dialog to stay within the visible area
+      const maxH = Math.floor(vv.height * 0.92);
+      const offsetTop = vv.offsetTop + vv.pageTop;
+      setViewportStyle({
+        maxHeight: `${maxH}px`,
+        top: `${offsetTop + vv.height / 2}px`,
+        transform: 'translate(-50%, -50%)',
+      });
+    };
+    updateViewport();
+    window.visualViewport?.addEventListener('resize', updateViewport);
+    window.visualViewport?.addEventListener('scroll', updateViewport);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateViewport);
+      window.visualViewport?.removeEventListener('scroll', updateViewport);
+      setViewportStyle({});
+    };
+  }, [open]);
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg w-full max-h-[90dvh] flex flex-col gap-0 p-0">
+        <DialogContent
+          className="max-w-lg w-full flex flex-col gap-0 p-0 max-h-[92dvh]"
+          style={viewportStyle}
+        >
           <DialogHeader className="px-5 pt-5 pb-4 border-b border-border/60">
             <DialogTitle className="flex items-center gap-2.5 text-base">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -242,7 +273,7 @@ export const BroadcastDialog = ({
                 placeholder="Введите текст рассылки..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                rows={4}
+                rows={3}
                 className="resize-none"
               />
             </div>
