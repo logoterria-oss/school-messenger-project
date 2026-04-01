@@ -1,6 +1,31 @@
 import Icon from '@/components/ui/icon';
 import { AttachedFile } from '@/types/chat.types';
 
+// Конвертирует data URL в Blob и запускает скачивание — работает на мобильных браузерах
+function downloadDataUrl(dataUrl: string, fileName: string) {
+  try {
+    const arr = dataUrl.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+    const bstr = atob(arr[1]);
+    const n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
+    const blob = new Blob([u8arr], { type: mime });
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+  } catch {
+    // fallback: попытка открыть напрямую
+    window.open(dataUrl, '_blank');
+  }
+}
+
 type MessageAttachmentsProps = {
   images: AttachedFile[];
   files: AttachedFile[];
@@ -63,22 +88,26 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                   <p className="text-xs font-medium truncate">{file.fileName}</p>
                   <p className="text-[10px] text-muted-foreground">{file.fileSize}</p>
                 </div>
-                <a
-                  href={file.fileUrl || '#'}
-                  download={file.fileName || 'file'}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
                   className="flex-shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-accent transition-colors"
-                  onClick={(e) => {
-                    if (!file.fileUrl) { e.preventDefault(); return; }
+                  onClick={() => {
+                    if (!file.fileUrl) return;
                     if (file.fileUrl.startsWith('data:')) {
-                      e.preventDefault();
-                      window.open(file.fileUrl, '_blank');
+                      downloadDataUrl(file.fileUrl, file.fileName || 'file');
+                    } else {
+                      const link = document.createElement('a');
+                      link.href = file.fileUrl;
+                      link.download = file.fileName || 'file';
+                      link.target = '_blank';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
                     }
                   }}
                 >
                   <Icon name="Download" size={14} />
-                </a>
+                </button>
               </div>
             ) : (
               <div key={idx} className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm">
@@ -89,22 +118,26 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                   <p className="text-sm font-medium truncate">{file.fileName}</p>
                   <p className="text-xs text-muted-foreground">{file.fileSize}</p>
                 </div>
-                <a
-                  href={file.fileUrl || '#'}
-                  download={file.fileName || 'file'}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
                   className="flex-shrink-0 h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-accent transition-colors"
-                  onClick={(e) => {
-                    if (!file.fileUrl) { e.preventDefault(); return; }
+                  onClick={() => {
+                    if (!file.fileUrl) return;
                     if (file.fileUrl.startsWith('data:')) {
-                      e.preventDefault();
-                      window.open(file.fileUrl, '_blank');
+                      downloadDataUrl(file.fileUrl, file.fileName || 'file');
+                    } else {
+                      const link = document.createElement('a');
+                      link.href = file.fileUrl;
+                      link.download = file.fileName || 'file';
+                      link.target = '_blank';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
                     }
                   }}
                 >
                   <Icon name="Download" size={16} />
-                </a>
+                </button>
               </div>
             )
           ))}
