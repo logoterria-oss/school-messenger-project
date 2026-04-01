@@ -1112,6 +1112,7 @@ export const useChatLogic = () => {
 
   // Обработчик набора текста — отправляет typing-статус на сервер
   const handleTyping = (text: string) => {
+    messageTextRef.current = text;
     if (!userId || !selectedChat || !userName) return;
     // Только для групповых чатов
     if (!selectedGroup) return;
@@ -1952,10 +1953,6 @@ export const useChatLogic = () => {
       [`${groupId}-important`]: [welcomeMsg]
     }));
     apiSendMessage({ id: welcomeMsg.id, chatId: groupId, topicId: `${groupId}-important`, senderId: 'admin', senderName: 'Виктория Абраменко', text: welcomeText }).catch(() => {});
-  };
-
-  const handleTyping = (text: string) => {
-    messageTextRef.current = text;
   };
 
   const handleArchiveChat = (chatId: string, archive: boolean) => {
