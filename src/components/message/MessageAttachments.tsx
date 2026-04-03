@@ -70,7 +70,13 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
           {files.map((file, idx) => {
             const href = getDownloadUrl(file);
             return compact ? (
-              <div key={idx} className="flex items-center gap-3 p-2 bg-background/60 rounded-lg">
+              <a
+                key={idx}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-2 bg-background/60 rounded-lg active:bg-background/80 no-underline text-inherit touch-manipulation"
+              >
                 <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Icon name="FileText" size={16} className="text-primary" />
                 </div>
@@ -78,17 +84,18 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                   <p className="text-xs font-medium truncate">{file.fileName}</p>
                   <p className="text-[10px] text-muted-foreground">{file.fileSize}</p>
                 </div>
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-accent transition-colors"
-                >
+                <div className="flex-shrink-0 h-7 w-7 inline-flex items-center justify-center">
                   <Icon name="Download" size={14} />
-                </a>
-              </div>
+                </div>
+              </a>
             ) : (
-              <div key={idx} className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm">
+              <a
+                key={idx}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm active:bg-accent/80 no-underline text-inherit touch-manipulation"
+              >
                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Icon name="FileText" size={20} className="text-primary" />
                 </div>
@@ -96,15 +103,10 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                   <p className="text-sm font-medium truncate">{file.fileName}</p>
                   <p className="text-xs text-muted-foreground">{file.fileSize}</p>
                 </div>
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0 h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-accent transition-colors"
-                >
+                <div className="flex-shrink-0 h-8 w-8 inline-flex items-center justify-center">
                   <Icon name="Download" size={16} />
-                </a>
-              </div>
+                </div>
+              </a>
             );
           })}
         </div>
