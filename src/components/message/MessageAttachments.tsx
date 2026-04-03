@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import Icon from '@/components/ui/icon';
 import { AttachedFile } from '@/types/chat.types';
 
@@ -36,6 +37,68 @@ const getImageSize = (count: number, idx: number) => {
   return 'aspect-square';
 };
 
+const FileItem = ({ file, compact }: { file: AttachedFile; compact: boolean }) => {
+  const href = getDownloadUrl(file);
+
+  const handleDownload = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!href) return;
+    // Создаём скрытый iframe для скачивания — не уводит со страницы, не блокируется PWA
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = href;
+    document.body.appendChild(iframe);
+    setTimeout(() => {
+      try { document.body.removeChild(iframe); } catch (_e) { /* cleanup */ }
+    }, 30000);
+  }, [href]);
+
+  if (compact) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={handleDownload}
+        className="flex items-center gap-3 p-2 bg-background/60 rounded-lg cursor-pointer active:bg-background/80"
+        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+      >
+        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+          <Icon name="FileText" size={16} className="text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium truncate">{file.fileName}</p>
+          <p className="text-[10px] text-muted-foreground">{file.fileSize}</p>
+        </div>
+        <div className="flex-shrink-0 h-7 w-7 inline-flex items-center justify-center">
+          <Icon name="Download" size={14} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleDownload}
+      className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm cursor-pointer active:bg-accent/80"
+      style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+    >
+      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+        <Icon name="FileText" size={20} className="text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{file.fileName}</p>
+        <p className="text-xs text-muted-foreground">{file.fileSize}</p>
+      </div>
+      <div className="flex-shrink-0 h-8 w-8 inline-flex items-center justify-center">
+        <Icon name="Download" size={16} />
+      </div>
+    </div>
+  );
+};
+
 export const MessageAttachments = ({ images, files, onOpenImage, compact = false }: MessageAttachmentsProps) => {
   return (
     <>
@@ -67,48 +130,9 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
 
       {files.length > 0 && (
         <div className={`${compact ? 'mt-2 space-y-1' : 'mt-2 space-y-1'}`}>
-          {files.map((file, idx) => {
-            const href = getDownloadUrl(file);
-            return compact ? (
-              <a
-                key={idx}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-2 bg-background/60 rounded-lg active:bg-background/80 no-underline text-inherit touch-manipulation"
-              >
-                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Icon name="FileText" size={16} className="text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate">{file.fileName}</p>
-                  <p className="text-[10px] text-muted-foreground">{file.fileSize}</p>
-                </div>
-                <div className="flex-shrink-0 h-7 w-7 inline-flex items-center justify-center">
-                  <Icon name="Download" size={14} />
-                </div>
-              </a>
-            ) : (
-              <a
-                key={idx}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm active:bg-accent/80 no-underline text-inherit touch-manipulation"
-              >
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Icon name="FileText" size={20} className="text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{file.fileName}</p>
-                  <p className="text-xs text-muted-foreground">{file.fileSize}</p>
-                </div>
-                <div className="flex-shrink-0 h-8 w-8 inline-flex items-center justify-center">
-                  <Icon name="Download" size={16} />
-                </div>
-              </a>
-            );
-          })}
+          {files.map((file, idx) => (
+            <FileItem key={idx} file={file} compact={compact} />
+          ))}
         </div>
       )}
     </>
