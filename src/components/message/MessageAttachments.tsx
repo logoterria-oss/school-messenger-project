@@ -20,20 +20,13 @@ function extractS3Key(cdnUrl: string): string | null {
   return match ? match[1] : null;
 }
 
-// Скачивает файл через бэкенд-прокси (обходит CORS CDN) — работает на мобильных
-async function downloadFile(url: string, fileName: string) {
-  try {
-    const key = extractS3Key(url);
-    const proxyUrl = key
-      ? `${UPLOAD_PROXY}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(fileName)}`
-      : url;
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error('fetch failed');
-    const blob = await res.blob();
-    triggerBlobDownload(blob, fileName);
-  } catch {
-    window.open(url, '_blank');
-  }
+// Скачивает файл через бэкенд-прокси — синхронно открывает окно (мобильные не блокируют)
+function downloadFile(url: string, fileName: string) {
+  const key = extractS3Key(url);
+  const proxyUrl = key
+    ? `${UPLOAD_PROXY}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(fileName)}`
+    : url;
+  window.open(proxyUrl, '_blank');
 }
 
 // Конвертирует data URL в Blob и запускает скачивание
