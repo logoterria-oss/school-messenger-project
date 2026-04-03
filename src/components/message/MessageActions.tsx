@@ -48,7 +48,7 @@ export const MessageActions = ({
 }: MessageActionsProps) => {
   return (
     <>
-      <div className="opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity flex-shrink-0 mt-0.5 flex items-center gap-0.5">
+      <div className="hidden md:flex opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity flex-shrink-0 mt-0.5 items-center gap-0.5">
         <Popover>
           <PopoverTrigger asChild>
             <button className="w-7 h-7 rounded-md hover:bg-accent flex items-center justify-center">

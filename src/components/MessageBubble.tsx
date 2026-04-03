@@ -69,7 +69,7 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
 
   return (
     <div className="group relative">
-      <div className={`flex items-start gap-2 md:gap-3 px-2 md:px-4 ${isGrouped ? 'py-0.5' : 'py-2.5'} rounded-xl transition-colors hover:bg-accent/40 ${message.isOwn ? 'bg-primary/[0.04]' : ''}`}>
+      <div className={`flex items-start gap-2 md:gap-3 px-2 md:px-4 ${isGrouped ? 'py-0.5' : 'py-2.5'} rounded-xl md:transition-colors md:hover:bg-accent/40 ${message.isOwn ? 'bg-primary/[0.04]' : ''}`}>
         {isGrouped ? (
           <div className="w-9 flex-shrink-0" />
         ) : (
