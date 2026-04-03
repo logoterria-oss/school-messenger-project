@@ -12,15 +12,26 @@ function triggerBlobDownload(blob: Blob, fileName: string) {
   setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
 }
 
-// Скачивает файл по URL через fetch → blob (обходит ограничение cross-origin download)
+const UPLOAD_PROXY = 'https://functions.poehali.dev/c2cd368a-7806-4202-95e7-9cbc1c010979';
+
+// Извлекает S3-key из CDN URL вида .../bucket/chat-files/uuid.ext
+function extractS3Key(cdnUrl: string): string | null {
+  const match = cdnUrl.match(/\/bucket\/(.+)$/);
+  return match ? match[1] : null;
+}
+
+// Скачивает файл через бэкенд-прокси (обходит CORS CDN) — работает на мобильных
 async function downloadFile(url: string, fileName: string) {
   try {
-    const res = await fetch(url);
+    const key = extractS3Key(url);
+    const proxyUrl = key
+      ? `${UPLOAD_PROXY}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(fileName)}`
+      : url;
+    const res = await fetch(proxyUrl);
     if (!res.ok) throw new Error('fetch failed');
     const blob = await res.blob();
     triggerBlobDownload(blob, fileName);
   } catch {
-    // fallback: открыть в новой вкладке
     window.open(url, '_blank');
   }
 }
