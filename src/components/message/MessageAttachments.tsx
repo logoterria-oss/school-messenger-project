@@ -1,27 +1,41 @@
 import Icon from '@/components/ui/icon';
 import { AttachedFile } from '@/types/chat.types';
 
-// Конвертирует data URL в Blob и запускает скачивание — работает на мобильных браузерах
+function triggerBlobDownload(blob: Blob, fileName: string) {
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+}
+
+// Скачивает файл по URL через fetch → blob (обходит ограничение cross-origin download)
+async function downloadFile(url: string, fileName: string) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('fetch failed');
+    const blob = await res.blob();
+    triggerBlobDownload(blob, fileName);
+  } catch {
+    // fallback: открыть в новой вкладке
+    window.open(url, '_blank');
+  }
+}
+
+// Конвертирует data URL в Blob и запускает скачивание
 function downloadDataUrl(dataUrl: string, fileName: string) {
   try {
     const arr = dataUrl.split(',');
     const mimeMatch = arr[0].match(/:(.*?);/);
     const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
     const bstr = atob(arr[1]);
-    const n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
-    const blob = new Blob([u8arr], { type: mime });
-    const blobUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    const u8arr = new Uint8Array(bstr.length);
+    for (let i = 0; i < bstr.length; i++) u8arr[i] = bstr.charCodeAt(i);
+    triggerBlobDownload(new Blob([u8arr], { type: mime }), fileName);
   } catch {
-    // fallback: попытка открыть напрямую
     window.open(dataUrl, '_blank');
   }
 }
@@ -96,13 +110,7 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                     if (file.fileUrl.startsWith('data:')) {
                       downloadDataUrl(file.fileUrl, file.fileName || 'file');
                     } else {
-                      const link = document.createElement('a');
-                      link.href = file.fileUrl;
-                      link.download = file.fileName || 'file';
-                      link.target = '_blank';
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
+                      downloadFile(file.fileUrl, file.fileName || 'file');
                     }
                   }}
                 >
@@ -126,13 +134,7 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                     if (file.fileUrl.startsWith('data:')) {
                       downloadDataUrl(file.fileUrl, file.fileName || 'file');
                     } else {
-                      const link = document.createElement('a');
-                      link.href = file.fileUrl;
-                      link.download = file.fileName || 'file';
-                      link.target = '_blank';
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
+                      downloadFile(file.fileUrl, file.fileName || 'file');
                     }
                   }}
                 >
