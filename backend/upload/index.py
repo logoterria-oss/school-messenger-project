@@ -48,21 +48,25 @@ def handler(event: dict, context) -> dict:
 
         try:
             s3 = get_s3()
-            obj = s3.get_object(Bucket='files', Key=key)
-            file_bytes = obj['Body'].read()
-            content_type = obj.get('ContentType', 'application/octet-stream')
-            b64 = base64.b64encode(file_bytes).decode('utf-8')
-            log(f"[Download] key={key} size={len(file_bytes)} name={file_name}")
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Content-Type': content_type,
-                    'Content-Disposition': f'attachment; filename="{file_name}"',
-                    'Access-Control-Allow-Origin': '*',
-                    'Cache-Control': 'private, max-age=3600',
+            # Генерируем presigned URL — браузер скачает файл напрямую из S3
+            # ResponseContentDisposition заставит браузер сохранить файл, а не открыть
+            presigned_url = s3.generate_presigned_url(
+                'get_object',
+                Params={
+                    'Bucket': 'files',
+                    'Key': key,
+                    'ResponseContentDisposition': f'attachment; filename="{file_name}"',
                 },
-                'isBase64Encoded': True,
-                'body': b64
+                ExpiresIn=300  # 5 минут
+            )
+            log(f"[Download] presigned key={key} name={file_name}")
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': presigned_url,
+                    'Access-Control-Allow-Origin': '*',
+                },
+                'body': ''
             }
         except Exception as e:
             log(f"[Download] Error: {e}")
