@@ -7,7 +7,15 @@
       "expectedStatus": 200
     },
     {
-      "name": "Missing dataUrl",
+      "name": "GET missing key",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "key is required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST missing dataUrl",
       "method": "POST",
       "path": "/",
       "body": {},
