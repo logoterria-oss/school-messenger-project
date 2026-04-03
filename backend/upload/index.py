@@ -4,7 +4,7 @@ import sys
 import base64
 import uuid
 import boto3
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 
 def log(msg):
     print(msg, file=sys.stderr, flush=True)
@@ -48,25 +48,21 @@ def handler(event: dict, context) -> dict:
 
         try:
             s3 = get_s3()
-            # Генерируем presigned URL — браузер скачает файл напрямую из S3
-            # ResponseContentDisposition заставит браузер сохранить файл, а не открыть
-            presigned_url = s3.generate_presigned_url(
-                'get_object',
-                Params={
-                    'Bucket': 'files',
-                    'Key': key,
-                    'ResponseContentDisposition': f'attachment; filename="{file_name}"',
-                },
-                ExpiresIn=300  # 5 минут
-            )
-            log(f"[Download] presigned key={key} name={file_name}")
+            obj = s3.get_object(Bucket='files', Key=key)
+            file_bytes = obj['Body'].read()
+            content_type = obj.get('ContentType', 'application/octet-stream')
+            b64body = base64.b64encode(file_bytes).decode('utf-8')
+            encoded_name = quote(file_name)
+            log(f"[Download] key={key} size={len(file_bytes)} name={file_name}")
             return {
-                'statusCode': 302,
+                'statusCode': 200,
                 'headers': {
-                    'Location': presigned_url,
+                    'Content-Type': content_type,
+                    'Content-Disposition': f"attachment; filename=\"{encoded_name}\"; filename*=UTF-8''{encoded_name}",
                     'Access-Control-Allow-Origin': '*',
                 },
-                'body': ''
+                'body': b64body,
+                'isBase64Encoded': True,
             }
         except Exception as e:
             log(f"[Download] Error: {e}")

@@ -1,47 +1,18 @@
 import Icon from '@/components/ui/icon';
 import { AttachedFile } from '@/types/chat.types';
 
-function triggerBlobDownload(blob: Blob, fileName: string) {
-  const blobUrl = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = blobUrl;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-}
-
 const UPLOAD_PROXY = 'https://functions.poehali.dev/c2cd368a-7806-4202-95e7-9cbc1c010979';
 
-// Извлекает S3-key из CDN URL вида .../bucket/chat-files/uuid.ext
-function extractS3Key(cdnUrl: string): string | null {
-  const match = cdnUrl.match(/\/bucket\/(.+)$/);
-  return match ? match[1] : null;
-}
-
-// Скачивает файл через бэкенд-прокси — синхронно открывает окно (мобильные не блокируют)
-function downloadFile(url: string, fileName: string) {
-  const key = extractS3Key(url);
-  const proxyUrl = key
-    ? `${UPLOAD_PROXY}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(fileName)}`
-    : url;
-  window.open(proxyUrl, '_blank');
-}
-
-// Конвертирует data URL в Blob и запускает скачивание
-function downloadDataUrl(dataUrl: string, fileName: string) {
-  try {
-    const arr = dataUrl.split(',');
-    const mimeMatch = arr[0].match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
-    const bstr = atob(arr[1]);
-    const u8arr = new Uint8Array(bstr.length);
-    for (let i = 0; i < bstr.length; i++) u8arr[i] = bstr.charCodeAt(i);
-    triggerBlobDownload(new Blob([u8arr], { type: mime }), fileName);
-  } catch {
-    window.open(dataUrl, '_blank');
+function getDownloadUrl(file: AttachedFile): string {
+  const url = file.fileUrl || '';
+  if (!url || url.startsWith('data:')) return url;
+  const match = url.match(/\/bucket\/(.+)$/);
+  if (match) {
+    const key = match[1];
+    const name = file.fileName || 'file';
+    return `${UPLOAD_PROXY}?key=${encodeURIComponent(key)}&name=${encodeURIComponent(name)}`;
   }
+  return url;
 }
 
 type MessageAttachmentsProps = {
@@ -96,8 +67,9 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
 
       {files.length > 0 && (
         <div className={`${compact ? 'mt-2 space-y-1' : 'mt-2 space-y-1'}`}>
-          {files.map((file, idx) => (
-            compact ? (
+          {files.map((file, idx) => {
+            const href = getDownloadUrl(file);
+            return compact ? (
               <div key={idx} className="flex items-center gap-3 p-2 bg-background/60 rounded-lg">
                 <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Icon name="FileText" size={16} className="text-primary" />
@@ -106,20 +78,14 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                   <p className="text-xs font-medium truncate">{file.fileName}</p>
                   <p className="text-[10px] text-muted-foreground">{file.fileSize}</p>
                 </div>
-                <button
-                  type="button"
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex-shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-md hover:bg-accent transition-colors"
-                  onClick={() => {
-                    if (!file.fileUrl) return;
-                    if (file.fileUrl.startsWith('data:')) {
-                      downloadDataUrl(file.fileUrl, file.fileName || 'file');
-                    } else {
-                      downloadFile(file.fileUrl, file.fileName || 'file');
-                    }
-                  }}
                 >
                   <Icon name="Download" size={14} />
-                </button>
+                </a>
               </div>
             ) : (
               <div key={idx} className="flex items-center gap-3 p-2.5 bg-accent/60 rounded-lg max-w-[calc(100vw-80px)] md:max-w-sm">
@@ -130,23 +96,17 @@ export const MessageAttachments = ({ images, files, onOpenImage, compact = false
                   <p className="text-sm font-medium truncate">{file.fileName}</p>
                   <p className="text-xs text-muted-foreground">{file.fileSize}</p>
                 </div>
-                <button
-                  type="button"
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex-shrink-0 h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-accent transition-colors"
-                  onClick={() => {
-                    if (!file.fileUrl) return;
-                    if (file.fileUrl.startsWith('data:')) {
-                      downloadDataUrl(file.fileUrl, file.fileName || 'file');
-                    } else {
-                      downloadFile(file.fileUrl, file.fileName || 'file');
-                    }
-                  }}
                 >
                   <Icon name="Download" size={16} />
-                </button>
+                </a>
               </div>
-            )
-          ))}
+            );
+          })}
         </div>
       )}
     </>
