@@ -8,6 +8,7 @@ export const API_URLS = {
   messages: `${API_BASE}/7e041335-402a-4ff5-9199-6d3754f1d2d5`,
   push: `${API_BASE}/6f14d956-9bae-4666-99e7-38a5840a017b`,
   typing: `${API_BASE}/8855f8c1-8ad6-41e0-9752-585db470dcfe`,
+  upload: `${API_BASE}/c2cd368a-7806-4202-95e7-9cbc1c010979`,
 };
 
 export type User = {
@@ -345,6 +346,21 @@ export async function stopTyping(userId: string, chatId: string, topicId: string
   } catch {
     // игнорируем ошибки typing — не критично
   }
+}
+
+// Загрузка файла (base64 dataUrl) в S3, возвращает CDN URL
+export async function uploadFile(dataUrl: string, fileName: string): Promise<string> {
+  const response = await fetch(API_URLS.upload, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dataUrl, fileName }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Upload failed');
+  }
+  const data = await response.json();
+  return data.url;
 }
 
 export async function getTypingUsers(userId: string, chatId: string, topicId: string | undefined): Promise<string[]> {

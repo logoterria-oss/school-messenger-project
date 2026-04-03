@@ -4,7 +4,7 @@ import { initialGroupTopics, initialChatMessages } from '@/data/mockChatData';
 import { teacherAccounts } from '@/data/teacherAccounts';
 import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
-import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction, addConclusion, updateConclusion, deleteConclusion, deleteMessage as apiDeleteMessage, sendTyping, stopTyping, getTypingUsers } from '@/services/api';
+import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction, addConclusion, updateConclusion, deleteConclusion, deleteMessage as apiDeleteMessage, sendTyping, stopTyping, getTypingUsers, uploadFile } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
 import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
 import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW, initNotificationSettingsForUser } from '@/utils/notificationSettings';
@@ -1090,24 +1090,41 @@ export const useChatLogic = () => {
       }));
     }
 
-    sendWithRetry(messageId, targetId, {
-      id: messageId,
-      chatId: currentChat,
-      topicId: currentTopic || undefined,
-      senderId: userId,
-      senderName: userName,
-      text: currentText || undefined,
-      createdAt: nowISO,
-      attachments: currentAttachments.map(att => ({
-        type: att.type,
-        fileUrl: att.fileUrl,
-        fileName: att.fileName,
-        fileSize: att.fileSize,
-      })),
-      replyToId: currentReplyTo?.id,
-      replyToSender: currentReplyTo?.sender,
-      replyToText: currentReplyTo?.text,
-    });
+    // Загружаем base64-вложения в S3 перед отправкой, чтобы не слать тяжёлый base64 в тело запроса
+    const uploadAttachments = async () => {
+      const uploaded = await Promise.all(
+        currentAttachments.map(async (att) => {
+          if (att.fileUrl && att.fileUrl.startsWith('data:')) {
+            try {
+              const cdnUrl = await uploadFile(att.fileUrl, att.fileName || 'file');
+              return { ...att, fileUrl: cdnUrl };
+            } catch {
+              return att;
+            }
+          }
+          return att;
+        })
+      );
+      sendWithRetry(messageId, targetId, {
+        id: messageId,
+        chatId: currentChat,
+        topicId: currentTopic || undefined,
+        senderId: userId,
+        senderName: userName,
+        text: currentText || undefined,
+        createdAt: nowISO,
+        attachments: uploaded.map(att => ({
+          type: att.type,
+          fileUrl: att.fileUrl,
+          fileName: att.fileName,
+          fileSize: att.fileSize,
+        })),
+        replyToId: currentReplyTo?.id,
+        replyToSender: currentReplyTo?.sender,
+        replyToText: currentReplyTo?.text,
+      });
+    };
+    uploadAttachments();
   };
 
   // Обработчик набора текста — отправляет typing-статус на сервер
