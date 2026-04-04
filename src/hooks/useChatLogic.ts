@@ -6,8 +6,8 @@ import { testAccounts } from '@/data/testAccounts';
 import { wsService } from '@/services/websocket';
 import { getUsers, getChats, getMessages, createChat, updateChat, deleteChat, markAsRead, sendMessage as apiSendMessage, toggleReaction, addConclusion, updateConclusion, deleteConclusion, deleteMessage as apiDeleteMessage, sendTyping, stopTyping, getTypingUsers, uploadFile } from '@/services/api';
 import type { Message as ApiMessage } from '@/services/api';
-import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription } from '@/utils/notificationSound';
-import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW, initNotificationSettingsForUser } from '@/utils/notificationSettings';
+import { checkAndPlaySound, requestNotificationPermission, resetNotificationState, updateAppBadge, updateDocumentTitle, ensurePushSubscription, playNotificationSound, markSoundPlayed } from '@/utils/notificationSound';
+import { applyAdminDefaults, applyNonLeadDefaults, getChatSettings, syncMutedSettingsToSW, initNotificationSettingsForUser, shouldPlaySound } from '@/utils/notificationSettings';
 
 const SUPERVISOR_ID = 'admin';
 
@@ -598,9 +598,9 @@ export const useChatLogic = () => {
             }
           }
           syncMutedSettingsToSW();
-          const topicItems = Object.values(mappedTopics).flat().filter(t => isTopicAccessible(t.id)).map(t => ({ id: t.id, name: t.name, unread: t.unread }));
+          const topicItems = Object.values(mappedTopics).flat().filter(t => isTopicAccessible(t.id)).map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
           const chatsNoGroups = withStaff.filter(c => !mappedTopics[c.id] || mappedTopics[c.id].length === 0);
-          checkAndPlaySound(chatsNoGroups.map(c => ({ id: c.id, name: c.name, unread: c.unread })), topicItems);
+          checkAndPlaySound(chatsNoGroups.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
         }
       } catch (err) {
         console.error('Failed to load data:', err);
@@ -645,6 +645,11 @@ export const useChatLogic = () => {
             return false;
           });
 
+          const soundTarget = data.topicId || data.chatId;
+          if (addedMsgs.length > 0 && (hasMention || shouldPlaySound(soundTarget))) {
+            playNotificationSound();
+          }
+
           if (data.topicId) {
             setGroupTopics(prev => {
               const groupTopicsList = prev[data.chatId];
@@ -656,6 +661,10 @@ export const useChatLogic = () => {
                   unreadMentions: (t.unreadMentions || 0) + (hasMention ? 1 : 0)
                 } : t
               );
+              const targetTopic = updatedTopics.find(t => t.id === data.topicId);
+              if (targetTopic) {
+                markSoundPlayed(data.topicId, targetTopic.unread, targetTopic.unreadMentions || 0);
+              }
               setChats(prevChats => {
                 const chat = prevChats.find(c => c.id === data.chatId);
                 if (!chat) return prevChats;
@@ -670,13 +679,13 @@ export const useChatLogic = () => {
             });
           } else {
             setChats(prev => {
-              const updated = prev.map(c =>
-                c.id === data.chatId ? {
-                  ...c,
-                  unread: c.unread + 1,
-                  unreadMentions: (c.unreadMentions || 0) + (hasMention ? 1 : 0)
-                } : c
-              );
+              const updated = prev.map(c => {
+                if (c.id !== data.chatId) return c;
+                const newUnread = c.unread + 1;
+                const newMentions = (c.unreadMentions || 0) + (hasMention ? 1 : 0);
+                markSoundPlayed(data.chatId, newUnread, newMentions);
+                return { ...c, unread: newUnread, unreadMentions: newMentions };
+              });
               const idx = updated.findIndex(c => c.id === data.chatId);
               if (idx > 0) {
                 const [moved] = updated.splice(idx, 1);

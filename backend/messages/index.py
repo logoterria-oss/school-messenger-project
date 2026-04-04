@@ -264,7 +264,7 @@ def handler(event: dict, context) -> dict:
                 if not conn.closed:
                     conn.close()
 
-            log(f"[Push] Found {len(user_subs)} subs for chat {chat_id}, lead_teachers={lead_teacher_ids}")
+            log(f"[Push] Found {len(user_subs)} subs for chat {chat_id}, topic={topic_id}, chat_type={chat_type}, lead_teachers={lead_teacher_ids}")
             if user_subs:
                 try:
                     from pywebpush import webpush, WebPushException
@@ -303,6 +303,10 @@ def handler(event: dict, context) -> dict:
 
                         sub['_mention'] = personal_mention
                         subs_to_send.append(sub)
+
+                    log(f"[Push] After filtering: {len(subs_to_send)} subs to send out of {len(user_subs)} total")
+                    for s in subs_to_send:
+                        log(f"[Push] WILL SEND to {s.get('user_name')} ({s['user_id']}) role={s.get('user_role')}")
 
                     dead_endpoints = []
 
