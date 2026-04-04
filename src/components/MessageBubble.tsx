@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Message } from '@/types/chat.types';
@@ -61,46 +61,22 @@ type MessageBubbleProps = {
 export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelete, canDelete, isGrouped, onCancelScheduled, onRetry }: MessageBubbleProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressTriggered = useRef(false);
+  const [mobileActionsVisible, setMobileActionsVisible] = useState(false);
 
   const images = message.attachments?.filter(a => a.type === 'image') || [];
   const files = message.attachments?.filter(a => a.type === 'file') || [];
 
   const senderInitial = message.sender ? message.sender.charAt(0).toUpperCase() : '?';
 
-  const handleTouchStart = useCallback(() => {
-    longPressTriggered.current = false;
-    longPressTimer.current = setTimeout(() => {
-      longPressTriggered.current = true;
-      setMobileMenuOpen(true);
-      if (navigator.vibrate) navigator.vibrate(20);
-    }, 400);
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  }, []);
-
-  const handleTouchMove = useCallback(() => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  }, []);
+  const handleBubbleClick = () => {
+    setMobileActionsVisible((prev) => !prev);
+  };
 
   return (
     <div className="group relative">
       <div
-        className={`flex items-start gap-2 md:gap-3 px-2 md:px-4 ${isGrouped ? 'py-0.5' : 'py-2.5'} rounded-xl md:transition-colors md:hover:bg-accent/40 ${message.isOwn ? 'bg-primary/[0.04]' : ''}`}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchMove={handleTouchMove}
-        onContextMenu={(e) => { e.preventDefault(); setMobileMenuOpen(true); }}
+        className={`flex items-start gap-2 md:gap-3 px-2 md:px-4 ${isGrouped ? 'py-0.5' : 'py-2.5'} rounded-xl md:transition-colors md:hover:bg-accent/40 ${message.isOwn ? 'bg-primary/[0.04]' : ''} ${mobileActionsVisible ? 'bg-accent/40' : ''}`}
+        onClick={handleBubbleClick}
       >
         {isGrouped ? (
           <div className="w-9 flex-shrink-0" />
@@ -261,8 +237,8 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
           canDelete={canDelete}
           showDeleteConfirm={showDeleteConfirm}
           onShowDeleteConfirm={setShowDeleteConfirm}
-          mobileMenuOpen={mobileMenuOpen}
-          onMobileMenuClose={() => setMobileMenuOpen(false)}
+          mobileVisible={mobileActionsVisible}
+          onMobileHide={() => setMobileActionsVisible(false)}
         />
       </div>
 
