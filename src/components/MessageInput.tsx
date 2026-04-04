@@ -31,7 +31,7 @@ type MessageInputProps = {
   onMessageChange: (text: string) => void;
   onSendMessage: () => void;
   onScheduleMessage?: (date: Date) => void;
-  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileUpload?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAttachment: (index: number) => void;
   disabled?: boolean;
@@ -61,7 +61,6 @@ export const MessageInput = ({
   isSending,
   chatKey,
 }: MessageInputProps) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mentionListRef = useRef<HTMLDivElement>(null);
@@ -69,7 +68,6 @@ export const MessageInput = ({
 
   const [showScheduleDesktop, setShowScheduleDesktop] = useState(false);
   const [showScheduleMobile, setShowScheduleMobile] = useState(false);
-  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionStartPos, setMentionStartPos] = useState(-1);
@@ -332,7 +330,6 @@ export const MessageInput = ({
         <div className="flex items-end gap-2 bg-accent/40 rounded-xl px-3 py-2">
           <div className="flex items-center gap-0.5 flex-shrink-0 pb-0.5">
             <input ref={imageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={onImageUpload} />
-            <input ref={fileInputRef} type="file" multiple className="hidden" onChange={onFileUpload} />
 
             <Popover>
               <PopoverTrigger asChild>
@@ -363,47 +360,11 @@ export const MessageInput = ({
             </button>
 
             <button
-              className="hidden md:flex w-8 h-8 rounded-lg hover:bg-accent items-center justify-center transition-colors text-muted-foreground hover:text-foreground"
-              onClick={() => fileInputRef.current?.click()}
+              className="md:hidden w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"
+              onClick={() => imageInputRef.current?.click()}
             >
-              <Icon name="Paperclip" size={18} />
+              <Icon name="Image" size={18} />
             </button>
-
-            <Popover open={showAttachMenu} onOpenChange={setShowAttachMenu}>
-              <PopoverTrigger asChild>
-                <button className="md:hidden w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground">
-                  <Icon name="Paperclip" size={18} />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-40 p-1" side="top" align="start">
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors"
-                  onClick={() => { imageInputRef.current?.click(); setShowAttachMenu(false); }}
-                >
-                  <Icon name="Image" size={16} />
-                  <span>Фото</span>
-                </button>
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors"
-                  onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false); }}
-                >
-                  <Icon name="File" size={16} />
-                  <span>Файл</span>
-                </button>
-                <div className="border-t border-border/60 my-1" />
-                <div className="grid grid-cols-5 gap-0.5 px-1 py-1">
-                  {EMOJI_LIST.map((emoji) => (
-                    <button
-                      key={emoji}
-                      onClick={() => { const t = messageText + emoji; setMessageText(t); onMessageChange(t); setShowAttachMenu(false); }}
-                      className="text-lg hover:scale-110 transition-transform p-1 cursor-pointer rounded-md hover:bg-accent"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
           </div>
 
           <Textarea
