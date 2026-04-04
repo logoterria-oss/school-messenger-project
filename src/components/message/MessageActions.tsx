@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { Message } from '@/types/chat.types';
 
@@ -34,6 +35,8 @@ type MessageActionsProps = {
   canDelete?: boolean;
   showDeleteConfirm: boolean;
   onShowDeleteConfirm: (show: boolean) => void;
+  mobileMenuOpen?: boolean;
+  onMobileMenuClose?: () => void;
 };
 
 export const MessageActions = ({
@@ -45,7 +48,29 @@ export const MessageActions = ({
   canDelete,
   showDeleteConfirm,
   onShowDeleteConfirm,
+  mobileMenuOpen = false,
+  onMobileMenuClose,
 }: MessageActionsProps) => {
+  const handleMobileReaction = (emoji: string) => {
+    onReaction(message.id, emoji);
+    onMobileMenuClose?.();
+  };
+
+  const handleMobileReply = () => {
+    onReply?.(message);
+    onMobileMenuClose?.();
+  };
+
+  const handleMobileForward = () => {
+    onForward?.(message);
+    onMobileMenuClose?.();
+  };
+
+  const handleMobileDelete = () => {
+    onMobileMenuClose?.();
+    onShowDeleteConfirm(true);
+  };
+
   return (
     <>
       <div className="hidden md:flex opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity flex-shrink-0 mt-0.5 items-center gap-0.5">
@@ -106,6 +131,58 @@ export const MessageActions = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <Dialog open={mobileMenuOpen} onOpenChange={(v) => !v && onMobileMenuClose?.()}>
+        <DialogContent className="md:hidden fixed bottom-0 left-0 right-0 top-auto translate-y-0 rounded-t-2xl rounded-b-none border-b-0 p-0 max-w-full w-full data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom">
+          <DialogTitle className="sr-only">Действия с сообщением</DialogTitle>
+
+          <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mt-3 mb-2" />
+
+          <div className="flex justify-center gap-2 px-4 pb-3">
+            {REACTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => handleMobileReaction(emoji)}
+                className="w-10 h-10 rounded-full bg-accent hover:bg-accent/80 flex items-center justify-center text-lg active:scale-95 transition-transform"
+                style={{ touchAction: 'manipulation' }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+
+          <div className="border-t border-border/60">
+            <button
+              onClick={handleMobileReply}
+              className="flex items-center gap-3 w-full px-5 py-3.5 text-left hover:bg-accent/50 active:bg-accent transition-colors"
+              style={{ touchAction: 'manipulation' }}
+            >
+              <Icon name="Reply" size={20} className="text-muted-foreground" />
+              <span className="text-sm font-medium">Ответить</span>
+            </button>
+            <button
+              onClick={handleMobileForward}
+              className="flex items-center gap-3 w-full px-5 py-3.5 text-left hover:bg-accent/50 active:bg-accent transition-colors"
+              style={{ touchAction: 'manipulation' }}
+            >
+              <Icon name="Forward" size={20} className="text-muted-foreground" />
+              <span className="text-sm font-medium">Переслать</span>
+            </button>
+            {canDelete && onDelete && (
+              <button
+                onClick={handleMobileDelete}
+                className="flex items-center gap-3 w-full px-5 py-3.5 text-left hover:bg-destructive/10 active:bg-destructive/20 transition-colors"
+                style={{ touchAction: 'manipulation' }}
+              >
+                <Icon name="Trash2" size={20} className="text-destructive" />
+                <span className="text-sm font-medium text-destructive">Удалить</span>
+              </button>
+            )}
+          </div>
+
+          <div className="pb-[env(safe-area-inset-bottom,8px)]" />
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={onShowDeleteConfirm}>
         <AlertDialogContent>
