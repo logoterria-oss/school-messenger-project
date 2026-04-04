@@ -61,23 +61,15 @@ type MessageBubbleProps = {
 export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelete, canDelete, isGrouped, onCancelScheduled, onRetry }: MessageBubbleProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [mobileActionsVisible, setMobileActionsVisible] = useState(false);
 
   const images = message.attachments?.filter(a => a.type === 'image') || [];
   const files = message.attachments?.filter(a => a.type === 'file') || [];
 
   const senderInitial = message.sender ? message.sender.charAt(0).toUpperCase() : '?';
 
-  const handleBubbleClick = () => {
-    setMobileActionsVisible((prev) => !prev);
-  };
-
   return (
     <div className="group relative">
-      <div
-        className={`flex items-start gap-2 md:gap-3 px-2 md:px-4 ${isGrouped ? 'py-0.5' : 'py-2.5'} rounded-xl md:transition-colors md:hover:bg-accent/40 ${message.isOwn ? 'bg-primary/[0.04]' : ''} ${mobileActionsVisible ? 'bg-accent/40' : ''}`}
-        onClick={handleBubbleClick}
-      >
+      <div className={`flex items-start gap-2 md:gap-3 px-2 md:px-4 ${isGrouped ? 'py-0.5' : 'py-2.5'} rounded-xl md:transition-colors md:hover:bg-accent/40 ${message.isOwn ? 'bg-primary/[0.04]' : ''}`}>
         {isGrouped ? (
           <div className="w-9 flex-shrink-0" />
         ) : (
@@ -237,8 +229,6 @@ export const MessageBubble = ({ message, onReaction, onReply, onForward, onDelet
           canDelete={canDelete}
           showDeleteConfirm={showDeleteConfirm}
           onShowDeleteConfirm={setShowDeleteConfirm}
-          mobileVisible={mobileActionsVisible}
-          onMobileHide={() => setMobileActionsVisible(false)}
         />
       </div>
 
