@@ -304,7 +304,17 @@ export const useChatLogic = () => {
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(() => {
     const stored = localStorage.getItem('chatMessages');
     if (stored) {
-      try { return JSON.parse(stored); } catch { /* ignore */ }
+      try {
+        const parsed = JSON.parse(stored);
+        const trimmed: Record<string, Message[]> = {};
+        for (const [key, msgs] of Object.entries(parsed)) {
+          const arr = msgs as Message[];
+          trimmed[key] = arr.length > 50 ? arr.slice(-50) : arr;
+        }
+        return trimmed;
+      } catch {
+        localStorage.removeItem('chatMessages');
+      }
     }
     return initialChatMessages;
   });
@@ -850,10 +860,18 @@ export const useChatLogic = () => {
   // Сохраняем данные в localStorage с debounce
   useEffect(() => {
     const timer = setTimeout(() => {
-      localStorage.setItem('allUsers', JSON.stringify(allUsers));
-      localStorage.setItem('chats', JSON.stringify(chats));
-      localStorage.setItem('groupTopics', JSON.stringify(groupTopics));
-      localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+      try {
+        localStorage.setItem('allUsers', JSON.stringify(allUsers));
+        localStorage.setItem('chats', JSON.stringify(chats));
+        localStorage.setItem('groupTopics', JSON.stringify(groupTopics));
+        const trimmedMessages: Record<string, Message[]> = {};
+        for (const [key, msgs] of Object.entries(chatMessages)) {
+          trimmedMessages[key] = msgs.length > 50 ? msgs.slice(-50) : msgs;
+        }
+        localStorage.setItem('chatMessages', JSON.stringify(trimmedMessages));
+      } catch {
+        localStorage.removeItem('chatMessages');
+      }
     }, 500);
     
     return () => clearTimeout(timer);
