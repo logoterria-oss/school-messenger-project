@@ -80,10 +80,10 @@ def handler(event: dict, context) -> dict:
                        rct.reactions
                 FROM messages m
                 LEFT JOIN LATERAL (
-                    SELECT ARRAY_AGG(DISTINCT jsonb_build_object(
+                    SELECT COALESCE(ARRAY_AGG(DISTINCT jsonb_build_object(
                         'type', a.type, 'fileUrl', a.file_url,
                         'fileName', a.file_name, 'fileSize', a.file_size
-                    )) as attachments
+                    )) FILTER (WHERE a.id IS NOT NULL), ARRAY[]::jsonb[]) as attachments
                     FROM attachments a WHERE a.message_id = m.id
                 ) att ON true
                 LEFT JOIN LATERAL (

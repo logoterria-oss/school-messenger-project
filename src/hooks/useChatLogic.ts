@@ -26,7 +26,7 @@ const mapApiMessages = (msgs: ApiMessage[], currentUserId?: string): Message[] =
     timestamp: parseServerDate(m.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
     date: m.created_at,
     isOwn: currentUserId ? m.sender_id === currentUserId : false,
-    attachments: m.attachments,
+    attachments: m.attachments?.filter(a => a != null && a.fileUrl) || undefined,
     reactions: m.reactions,
     status: 'delivered' as const,
     replyTo: m.reply_to_id ? {
@@ -62,7 +62,9 @@ const mergeMessages = (existing: Message[], fromApi: Message[]): Message[] => {
       const resolvedStatus = ex.status === 'sending' ? 'delivered' : ex.status;
       merged.set(msg.id, { ...msg, timestamp: ex.timestamp, date: ex.date, isOwn: true, status: resolvedStatus });
     } else {
-      merged.set(msg.id, { ...ex, ...msg });
+      const merged_msg = { ...ex, ...msg };
+      if (!merged_msg.attachments && ex?.attachments) merged_msg.attachments = ex.attachments;
+      merged.set(msg.id, merged_msg);
     }
   });
   const arr = Array.from(merged.values());
