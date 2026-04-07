@@ -8,25 +8,20 @@
     <style>
       *{margin:0;padding:0;box-sizing:border-box}
       body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#fff}
-      #splash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;z-index:9999}
-      #splash .wrap{text-align:center}
-      #splash .ib{width:80px;height:80px;margin:0 auto 20px;border-radius:20px;background:#e8f5e9;overflow:hidden;animation:pl 1.8s ease-in-out infinite}
-      #splash .ib img{width:100%;height:100%;object-fit:cover}
-      #splash h1{font-size:22px;font-weight:700;color:#3BA662;letter-spacing:-.3px}
-      #splash p{font-size:13px;color:#999;margin-top:4px}
-      #splash .bar{margin:20px auto 0;width:160px;height:3px;background:#e8f5e9;border-radius:2px;overflow:hidden}
-      #splash .bar i{display:block;height:100%;background:#3BA662;border-radius:2px;animation:pr 1.5s ease-in-out infinite}
-      @keyframes pr{0%{width:0}50%{width:70%}100%{width:100%}}
-      @keyframes pl{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.06);opacity:.85}}
+      .splash-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;z-index:99999}
+      .splash-screen .sw{text-align:center}
+      .splash-screen .si{width:80px;height:80px;margin:0 auto 20px;border-radius:20px;background:#e8f5e9;overflow:hidden;animation:spl 1.8s ease-in-out infinite}
+      .splash-screen .si img{width:100%;height:100%;object-fit:cover}
+      .splash-screen .st{font-size:22px;font-weight:700;color:#3BA662;letter-spacing:-.3px}
+      .splash-screen .ss{font-size:13px;color:#999;margin-top:4px}
+      .splash-screen .sb{margin:20px auto 0;width:160px;height:3px;background:#e8f5e9;border-radius:2px;overflow:hidden}
+      .splash-screen .sf{display:block;height:100%;background:#3BA662;border-radius:2px;animation:spr 1.5s ease-in-out infinite}
+      @keyframes spr{0%{width:0}50%{width:70%}100%{width:100%}}
+      @keyframes spl{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.06);opacity:.85}}
     </style>
-    <script src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
-      <script src="https://cdn.poehali.dev/intertnal/js/route-min.js"></script>
-      <script src="https://cdn.poehali.dev/intertnal/js/inspector-min.js"></script>
-      <script src="https://cdn.poehali.dev/intertnal/js/telemetry-min.js"></script>
-  </head>
-<body>
-<div id="splash"><div class="wrap"><div class="ib"><img src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" alt=""></div><h1>ЛинэяСкул</h1><p>загружаем мессенджер</p><div class="bar"><i></i></div></div></div>
-<script>document.body.offsetHeight</script>
+    <script>
+      document.write('<div class="splash-screen"><div class="sw"><div class="si"><img src="https://cdn.poehali.dev/files/WhatsApp%20Image%202025-11-04%20at%2017.17.39.jpeg" alt=""></div><div class="st">ЛинэяСкул</div><div class="ss">загружаем мессенджер</div><div class="sb"><i class="sf"></i></div></div></div>');
+    </script>
 
     <meta name="description" content="Мессенджер онлайн-школы коррекции дислексии и дисграфии ЛинэяСкул. Домашние задания, объявления и общение с педагогами - всё в одном месте">
     <meta name="yandex-verification" content="b693314f17f2f4a9" />
@@ -59,7 +54,13 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS COMMENT! -->
 
     <meta name="pp-name" value="school-messenger-project">
+    <script src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
+      <script src="https://cdn.poehali.dev/intertnal/js/route-min.js"></script>
+      <script src="https://cdn.poehali.dev/intertnal/js/inspector-min.js"></script>
+      <script src="https://cdn.poehali.dev/intertnal/js/telemetry-min.js"></script>
+  </head>
 
+<body>
 <div id="root"></div>
 <script type="module" src="/src/main.tsx"></script>
 
