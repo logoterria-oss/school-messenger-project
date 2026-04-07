@@ -721,7 +721,7 @@ export const useChatLogic = () => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
           const deduped = deduplicatePrivateChats(mappedChats);
-          const withStaff = (userRole === 'teacher' || isAdminRole(userRole)) ? ensureStaffChats(userRole, userId, deduped, allUsers) : deduped;
+          const withStaff = deduped;
           const topicItems = Object.values(mappedTopics).flat().filter(t => isTopicAccessible(t.id)).map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
           const chatsWithoutGroups = withStaff.filter(c => !mappedTopics[c.id] || mappedTopics[c.id].length === 0);
           checkAndPlaySound(chatsWithoutGroups.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);
@@ -753,15 +753,15 @@ export const useChatLogic = () => {
         }
       }).catch(() => {});
     };
-    let pollInterval = setInterval(pollChats, document.hidden ? 15000 : 3000);
+    let pollInterval = setInterval(pollChats, document.hidden ? 30000 : 8000);
 
     const onVisibilityChange = () => {
       clearInterval(pollInterval);
       if (!document.hidden) {
         pollChats();
-        pollInterval = setInterval(pollChats, 3000);
+        pollInterval = setInterval(pollChats, 8000);
       } else {
-        pollInterval = setInterval(pollChats, 15000);
+        pollInterval = setInterval(pollChats, 30000);
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
@@ -808,15 +808,15 @@ export const useChatLogic = () => {
       });
     };
     pollMessages();
-    let poll = setInterval(pollMessages, document.hidden ? 15000 : 2000);
+    let poll = setInterval(pollMessages, document.hidden ? 30000 : 5000);
 
     const onVisibilityChangeMsgs = () => {
       clearInterval(poll);
       if (!document.hidden) {
         pollMessages();
-        poll = setInterval(pollMessages, 2000);
+        poll = setInterval(pollMessages, 5000);
       } else {
-        poll = setInterval(pollMessages, 15000);
+        poll = setInterval(pollMessages, 30000);
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChangeMsgs);

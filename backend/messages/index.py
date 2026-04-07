@@ -201,6 +201,13 @@ def handler(event: dict, context) -> dict:
             
             result = cur.fetchone()
 
+            # Обновляем кэш последнего сообщения в таблице chats
+            cache_text = text or ('[Изображение]' if attachments else '')
+            cur.execute("""
+                UPDATE chats SET last_msg_text = %s, last_msg_at = %s, last_msg_topic_id = %s
+                WHERE id = %s AND (last_msg_at IS NULL OR last_msg_at <= %s)
+            """, (cache_text, result['created_at'], topic_id, chat_id, result['created_at']))
+
             if attachments:
                 cur.execute("DELETE FROM attachments WHERE message_id = %s", (message_id,))
             for i, att in enumerate(attachments):

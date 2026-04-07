@@ -54,24 +54,21 @@ def handler(event: dict, context) -> dict:
             user_role = role_row['role'] if role_row else ''
 
             cur.execute("""
-                WITH chat_data AS (
+                WITH my_chats AS (
+                    SELECT DISTINCT chat_id FROM chat_participants WHERE user_id = %s
+                ),
+                chat_data AS (
                     SELECT c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.conclusion_pdf,
                            CASE WHEN c.type = 'private' THEN false ELSE COALESCE(c.is_pinned, false) END as is_pinned,
                            COALESCE(c.is_archived, false) as is_archived, c.lead_admin,
-                           COALESCE(m.text, '') as last_message,
-                           TO_CHAR(m.created_at, 'HH24:MI') as timestamp,
+                           COALESCE(c.last_msg_text, '') as last_message,
+                           TO_CHAR(c.last_msg_at, 'HH24:MI') as timestamp,
                            COALESCE(unread.count, 0) as unread,
                            ARRAY_AGG(DISTINCT cp.user_id ORDER BY cp.user_id) as participants,
-                           m.created_at as last_msg_at
+                           c.last_msg_at
                     FROM chats c
                     JOIN chat_participants cp ON cp.chat_id = c.id
-                    LEFT JOIN LATERAL (
-                        SELECT text, created_at
-                        FROM messages
-                        WHERE chat_id = c.id
-                        ORDER BY created_at DESC
-                        LIMIT 1
-                    ) m ON true
+                    JOIN my_chats mc ON mc.chat_id = c.id
                     LEFT JOIN LATERAL (
                         SELECT COUNT(*) as count
                         FROM messages msg
@@ -91,8 +88,7 @@ def handler(event: dict, context) -> dict:
                             )
                         )
                     ) unread ON true
-                    WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = %s)
-                    GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.conclusion_pdf, c.is_pinned, c.is_archived, c.lead_admin, m.text, m.created_at, unread.count
+                    GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.conclusion_pdf, c.is_pinned, c.is_archived, c.lead_admin, c.last_msg_text, c.last_msg_at, unread.count
                 ),
                 deduped AS (
                     SELECT DISTINCT ON (
@@ -104,7 +100,7 @@ def handler(event: dict, context) -> dict:
                 SELECT id, name, type, avatar, schedule, conclusion_link, conclusion_pdf, is_pinned, is_archived, lead_admin, last_message, timestamp, unread, participants
                 FROM deduped
                 ORDER BY is_pinned DESC, last_msg_at DESC NULLS LAST
-            """, (user_id, user_id, user_role, user_role, user_id))
+            """, (user_id, user_id, user_id, user_role, user_role))
 
             chats = cur.fetchall()
             chat_ids = [c['id'] for c in chats]
