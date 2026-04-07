@@ -2000,19 +2000,21 @@ export const useChatLogic = () => {
   };
 
   const handleArchiveChat = (chatId: string, archive: boolean) => {
-    setChats(prev => {
-      const updated = prev.map(chat =>
-        chat.id === chatId ? { ...chat, isArchived: archive } : chat
-      );
-      localStorage.setItem('chats', JSON.stringify(updated));
-      return updated;
-    });
-    updateChat(chatId, { is_archived: archive }).catch(() => {});
     if (archive && selectedChat === chatId) {
       setSelectedChat(null);
       setSelectedGroup(null);
       setSelectedTopic(null);
     }
+    setTimeout(() => {
+      setChats(prev => {
+        const updated = prev.map(chat =>
+          chat.id === chatId ? { ...chat, isArchived: archive } : chat
+        );
+        try { localStorage.setItem('chats', JSON.stringify(updated)); } catch { /* quota */ }
+        return updated;
+      });
+      updateChat(chatId, { is_archived: archive }).catch(() => {});
+    }, 0);
   };
 
   const handleDeleteGroup = (chatId: string) => {

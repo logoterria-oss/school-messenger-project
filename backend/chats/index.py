@@ -471,6 +471,9 @@ def handler(event: dict, context) -> dict:
             if 'name' in data:
                 updates.append('name = %s')
                 values.append(data['name'])
+            if 'is_archived' in data:
+                updates.append('is_archived = %s')
+                values.append(bool(data['is_archived']))
             if 'leadAdmin' in data:
                 updates.append('lead_admin = %s')
                 values.append(data['leadAdmin'])
