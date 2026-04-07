@@ -719,7 +719,7 @@ export const useChatLogic = () => {
         if (chatsData.chats.length > 0) {
           const { mappedChats, mappedTopics } = mapChatsData(chatsData as { chats: Record<string, unknown>[]; topics: Record<string, unknown[]> });
           const deduped = deduplicatePrivateChats(mappedChats);
-          const withStaff = (userRole === 'teacher' || userRole === 'admin') ? ensureStaffChats(userRole, userId, deduped, allUsers) : deduped;
+          const withStaff = (userRole === 'teacher' || isAdminRole(userRole)) ? ensureStaffChats(userRole, userId, deduped, allUsers) : deduped;
           const topicItems = Object.values(mappedTopics).flat().filter(t => isTopicAccessible(t.id)).map(t => ({ id: t.id, name: t.name, unread: t.unread, unreadMentions: t.unreadMentions }));
           const chatsWithoutGroups = withStaff.filter(c => !mappedTopics[c.id] || mappedTopics[c.id].length === 0);
           checkAndPlaySound(chatsWithoutGroups.map(c => ({ id: c.id, name: c.name, unread: c.unread, unreadMentions: c.unreadMentions })), topicItems);

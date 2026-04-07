@@ -92,7 +92,6 @@ def handler(event: dict, context) -> dict:
                         )
                     ) unread ON true
                     WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = %s)
-                      AND COALESCE(c.is_archived, false) = false
                     GROUP BY c.id, c.name, c.type, c.avatar, c.schedule, c.conclusion_link, c.conclusion_pdf, c.is_pinned, c.is_archived, c.lead_admin, m.text, m.created_at, unread.count
                 ),
                 deduped AS (
