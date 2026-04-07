@@ -23,21 +23,31 @@
     <meta property="og:image" content="https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/og-image-1773208243870.jpg">
     <meta name="twitter:image" content="https://cdn.poehali.dev/projects/4cb0cc95-18aa-46d6-b7e8-5e3a2e2fb412/files/og-image-1773208243870.jpg">
 
-    <!-- Preconnect to CDN and fonts for faster loading -->
     <link rel="preconnect" href="https://cdn.poehali.dev" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.poehali.dev">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Load system font (instant, no external requests) -->
+
     <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      @keyframes pulse-logo {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.06); opacity: 0.85; }
+      }
+      @keyframes progress {
+        0% { width: 0%; }
+        50% { width: 70%; }
+        100% { width: 100%; }
+      }
+      #splash{display:flex;align-items:center;justify-content:center;height:100vh;background:#fff}
+      #splash .logo{width:80px;height:80px;border-radius:20px;object-fit:cover;animation:pulse-logo 1.8s ease-in-out infinite}
+      #splash .title{font-size:22px;font-weight:700;color:#3BA662;letter-spacing:-0.3px;margin-top:20px}
+      #splash .sub{font-size:13px;color:#999;margin-top:4px}
+      #splash .bar{margin-top:20px;width:160px;height:3px;background:#e8f5e9;border-radius:2px;overflow:hidden}
+      #splash .fill{height:100%;background:#3BA662;border-radius:2px;animation:progress 1.5s ease-in-out infinite}
     </style>
-    
-    <!-- Preload critical resources -->
+
     <link rel="preload" href="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" as="image">
-    <link rel="modulepreload" href="/src/main.tsx">
-    <link rel="modulepreload" href="/src/App.tsx">
 
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS COMMENT! -->
     <script defer src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
@@ -47,7 +57,7 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS COMMENT! -->
 
     <meta name="pp-name" value="school-messenger-project">
-      <script src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
+    <script src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
       <script src="https://cdn.poehali.dev/intertnal/js/route-min.js"></script>
       <script src="https://cdn.poehali.dev/intertnal/js/inspector-min.js"></script>
       <script src="https://cdn.poehali.dev/intertnal/js/telemetry-min.js"></script>
@@ -55,28 +65,14 @@
 
 <body>
 <div id="root">
-  <!-- Splash screen пока грузится React -->
-  <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #ffffff; color: #333; font-family: system-ui, -apple-system, sans-serif;">
-    <div style="text-align: center;">
-      <img src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" alt="ЛинэяСкул" style="width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 20px; object-fit: cover; animation: pulse-logo 1.8s ease-in-out infinite;">
-      <div style="font-size: 22px; font-weight: 700; color: #3BA662; letter-spacing: -0.3px;">ЛинэяСкул</div>
-      <div style="font-size: 13px; color: #999; margin-top: 4px;">загружаем мессенджер</div>
-      <div style="margin-top: 20px; width: 160px; height: 3px; background: #e8f5e9; border-radius: 2px; overflow: hidden; margin-left: auto; margin-right: auto;">
-        <div style="height: 100%; background: #3BA662; border-radius: 2px; animation: progress 1.5s ease-in-out infinite;"></div>
-      </div>
+  <div id="splash">
+    <div style="text-align:center">
+      <img class="logo" src="https://cdn.poehali.dev/files/WhatsApp Image 2025-11-04 at 17.17.39.jpeg" alt="ЛинэяСкул">
+      <div class="title">ЛинэяСкул</div>
+      <div class="sub">загружаем мессенджер</div>
+      <div class="bar"><div class="fill"></div></div>
     </div>
   </div>
-  <style>
-    @keyframes pulse-logo {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.06); opacity: 0.85; }
-    }
-    @keyframes progress {
-      0% { width: 0%; }
-      50% { width: 70%; }
-      100% { width: 100%; }
-    }
-  </style>
 </div>
 <script type="module" src="/src/main.tsx"></script>
 
