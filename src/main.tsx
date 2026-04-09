@@ -42,36 +42,8 @@ if (window.visualViewport) {
 
 createRoot(document.getElementById("root")!).render(<App />);
 
-// Страховка: если сплэш не убрался за 8 секунд — убираем принудительно
-setTimeout(() => {
-  const el = document.querySelector('.splash-screen');
-  if (el) (el as HTMLElement).remove();
-}, 8000);
-
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then((reg) => {
-      reg.addEventListener('updatefound', () => {
-        const newSW = reg.installing;
-        if (!newSW) return;
-        newSW.addEventListener('statechange', () => {
-          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-            // Активируем только если страница открыта — иначе Chrome на Android
-            // показывает системное уведомление "сайт обновлён в фоновом режиме"
-            if (!document.hidden) {
-              newSW.postMessage({ type: 'SKIP_WAITING' });
-            } else {
-              const onVisible = () => {
-                if (!document.hidden) {
-                  document.removeEventListener('visibilitychange', onVisible);
-                  newSW.postMessage({ type: 'SKIP_WAITING' });
-                }
-              };
-              document.addEventListener('visibilitychange', onVisible);
-            }
-          }
-        });
-      });
-    }).catch(() => {});
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
 }

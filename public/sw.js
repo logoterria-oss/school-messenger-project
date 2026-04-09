@@ -1,4 +1,4 @@
-const SW_VERSION = 6;
+const SW_VERSION = 5;
 const DB_NAME = 'notification_settings';
 const STORE_NAME = 'muted_topics';
 
@@ -28,19 +28,12 @@ function getMutedTopics() {
   }).catch(() => []);
 }
 
-self.addEventListener('install', () => {
-  // skipWaiting вызывается из клиента только когда страница открыта,
-  // чтобы не триггерить системное уведомление Android "обновлён в фоне"
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });
 
 // ⚠️ CRITICAL: Мьют-лист в IndexedDB привязан к userId (см. notificationSettings.ts).

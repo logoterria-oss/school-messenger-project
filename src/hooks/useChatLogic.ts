@@ -17,7 +17,7 @@ const parseServerDate = (dateStr: string): Date => {
   return new Date(s);
 };
 
-const mapApiMessages = (msgs: ApiMessage[], currentUserId?: string, currentUserName?: string): Message[] =>
+const mapApiMessages = (msgs: ApiMessage[], currentUserId?: string): Message[] =>
   msgs.map(m => ({
     id: m.id,
     text: m.text,
@@ -27,10 +27,7 @@ const mapApiMessages = (msgs: ApiMessage[], currentUserId?: string, currentUserN
     date: m.created_at,
     isOwn: currentUserId ? m.sender_id === currentUserId : false,
     attachments: m.attachments?.filter(a => a != null && a.fileUrl) || undefined,
-    reactions: m.reactions?.map(r => ({
-      ...r,
-      users: r.users.map(u => (currentUserName && u === currentUserName) ? 'Вы' : u),
-    })),
+    reactions: m.reactions,
     status: 'delivered' as const,
     replyTo: m.reply_to_id ? {
       id: m.reply_to_id,
@@ -642,7 +639,7 @@ export const useChatLogic = () => {
         const msgs = await getMessages(data.chatId, data.topicId);
         const targetId = data.topicId || data.chatId;
         const prevMsgs = chatMessages[targetId] || [];
-        const newMsgs = mapApiMessages(msgs, userId, userName);
+        const newMsgs = mapApiMessages(msgs, userId);
         setChatMessages(prev => ({
           ...prev,
           [targetId]: mergeMessages(prev[targetId] || [], newMsgs)
@@ -790,7 +787,7 @@ export const useChatLogic = () => {
     const pollMessages = () => {
       if (!firstLoad && (document.hidden || activeSendsRef.current > 0)) return;
       getMessages(chatId, topicId || undefined).then(msgs => {
-        const mapped = mapApiMessages(msgs, userId, userName);
+        const mapped = mapApiMessages(msgs, userId);
         setChatMessages(prev => {
           const old = prev[targetId] || [];
           const merged = mergeMessages(old, mapped);
@@ -1029,7 +1026,7 @@ export const useChatLogic = () => {
       }
 
       getMessages(selectedGroup, topicId).then(msgs => {
-        setChatMessages(prev => ({ ...prev, [topicId]: mergeMessages(prev[topicId] || [], mapApiMessages(msgs, userId, userName)) }));
+        setChatMessages(prev => ({ ...prev, [topicId]: mergeMessages(prev[topicId] || [], mapApiMessages(msgs, userId)) }));
       }).catch(() => {});
     }
   };
