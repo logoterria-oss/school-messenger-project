@@ -342,7 +342,7 @@ export const MessageInput = ({
                   {EMOJI_LIST.map((emoji) => (
                     <button
                       key={emoji}
-                      onClick={() => onMessageChange(messageText + emoji)}
+                      onClick={() => handleTextChange(messageText + emoji)}
                       className="text-xl hover:scale-110 transition-transform p-1.5 cursor-pointer rounded-md hover:bg-accent"
                     >
                       {emoji}
