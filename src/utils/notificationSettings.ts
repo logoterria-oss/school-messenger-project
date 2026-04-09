@@ -26,9 +26,7 @@ function getStorageKey(): string {
 export function initNotificationSettingsForUser(userId: string) {
   const prevUserId = currentUserId;
   currentUserId = userId;
-  if (prevUserId && prevUserId !== userId) {
-    syncMutedToSW(loadSettings());
-  }
+  syncMutedToSW(loadSettings());
 }
 
 function loadSettings(): AllSettings {

@@ -298,10 +298,11 @@ def handler(event: dict, context) -> dict:
                             log(f"[Push] SKIP student {sub.get('user_name')} ({sub['user_id']}) — topic {topic_id} not in allowed list")
                             continue
 
-                        if sub.get('user_role') == 'teacher' and lead_teacher_ids and sub['user_id'] not in lead_teacher_ids:
-                            if not personal_mention:
-                                log(f"[Push] SKIP non-lead teacher {sub.get('user_name')} ({sub['user_id']})")
-                                continue
+                        if sub.get('user_role') == 'teacher' and chat_type == 'group' and chat_id != 'teachers-group':
+                            if sub['user_id'] not in lead_teacher_ids:
+                                if not personal_mention:
+                                    log(f"[Push] SKIP non-lead teacher {sub.get('user_name')} ({sub['user_id']})")
+                                    continue
 
                         if sub.get('user_role') == 'tech_specialist' and chat_type == 'group':
                             if not personal_mention:
