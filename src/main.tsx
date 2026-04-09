@@ -42,6 +42,12 @@ if (window.visualViewport) {
 
 createRoot(document.getElementById("root")!).render(<App />);
 
+// Страховка: если сплэш не убрался за 8 секунд — убираем принудительно
+setTimeout(() => {
+  const el = document.querySelector('.splash-screen');
+  if (el) (el as HTMLElement).remove();
+}, 8000);
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then((reg) => {
