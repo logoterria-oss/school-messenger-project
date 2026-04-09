@@ -28,12 +28,19 @@ function getMutedTopics() {
   }).catch(() => []);
 }
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(self.skipWaiting());
+self.addEventListener('install', () => {
+  // skipWaiting вызывается из клиента только когда страница открыта,
+  // чтобы не триггерить системное уведомление Android "обновлён в фоне"
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // ⚠️ CRITICAL: Мьют-лист в IndexedDB привязан к userId (см. notificationSettings.ts).
