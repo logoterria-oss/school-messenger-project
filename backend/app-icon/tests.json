@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "GET returns PNG image",
+      "method": "GET",
+      "expectedStatus": 200
+    },
+    {
+      "name": "OPTIONS returns CORS headers",
+      "method": "OPTIONS",
+      "expectedStatus": 200
+    }
+  ]
+}
